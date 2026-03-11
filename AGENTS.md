@@ -5,4 +5,3 @@ A generic toolkit and framework designed to reduce the effort required to create
 
 ## Lessons Learned
 - Currently tracking the main branch. Any additions should be aligned with the core C++ framework and Bazel build system.
-- Git constraints: Agents are strictly forbidden from modifying git remotes in any way. Do not use commands like `git remote add`, `git remote remove`, or `git remote set-url`.
