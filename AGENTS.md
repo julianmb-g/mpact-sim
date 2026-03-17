@@ -8,3 +8,4 @@
 ### Miscellaneous
 - **C++ Scope Resolving (ELFIO)**:: External libraries like `ELFIO` might update their namespacing (`ELFCLASS32` to `ELFIO::ELFCLASS32`). Explicit scope resolution is necessary during integration.
 - **Performance Over-Engineering (String Lookups)**:: Avoid $O(N)$ string hashing in hot simulator paths (`Step()`). Cache `RegisterBase*` pointers during initialization.
+- **Task Tracking Centralization**:: Submodule tasks must strictly be planned and tracked via the root workspace `PLAN.md` ledger.
