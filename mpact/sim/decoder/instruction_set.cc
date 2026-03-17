@@ -992,6 +992,11 @@ std::tuple<std::string, std::string> InstructionSet::GenerateEncClasses(
       "      uint64_t address, absl::string_view text, int entry,\n"
       "      ResolverInterface *resolver,\n"
       "      std::vector<RelocationInfo> &relocations) = 0;\n"
+      "  virtual absl::StatusOr<std::tuple<uint64_t, int>> Encode(\n"
+      "      uint64_t address, int opcode_index,\n"
+      "      const std::vector<std::string> &operands, int entry,\n"
+      "      ResolverInterface *resolver,\n"
+      "      std::vector<RelocationInfo> &relocations) = 0;\n"
       "};\n\n");
 
   // Generate the regex matchers for each slot.

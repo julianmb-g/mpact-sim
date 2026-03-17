@@ -495,6 +495,11 @@ std::tuple<std::string, std::string> Slot::GenerateAsmRegexMatcher() const {
       "absl::StatusOr<std::tuple<uint64_t, int>> "
       "  Encode(uint64_t address, absl::string_view text, int entry, "
       "ResolverInterface *resolver, std::vector<RelocationInfo> "
+      "&relocations) override;\n"
+      "  absl::StatusOr<std::tuple<uint64_t, int>> "
+      "  Encode(uint64_t address, int opcode_index, "
+      "const std::vector<std::string> &operands, int entry, "
+      "ResolverInterface *resolver, std::vector<RelocationInfo> "
       "&relocations) override;\n\n"
       " private:\n"
       "  bool Match(absl::string_view text, std::vector<int> &matches);\n"
@@ -620,7 +625,21 @@ std::tuple<std::string, std::string> Slot::GenerateAsmRegexMatcher() const {
   return encodings[0];
 }
 
-)");
+)",
+      "absl::StatusOr<std::tuple<uint64_t, int>> ",
+      pascal_name(),
+      "SlotMatcher::Encode(\n"
+      "    uint64_t address, int opcode_index, "
+      "const std::vector<std::string> &operands, int entry, "
+      "ResolverInterface *resolver, std::vector<RelocationInfo> "
+      "&relocations) {\n"
+      "  if (opcode_index < 0 || opcode_index >= static_cast<int>(OpcodeEnum::kPastMaxValue)) {\n"
+      "    return absl::NotFoundError(\"Invalid opcode index\");\n"
+      "  }\n"
+      "  return encode_fcns[opcode_index](encoder_, SlotEnum::k",
+      pascal_name(),
+      ", entry, static_cast<OpcodeEnum>(opcode_index), address, operands, resolver, relocations);\n"
+      "}\n\n");
   absl::StrAppend(&h_output, "};\n\n");
   return {h_output, cc_output};
 }
