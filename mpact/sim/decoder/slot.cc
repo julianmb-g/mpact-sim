@@ -602,7 +602,9 @@ std::tuple<std::string, std::string> Slot::GenerateAsmRegexMatcher() const {
   for (auto index : matches) {
     std::vector<std::string> values;
     if (!Extract(text, index, values)) continue;
-    int opcode_index = index_to_opcode_map_.at(index);
+    auto it = index_to_opcode_map_.find(index);
+    if (it == index_to_opcode_map_.end()) continue;
+    int opcode_index = it->second;
 )",
       "    auto result = encode_fcns[opcode_index](encoder_, SlotEnum::k",
       pascal_name(),
