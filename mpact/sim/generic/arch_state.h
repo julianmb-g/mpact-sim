@@ -129,6 +129,9 @@ class ArchState : public Component {
   // accordingly. The method is empty by default.
   virtual void CheckForInterrupt() { /*empty*/ }
 
+  // Exposes vector capacities safely without requiring RTTI or UB downcasts.
+  virtual int GetVectorLength() const { return 0; }
+
   // Accessors for data members
   const std::string& id() const { return component_name(); }
   // The DataBufferFactory associated with this architecture instance.
