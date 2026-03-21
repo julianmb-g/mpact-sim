@@ -500,7 +500,9 @@ std::tuple<std::string, std::string> Slot::GenerateAsmRegexMatcher() const {
       "  Encode(uint64_t address, int opcode_index, "
       "const std::vector<std::string> &operands, int entry, "
       "ResolverInterface *resolver, std::vector<RelocationInfo> "
-      "&relocations) override;\n\n"
+      "&relocations) override;\n"
+      "  absl::StatusOr<uint32_t> "
+      "  Encode(const ::coralnpu::sim::InstructionAST& node) const override;\n\n"
       " private:\n"
       "  bool Match(absl::string_view text, std::vector<int> &matches);\n"
       "  bool Extract(absl::string_view text, int index, "
@@ -627,7 +629,24 @@ std::tuple<std::string, std::string> Slot::GenerateAsmRegexMatcher() const {
   return encodings[0];
 }
 
-)",
+absl::StatusOr<uint32_t> )",
+      pascal_name(),
+      "SlotMatcher::Encode(\n"
+      "    const ::coralnpu::sim::InstructionAST& node) const {\n"
+      "  auto it = index_to_opcode_map_.find(node.opcode_index);\n"
+      "  if (it == index_to_opcode_map_.end()) {\n"
+      "    return absl::NotFoundError(\"Invalid opcode index mapped from AST\");\n"
+      "  }\n"
+      "  int mapped_opcode_index = it->second;\n"
+      "  std::vector<RelocationInfo> relocations;\n"
+      "  auto result = encode_fcns[mapped_opcode_index](encoder_, SlotEnum::k",
+      pascal_name(),
+      ", 0, static_cast<OpcodeEnum>(mapped_opcode_index), 0, node.operands, nullptr, relocations);\n"
+      "  if (!result.ok()) {\n"
+      "    return result.status();\n"
+      "  }\n"
+      "  return static_cast<uint32_t>(std::get<0>(result.value()));\n"
+      "}\n\n"
       "absl::StatusOr<std::tuple<uint64_t, int>> ",
       pascal_name(),
       "SlotMatcher::Encode(\n"

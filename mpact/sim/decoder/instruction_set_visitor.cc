@@ -2478,6 +2478,25 @@ InstructionSetVisitor::GenerateEncFilePrologs(
                   "\"\n"
                   "\n");
 
+  absl::StrAppend(&h_output,
+      "#ifndef CORALNPU_SIM_INSTRUCTION_AST_DEFINED\n"
+      "#define CORALNPU_SIM_INSTRUCTION_AST_DEFINED\n"
+      "namespace coralnpu::sim {\n"
+      "struct InstructionAST {\n"
+      "  int opcode_index = -1;\n"
+      "  std::string opcode_name = \"\";\n"
+      "  std::vector<std::string> operands;\n"
+      "  std::string assembly = \"\";\n"
+      "  bool operator==(const InstructionAST& other) const {\n"
+      "    return opcode_index == other.opcode_index && opcode_name == other.opcode_name && operands == other.operands && assembly == other.assembly;\n"
+      "  }\n"
+      "  bool operator!=(const InstructionAST& other) const {\n"
+      "    return !(*this == other);\n"
+      "  }\n"
+      "};\n"
+      "}\n"
+      "#endif\n"
+      "\n");
   for (const auto& namespace_name : namespaces) {
     absl::StrAppend(&h_output, "namespace ", namespace_name, " {\n");
     absl::StrAppend(&cc_output, "namespace ", namespace_name, " {\n");

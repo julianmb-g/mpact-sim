@@ -988,6 +988,7 @@ std::tuple<std::string, std::string> InstructionSet::GenerateEncClasses(
       "class SlotMatcherInterface {\n"
       " public:\n"
       "  virtual ~SlotMatcherInterface() = default;\n"
+      "  virtual absl::StatusOr<uint32_t> Encode(const ::coralnpu::sim::InstructionAST& node) const = 0;\n"
       "  virtual absl::StatusOr<std::tuple<uint64_t, int>> Encode(\n"
       "      uint64_t address, absl::string_view text, int entry,\n"
       "      ResolverInterface *resolver,\n"
