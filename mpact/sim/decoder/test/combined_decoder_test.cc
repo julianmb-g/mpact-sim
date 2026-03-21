@@ -14,12 +14,36 @@
 
 #include "googlemock/include/gmock/gmock.h"
 #include "googletest/include/gtest/gtest.h"
+#include "mpact/sim/decoder/test/combined_isa_decoder.h"
+#include "mpact/sim/decoder/test/combined_isa_enums.h"
+#include "mpact/sim/generic/arch_state.h"
+#include "mpact/sim/generic/instruction.h"
 
 namespace {
 
-// Trivial case that succeeds as long as the generated code compiles, including
-// base classes, as this test file build dependency includes the .isa grammar
-// file. See the BUILD file for details.
-TEST(CombinedDecoderTest, Trivial) { EXPECT_TRUE(true); }
+using namespace sim::example::isa;
+
+class TestArchState : public mpact::sim::generic::ArchState {
+ public:
+  TestArchState() : mpact::sim::generic::ArchState("test") {}
+};
+
+class MockEncoding : public ExampleEncodingBase {
+ public:
+  OpcodeEnum GetOpcode(SlotEnum slot, int entry) override {
+    return OpcodeEnum::kBrInd;
+  }
+};
+
+TEST(CombinedDecoderTest, DecodeASide0) {
+  TestArchState arch_state;
+  MockEncoding encoding;
+  ASide0Slot decoder(&arch_state);
+  
+  auto *inst = decoder.Decode(0x1000, &encoding, SlotEnum::kASide0, 0);
+  EXPECT_NE(inst, nullptr);
+  EXPECT_EQ(inst->address(), 0x1000);
+  inst->DecRef();
+}
 
 }  // namespace
