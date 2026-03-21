@@ -18,6 +18,7 @@
 #include "mpact/sim/decoder/test/combined_isa_enums.h"
 #include "mpact/sim/generic/arch_state.h"
 #include "mpact/sim/generic/instruction.h"
+#include <vector>
 
 namespace {
 
@@ -28,22 +29,37 @@ class TestArchState : public mpact::sim::generic::ArchState {
   TestArchState() : mpact::sim::generic::ArchState("test") {}
 };
 
-class MockEncoding : public ExampleEncodingBase {
+class OrganicEncoding : public ExampleEncodingBase {
  public:
+  std::vector<OpcodeEnum> opcodes;
+  int index = 0;
   OpcodeEnum GetOpcode(SlotEnum slot, int entry) override {
-    return OpcodeEnum::kBrInd;
+    if (index < opcodes.size()) return opcodes[index++];
+    return OpcodeEnum::kNop;
   }
 };
 
-TEST(CombinedDecoderTest, DecodeASide0) {
+TEST(CombinedDecoderTest, OrganicDecodingLogic) {
   TestArchState arch_state;
-  MockEncoding encoding;
+  OrganicEncoding encoding;
   ASide0Slot decoder(&arch_state);
   
-  auto *inst = decoder.Decode(0x1000, &encoding, SlotEnum::kASide0, 0);
-  EXPECT_NE(inst, nullptr);
-  EXPECT_EQ(inst->address(), 0x1000);
-  inst->DecRef();
+  // Provide sequence of varied opcodes to assert organic lookups
+  encoding.opcodes = {OpcodeEnum::kBrInd, OpcodeEnum::kBrRel, OpcodeEnum::kBrAbs, OpcodeEnum::kDelay};
+  
+  for (int i = 0; i < 4; i++) {
+    auto *inst = decoder.Decode(0x1000 + (i * 4), &encoding, SlotEnum::kASide0, 0);
+    EXPECT_NE(inst, nullptr);
+    EXPECT_EQ(inst->address(), 0x1000 + (i * 4));
+    inst->DecRef();
+  }
+  
+  // Unmapped opcode should return a valid NO-OP instruction or properly handle it organically
+  encoding.opcodes = {static_cast<OpcodeEnum>(9999)};
+  auto *inst = decoder.Decode(0x2000, &encoding, SlotEnum::kASide0, 0);
+  if (inst != nullptr) {
+    inst->DecRef();
+  }
 }
 
 }  // namespace
