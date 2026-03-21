@@ -2,13 +2,16 @@
 
 ## Lessons Learned
 
+### Architectural Ledger and Data Loss Preservation
+- **Eradication of Mock Decoding Illusions**: Do not use hand-written mocks that blindly return canned scalar vectors (e.g. `opcodes[index++]`) when testing ISA decoder boundaries (like `ASide0Slot::Decode`). These fake implementations mathematically mask missing index bounds increments and skip underlying exceptions (like `std::out_of_range` on unmapped `GetOpcode` bits). Natively implement structural bounds parsing (e.g. `inst_word_ & 0xFFFF`) and use `EXPECT_THROW` to organically test execution crashes instead of relying on the mock illusion.
+
 ### Miscellaneous
 - **C++ Scope Resolving (ELFIO)**: External libraries like `ELFIO` might update their namespacing (`ELFCLASS32` to `ELFIO::ELFCLASS32`). Explicit scope resolution is necessary during integration.
 - **mpact-sim framework**: Contains core infrastructure like ISA/binary decoder generators, generic instruction and register classes, and utility models like ELF loaders.
 
 ### Testing Gotchas
 - **C++ Variable Naming Code Smells (auto)**: Avoid ambiguous variable naming with `auto` when receiving `absl::Status` or `absl::StatusOr` return values (e.g., avoid `auto res = worker->Encode()`). Use explicit types like `absl::StatusOr<InstructionGroup*> result =` to clarify the return type and prevent aggressive context-switching during incident response error handling.
+- **Generated Artifact Hallucination**: When PLAN.md tasks ask to edit files that do not exist because they are dynamically generated during the build process (like decoder/slot_matcher.h in mpact-sim), agents MUST organically trace the generation source (e.g., instruction_set.cc) and edit the source instead of modifying the hallucinated static file.
 - **Generated Code Hallucination**: When a task requests editing a file like `decoder/slot_matcher.h` which does not statically exist in the repository but is generated dynamically during the build (e.g., via `instruction_set.cc`), agents MUST modify the actual generator source file, not attempt to create or edit the hallucinated generated artifact.
 - **Isolated Phase 2 Pointer Verification**: Even if a submodule pointer was previously synchronized and committed out-of-band by an overlapping cycle, the Build Agent must still execute the cross-submodule zero-trust verification (e.g., `bazel test //...`) mapped in Phase 2 before officially checking off the task in `PLAN.md` to guarantee structural integrity before advancing the SDLC loop. Note: When utilizing `--override_repository` for `mpact-sim` inside the `coralnpu-mpact` workspace, you must specify the full bazel repository name `--override_repository=com_google_mpact-sim=/workspace/louhi_ws/mpact-sim`, not just `mpact_sim`.
-
 - **absl::StatusOr Negation Syntax Error**: The unary `-` operator cannot be applied directly to an `absl::StatusOr<T>` wrapper in C++. Developers must explicitly evaluate `.ok()` and unwrap `.value()` before negating to prevent fatal `FAILED TO BUILD` pipeline crashes. Do not implement static `operator-` overloads for `absl::StatusOr` to falsely mask this error.
