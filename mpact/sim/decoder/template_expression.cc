@@ -29,17 +29,14 @@ namespace instruction_set {
 // nodes. If there is an error in the expression evaluation the error is
 // propagated to the top.
 static absl::StatusOr<TemplateValue> operator-(
-    const absl::StatusOr<TemplateValue>& lhs) {
-  if (lhs.ok()) {
-    auto variant_value = lhs.value();
-    int* value_ptr = std::get_if<int>(&variant_value);
-    if (value_ptr != nullptr) {
-      return -*value_ptr;
-    } else {
-      return absl::InternalError("int type expected");
-    }
+    const TemplateValue& lhs) {
+  auto variant_value = lhs;
+  int* value_ptr = std::get_if<int>(&variant_value);
+  if (value_ptr != nullptr) {
+    return -*value_ptr;
+  } else {
+    return absl::InternalError("int type expected");
   }
-  return lhs.status();
 }
 
 // Operator helper function. The typename template argument must be a type
@@ -176,13 +173,18 @@ absl::StatusOr<TemplateExpression*> TemplateNegate::Evaluate(
   if (!expr.ok()) return expr.status();
   // If expression is constant then can return a constant node.
   if (expr.value()->IsConstant()) {
-    auto result = -expr.value()->GetValue();
-    if (result.ok()) {
+    auto result = expr.value()->GetValue();
+    if (!result.ok()) {
       delete expr.value();
-      return new TemplateConstant(result.value());
-    } else {
-      return expr.status();
+      return result.status();
     }
+    auto neg_result = -result.value();
+    if (!neg_result.ok()) {
+      delete expr.value();
+      return neg_result.status();
+    }
+    delete expr.value();
+    return new TemplateConstant(neg_result.value());
   } else {
     return new TemplateNegate(expr.value());
   }
