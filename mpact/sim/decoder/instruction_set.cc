@@ -997,6 +997,23 @@ std::tuple<std::string, std::string> InstructionSet::GenerateEncClasses(
       "      const std::vector<std::string> &operands, int entry,\n"
       "      ResolverInterface *resolver,\n"
       "      std::vector<RelocationInfo> &relocations) = 0;\n"
+      "\n"
+      "  // Backward-compatible C-ABI wrapper for legacy consumers\n"
+      "  bool EncodeSafe(uint64_t address, int opcode_index,\n"
+      "                  const std::vector<std::string> &operands, int entry,\n"
+      "                  ResolverInterface *resolver,\n"
+      "                  std::vector<RelocationInfo> &relocations,\n"
+      "                  std::tuple<uint64_t, int>* out_payload,\n"
+      "                  absl::Status* out_status = nullptr) {\n"
+      "      absl::StatusOr<std::tuple<uint64_t, int>> result = Encode(\n"
+      "          address, opcode_index, operands, entry, resolver, relocations);\n"
+      "      if (result.ok()) {\n"
+      "          if (out_payload) *out_payload = result.value();\n"
+      "          return true;\n"
+      "      }\n"
+      "      if (out_status) *out_status = result.status();\n"
+      "      return false;\n"
+      "  }\n"
       "};\n\n");
 
   // Generate the regex matchers for each slot.
