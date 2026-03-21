@@ -39,18 +39,6 @@ class OrganicEncoding : public ExampleEncodingBase {
   }
 };
 
-class OrganicFactory : public ExampleInstructionSetFactory {
-public:
-  std::unique_ptr<BundleBDecoder> CreateBundleBDecoder(mpact::sim::generic::ArchState *arch) override { return nullptr; }
-  std::unique_ptr<BundleADecoder> CreateBundleADecoder(mpact::sim::generic::ArchState *arch) override { return nullptr; }
-  std::unique_ptr<OtherSlot> CreateOtherSlot(mpact::sim::generic::ArchState *arch) override { return std::make_unique<OtherSlot>(arch); }
-  std::unique_ptr<BSideAluSlot> CreateBSideAluSlot(mpact::sim::generic::ArchState *arch) override { return std::make_unique<BSideAluSlot>(arch); }
-  std::unique_ptr<BSideStoreSlot> CreateBSideStoreSlot(mpact::sim::generic::ArchState *arch) override { return std::make_unique<BSideStoreSlot>(arch); }
-  std::unique_ptr<BSideLoadSlot> CreateBSideLoadSlot(mpact::sim::generic::ArchState *arch) override { return std::make_unique<BSideLoadSlot>(arch); }
-  std::unique_ptr<ASide1Slot> CreateASide1Slot(mpact::sim::generic::ArchState *arch) override { return std::make_unique<ASide1Slot>(arch); }
-  std::unique_ptr<ASide0Slot> CreateASide0Slot(mpact::sim::generic::ArchState *arch) override { return std::make_unique<ASide0Slot>(arch); }
-  std::unique_ptr<BSideLoad2Slot> CreateBSideLoad2Slot(mpact::sim::generic::ArchState *arch) override { return std::make_unique<BSideLoad2Slot>(arch); }
-};
 
 TEST(ExampleDecoderTest, OrganicDecodingLogic) {
   TestArchState arch_state;
