@@ -1443,13 +1443,13 @@ InstructionGroup* BinFormatVisitor::VisitInstructionGroupNameList(
   // Create the "parent" group and add all of the instructions from the
   // child groups to it.
   auto width = child_groups.front()->width();
-  auto res =
+  absl::StatusOr<InstructionGroup*> result =
       encoding_info->AddInstructionGroup(group_name, width, group_format_name);
-  if (!res.ok()) {
-    error_listener_->semanticError(ctx->start, res.status().message());
+  if (!result.ok()) {
+    error_listener_->semanticError(ctx->start, result.status().message());
     return nullptr;
   }
-  auto parent_group = res.value();
+  auto parent_group = result.value();
   for (auto* child_group : child_groups) {
     for (auto* encoding : child_group->encoding_vec()) {
       parent_group->AddInstructionEncoding(new InstructionEncoding(*encoding));

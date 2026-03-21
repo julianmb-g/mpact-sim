@@ -179,8 +179,8 @@ absl::Status AtomicMemory::PerformMemoryOp(uint64_t address, Operation op,
       ll_tag_set_.erase(tag);
       value = 0;
     }
-    auto res = WriteDb(db, value);
-    if (!res.ok()) return res;
+    absl::Status result = WriteDb(db, value);
+    if (!result.ok()) return result;
     WriteBack(inst, context, db);
     return absl::OkStatus();
   }

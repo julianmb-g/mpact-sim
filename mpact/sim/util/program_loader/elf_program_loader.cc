@@ -160,9 +160,9 @@ absl::StatusOr<uint64_t> ElfProgramLoader::LoadProgram(
       continue;
     }
     // Use debug interface.
-    auto res = dbg_if_->WriteMemory(dest_addr, segment->get_data(),
+    absl::StatusOr<size_t> result = dbg_if_->WriteMemory(dest_addr, segment->get_data(),
                                     segment->get_file_size());
-    if (!res.ok() || (res.value() != segment->get_file_size())) {
+    if (!result.ok() || (result.value() != segment->get_file_size())) {
       return absl::InternalError("Write error while loading elf segment");
     }
   }

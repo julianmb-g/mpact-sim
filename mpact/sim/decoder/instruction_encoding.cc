@@ -222,9 +222,9 @@ absl::Status InstructionEncoding::AddEqualConstraint(std::string field_name,
                                                      int64_t value) {
   // Invalidate the computed masks and values when a new constraint is added.
   mask_set_ = false;
-  auto res = CreateConstraint(ConstraintType::kEq, field_name, value);
-  if (!res.ok()) return res.status();
-  auto* constraint = res.value();
+  absl::StatusOr<Constraint*> result = CreateConstraint(ConstraintType::kEq, field_name, value);
+  if (!result.ok()) return result.status();
+  auto* constraint = result.value();
   if ((constraint->overlay != nullptr) &&
       constraint->overlay->must_be_extracted()) {
     // If the value is not 100% based on extracted bits (i.e., it is an
@@ -241,9 +241,9 @@ absl::Status InstructionEncoding::AddEqualConstraint(std::string field_name,
 absl::Status InstructionEncoding::AddOtherConstraint(ConstraintType type,
                                                      std::string field_name,
                                                      int64_t value) {
-  auto res = CreateConstraint(type, field_name, value);
-  if (!res.ok()) return res.status();
-  auto* constraint = res.value();
+  absl::StatusOr<Constraint*> result = CreateConstraint(type, field_name, value);
+  if (!result.ok()) return result.status();
+  auto* constraint = result.value();
   other_constraints_.push_back(constraint);
   return absl::OkStatus();
 }
@@ -251,9 +251,9 @@ absl::Status InstructionEncoding::AddOtherConstraint(ConstraintType type,
 absl::Status InstructionEncoding::AddOtherConstraint(
     ConstraintType type, const std::string& lhs_name,
     const std::string& rhs_name) {
-  auto res = CreateConstraint(type, lhs_name, rhs_name);
-  if (!res.ok()) return res.status();
-  auto* constraint = res.value();
+  absl::StatusOr<Constraint*> result = CreateConstraint(type, lhs_name, rhs_name);
+  if (!result.ok()) return result.status();
+  auto* constraint = result.value();
   other_constraints_.push_back(constraint);
   return absl::OkStatus();
 }
@@ -271,9 +271,9 @@ absl::Status InstructionEncoding::ComputeMaskAndValue() {
       mask <<= shift;
       value = constraint->value << shift;
     } else {
-      auto res = constraint->overlay->GetBitField(constraint->value);
-      if (!res.ok()) return res.status();
-      value = res.value();
+      absl::StatusOr<uint64_t> result = constraint->overlay->GetBitField(constraint->value);
+      if (!result.ok()) return result.status();
+      value = result.value();
       mask = constraint->overlay->mask();
     }
     value_ |= mask & value;

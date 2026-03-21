@@ -1995,14 +1995,14 @@ absl::Status InstructionSetVisitor::ParseDisasmFormat(std::string format,
 
       if (end_pos >= length) break;
 
-      auto res = ParseFormatExpression(format.substr(pos, end_pos - pos),
+      absl::StatusOr<FormatInfo*> result = ParseFormatExpression(format.substr(pos, end_pos - pos),
                                        inst->opcode());
-      if (!res.ok()) {
+      if (!result.ok()) {
         delete disasm_fmt;
-        return res.status();
+        return result.status();
       }
 
-      format_info = res.value();
+      format_info = result.value();
 
       pos = end_pos;
 
@@ -2014,13 +2014,13 @@ absl::Status InstructionSetVisitor::ParseDisasmFormat(std::string format,
 
         end_pos = format.find_first_of(')', pos);
         if (end_pos == std::string::npos) break;
-        auto res = ParseNumberFormat(format.substr(pos, end_pos - pos));
-        if (!res.ok()) {
+        absl::StatusOr<std::string> result = ParseNumberFormat(format.substr(pos, end_pos - pos));
+        if (!result.ok()) {
           delete format_info;
           delete disasm_fmt;
-          return res.status();
+          return result.status();
         }
-        format_info->number_format = res.value();
+        format_info->number_format = result.value();
         pos = end_pos;
       }
       pos++;
@@ -2037,12 +2037,12 @@ absl::Status InstructionSetVisitor::ParseDisasmFormat(std::string format,
       disasm_fmt->format_info_vec.push_back(format_info);
 
     } else {  // Simple %opname specifier.
-      auto res = get_ident(format, pos);
-      if (!res.ok()) {
+      absl::StatusOr<std::pair<std::string, std::string::size_type>> result = get_ident(format, pos);
+      if (!result.ok()) {
         delete disasm_fmt;
-        return res.status();
+        return result.status();
       }
-      auto [op_name, end_pos] = res.value();
+      auto [op_name, end_pos] = result.value();
       pos = end_pos;
       if (!inst->opcode()->op_locator_map().contains(op_name)) {
         delete disasm_fmt;
@@ -2157,12 +2157,12 @@ absl::StatusOr<FormatInfo*> InstructionSetVisitor::ParseFormatExpression(
 
   if (expr[pos] != '(') {  // No shift expression.
     // Get the field identifier.
-    auto res = get_ident(expr, pos);
-    if (!res.ok()) {
+    absl::StatusOr<std::pair<std::string, std::string::size_type>> result = get_ident(expr, pos);
+    if (!result.ok()) {
       delete format_info;
-      return res.status();
+      return result.status();
     }
-    auto [ident, new_pos] = res.value();
+    auto [ident, new_pos] = result.value();
     if (!op->op_locator_map().contains(ident)) {
       delete format_info;
       return absl::InternalError(absl::StrCat("Invalid operand '", ident,
@@ -2184,12 +2184,12 @@ absl::StatusOr<FormatInfo*> InstructionSetVisitor::ParseFormatExpression(
     // end of string.
 
     // Get the field identifier.
-    auto res = get_ident(expr, pos);
-    if (!res.ok()) {
+    absl::StatusOr<std::pair<std::string, std::string::size_type>> result = get_ident(expr, pos);
+    if (!result.ok()) {
       delete format_info;
-      return res.status();
+      return result.status();
     }
-    auto [ident, new_pos] = res.value();
+    auto [ident, new_pos] = result.value();
     format_info->op_name = ident;
 
     pos = skip_space(expr, new_pos);

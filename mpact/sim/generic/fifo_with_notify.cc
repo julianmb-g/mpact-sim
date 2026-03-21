@@ -28,9 +28,9 @@ namespace generic {
 bool FifoWithNotifyBase::Push(DataBuffer* db) {
   if (!IsEmpty()) return FifoBase::Push(db);
 
-  auto res = FifoBase::Push(db);
+  bool result = FifoBase::Push(db);
   if (on_not_empty_) on_not_empty_(this);
-  return res;
+  return result;
 }
 
 // Call base class Pop. Only call the on_empty callback if the fifo is empty

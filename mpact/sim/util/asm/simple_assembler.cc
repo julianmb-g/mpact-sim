@@ -571,12 +571,12 @@ absl::Status SimpleAssembler::CreateExecutable(
                                     bss_section_->get_addr_align());
   }
 
-  auto res = SimpleTextToInt<uint64_t>(entry_point, symbol_resolver);
-  if (!res.ok()) {
+  absl::StatusOr<uint64_t> result = SimpleTextToInt<uint64_t>(entry_point, symbol_resolver);
+  if (!result.ok()) {
     cleanup();
-    return res.status();
+    return result.status();
   }
-  uint64_t entry_point_value = res.value();
+  uint64_t entry_point_value = result.value();
 
   symbol_accessor_->arrange_local_symbols();
   writer_.set_entry(entry_point_value);
@@ -801,9 +801,9 @@ absl::Status SimpleAssembler::ParseAsmDirective(
       return absl::InvalidArgumentError(
           absl::StrCat("No section for directive: '", directive, "'"));
     }
-    auto res = SimpleTextToInt<uint64_t>(remainder);
-    if (!res.ok()) return res.status();
-    uint64_t align = res.value();
+    absl::StatusOr<uint64_t> result = SimpleTextToInt<uint64_t>(remainder);
+    if (!result.ok()) return result.status();
+    uint64_t align = result.value();
     // Verify that the alignment is a power of two.
     if ((align & (align - 1)) != 0) {
       return absl::InvalidArgumentError(
@@ -816,23 +816,23 @@ absl::Status SimpleAssembler::ParseAsmDirective(
     SetBssSection(".bss");
   } else if (match == "bytes") {
     // .bytes
-    auto res = GetValues<uint8_t>(remainder, resolver);
-    if (!res.ok()) return res.status();
-    auto values = res.value();
+    absl::StatusOr<std::vector<uint8_t>> result = GetValues<uint8_t>(remainder, resolver);
+    if (!result.ok()) return result.status();
+    auto values = result.value();
     size = values.size();
     for (auto const& value : values) byte_values.push_back(value);
   } else if (match == "char") {
     // .char
-    auto res = GetValues<char>(remainder, resolver);
-    if (!res.ok()) return res.status();
-    auto values = res.value();
+    absl::StatusOr<std::vector<char>> result = GetValues<char>(remainder, resolver);
+    if (!result.ok()) return result.status();
+    auto values = result.value();
     size = values.size();
     for (auto const& value : values) byte_values.push_back(value);
   } else if (match == "cstring") {
     // .cstring
-    auto res = GetValues<std::string>(remainder, resolver);
-    if (!res.ok()) return res.status();
-    auto values = res.value();
+    absl::StatusOr<std::vector<std::string>> result = GetValues<std::string>(remainder, resolver);
+    if (!result.ok()) return result.status();
+    auto values = result.value();
     size = 0;
     for (auto const& value : values) {
       for (auto const& c : value) byte_values.push_back(c);
@@ -844,17 +844,17 @@ absl::Status SimpleAssembler::ParseAsmDirective(
     SetDataSection(".data");
   } else if (match == "global") {
     // .global <name>
-    auto res = GetLabels(remainder);
-    if (!res.ok()) return res.status();
-    auto values = res.value();
+    absl::StatusOr<std::vector<std::string>> result = GetLabels(remainder);
+    if (!result.ok()) return result.status();
+    auto values = result.value();
     for (auto const& value : values) {
       global_symbols_.insert(value);
     }
   } else if (match == "long") {
     // .long
-    auto res = GetValues<int64_t>(remainder);
-    if (!res.ok()) return res.status();
-    auto values = res.value();
+    absl::StatusOr<std::vector<int64_t>> result = GetValues<int64_t>(remainder);
+    if (!result.ok()) return result.status();
+    auto values = result.value();
     size = values.size() * sizeof(int64_t);
     ConvertToBytes<int64_t>(values, byte_values);
   } else if (match == "sect") {
@@ -863,21 +863,21 @@ absl::Status SimpleAssembler::ParseAsmDirective(
     return absl::UnimplementedError("Section directive not implemented");
   } else if (match == "short") {
     // .short
-    auto res = GetValues<int16_t>(remainder);
-    if (!res.ok()) return res.status();
-    auto values = res.value();
+    absl::StatusOr<std::vector<int16_t>> result = GetValues<int16_t>(remainder);
+    if (!result.ok()) return result.status();
+    auto values = result.value();
     size = values.size() * sizeof(int16_t);
     ConvertToBytes<int16_t>(values, byte_values);
   } else if (match == "space") {
     // .space <n>
-    auto res = SimpleTextToInt<uint64_t>(remainder);
-    if (!res.ok()) return res.status();
-    size = res.value();
+    absl::StatusOr<uint64_t> result = SimpleTextToInt<uint64_t>(remainder);
+    if (!result.ok()) return result.status();
+    size = result.value();
   } else if (match == "string") {
     // .string
-    auto res = GetValues<std::string>(remainder);
-    if (!res.ok()) return res.status();
-    auto values = res.value();
+    absl::StatusOr<std::vector<std::string>> result = GetValues<std::string>(remainder);
+    if (!result.ok()) return result.status();
+    auto values = result.value();
     size = 0;
     for (auto const& value : values) {
       for (auto const& c : value) byte_values.push_back(c);
@@ -888,37 +888,37 @@ absl::Status SimpleAssembler::ParseAsmDirective(
     SetTextSection(".text");
   } else if (match == "uchar") {
     // .uchar
-    auto res = GetValues<uint8_t>(remainder);
-    if (!res.ok()) return res.status();
-    auto values = res.value();
+    absl::StatusOr<std::vector<uint8_t>> result = GetValues<uint8_t>(remainder);
+    if (!result.ok()) return result.status();
+    auto values = result.value();
     size = values.size();
     for (auto const& value : values) byte_values.push_back(value);
   } else if (match == "ulong") {
     // .ulong
-    auto res = GetValues<uint64_t>(remainder);
-    if (!res.ok()) return res.status();
-    auto values = res.value();
+    absl::StatusOr<std::vector<uint64_t>> result = GetValues<uint64_t>(remainder);
+    if (!result.ok()) return result.status();
+    auto values = result.value();
     size = values.size() * sizeof(uint64_t);
     ConvertToBytes<uint64_t>(values, byte_values);
   } else if (match == "ushort") {
     // .ushort
-    auto res = GetValues<uint16_t>(remainder);
-    if (!res.ok()) return res.status();
-    auto values = res.value();
+    absl::StatusOr<std::vector<uint16_t>> result = GetValues<uint16_t>(remainder);
+    if (!result.ok()) return result.status();
+    auto values = result.value();
     size = values.size() * sizeof(uint16_t);
     ConvertToBytes<uint16_t>(values, byte_values);
   } else if (match == "uword") {
     // .uword
-    auto res = GetValues<uint32_t>(remainder);
-    if (!res.ok()) return res.status();
-    auto values = res.value();
+    absl::StatusOr<std::vector<uint32_t>> result = GetValues<uint32_t>(remainder);
+    if (!result.ok()) return result.status();
+    auto values = result.value();
     size = values.size() * sizeof(uint32_t);
     ConvertToBytes<uint32_t>(values, byte_values);
   } else if (match == "word") {
     // .word
-    auto res = GetValues<int32_t>(remainder);
-    if (!res.ok()) return res.status();
-    auto values = res.value();
+    absl::StatusOr<std::vector<int32_t>> result = GetValues<int32_t>(remainder);
+    if (!result.ok()) return result.status();
+    auto values = result.value();
     size = values.size() * sizeof(int32_t);
     ConvertToBytes<int32_t>(values, byte_values);
   } else {

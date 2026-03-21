@@ -278,9 +278,9 @@ uint64_t RenodeAgent::ReadMemory(int32_t id, uint64_t address, char* buffer,
     return 0;
   }
   auto* dbg = dbg_iter->second;
-  auto res = dbg->ReadMemory(address, buffer, length);
-  if (!res.ok()) return 0;
-  return res.value();
+  absl::StatusOr<size_t> result = dbg->ReadMemory(address, buffer, length);
+  if (!result.ok()) return 0;
+  return result.value();
 }
 
 uint64_t RenodeAgent::WriteMemory(int32_t id, uint64_t address,
@@ -292,9 +292,9 @@ uint64_t RenodeAgent::WriteMemory(int32_t id, uint64_t address,
     return 0;
   }
   auto* dbg = dbg_iter->second;
-  auto res = dbg->WriteMemory(address, buffer, length);
-  if (!res.ok()) return 0;
-  return res.value();
+  absl::StatusOr<size_t> result = dbg->WriteMemory(address, buffer, length);
+  if (!result.ok()) return 0;
+  return result.value();
 }
 
 uint64_t RenodeAgent::LoadExecutable(int32_t id, const char* file_name,
@@ -308,14 +308,14 @@ uint64_t RenodeAgent::LoadExecutable(int32_t id, const char* file_name,
   }
   // Instantiate loader.
   auto* dbg = dbg_iter->second;
-  auto res = dbg->LoadExecutable(file_name, for_symbols_only);
-  if (!res.ok()) {
-    LOG(ERROR) << "Failed to load executable: " << res.status().message();
+  absl::StatusOr<uint64_t> result = dbg->LoadExecutable(file_name, for_symbols_only);
+  if (!result.ok()) {
+    LOG(ERROR) << "Failed to load executable: " << result.status().message();
     *status = -1;
     return 0;
   }
   *status = 0;
-  uint64_t entry = res.value();
+  uint64_t entry = result.value();
   return entry;
 }
 
@@ -344,13 +344,13 @@ int32_t RenodeAgent::LoadImage(int32_t id, const char* file_name,
     // Get the number of bytes that was read.
     gcount = image_file.gcount();
     // Write to the simulator memory.
-    auto res = dbg->WriteMemory(load_address, buffer, gcount);
+    absl::StatusOr<size_t> result = dbg->WriteMemory(load_address, buffer, gcount);
     // Check that the write succeeded, increment address if it did.
-    if (!res.ok()) {
+    if (!result.ok()) {
       LOG(ERROR) << "LoadImage: Memory write failed";
       return -1;
     }
-    if (res.value() != gcount) {
+    if (result.value() != gcount) {
       LOG(ERROR) << "LoadImage: Memory write failed to write all the bytes";
       return -1;
     }
@@ -400,15 +400,15 @@ uint64_t RenodeAgent::Step(int32_t id, uint64_t num_to_step, int32_t* status) {
     int step_count = (num_to_step > std::numeric_limits<int>::max())
                          ? std::numeric_limits<int>::max()
                          : static_cast<int>(num_to_step);
-    auto res = dbg->Step(step_count);
+    absl::StatusOr<int> result = dbg->Step(step_count);
     // An error occurred.
-    if (!res.ok()) {
+    if (!result.ok()) {
       if (status != nullptr) {
         *status = static_cast<int32_t>(ExecutionResult::kAborted);
       }
       return total_executed;
     }
-    int num_executed = res.value();
+    int num_executed = result.value();
     total_executed += num_executed;
 
     // Check if the execution was halted due to a semihosting halt request,

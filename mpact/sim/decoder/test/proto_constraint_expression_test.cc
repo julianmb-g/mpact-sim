@@ -93,10 +93,10 @@ TEST_F(ProtoConstraintExpressionTest, EnumExpression) {
   // Verify the type of the enum expr.
   EXPECT_EQ(enum_expr.cpp_type(),
             google::protobuf::FieldDescriptor::CPPTYPE_INT32);
-  auto res = enum_expr.GetValue();
+  absl::StatusOr<ProtoValue> result = enum_expr.GetValue();
   // Get the value (std::variant)
-  EXPECT_TRUE(res.status().ok());
-  auto expr_value = res.value();
+  EXPECT_TRUE(result.status().ok());
+  auto expr_value = result.value();
   // Verify that the type is as expected.
   EXPECT_EQ(expr_value.index(), *ProtoValueIndex::kInt32);
   // Get the typed value.
@@ -188,8 +188,8 @@ TEST_F(ProtoConstraintExpressionTest, NegateExpression) {
       ProtoValue(static_cast<std::string>("hello world")));
   ProtoConstraintNegateExpression neg_string_expr(val_expr);
   EXPECT_EQ(CppType<std::string>::value, neg_string_expr.cpp_type());
-  auto res = neg_string_expr.GetValue();
-  EXPECT_FALSE(res.status().ok());
+  absl::StatusOr<ProtoValue> result = neg_string_expr.GetValue();
+  EXPECT_FALSE(result.status().ok());
 }
 
 TEST_F(ProtoConstraintExpressionTest, CloneValueExpr) {

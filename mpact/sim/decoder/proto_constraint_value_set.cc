@@ -34,9 +34,9 @@ namespace proto_fmt {
 // expression based on its type.
 static ProtoConstraintExpression* MinValueExpr(
     const ProtoConstraintExpression* expr) {
-  auto res = expr->GetValue();
-  if (!res.ok()) return nullptr;
-  auto value = res.value();
+  absl::StatusOr<ProtoValue> result = expr->GetValue();
+  if (!result.ok()) return nullptr;
+  auto value = result.value();
   switch (value.index()) {
     case *ProtoValueIndex::kInt32:
       return new ProtoConstraintValueExpression(
@@ -67,9 +67,9 @@ static ProtoConstraintExpression* MinValueExpr(
 // expression based on its type.
 static ProtoConstraintExpression* MaxValueExpr(
     const ProtoConstraintExpression* expr) {
-  auto res = expr->GetValue();
-  if (!res.ok()) return nullptr;
-  auto value = res.value();
+  absl::StatusOr<ProtoValue> result = expr->GetValue();
+  if (!result.ok()) return nullptr;
+  auto value = result.value();
   switch (value.index()) {
     case *ProtoValueIndex::kInt32:
       return new ProtoConstraintValueExpression(

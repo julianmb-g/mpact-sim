@@ -85,11 +85,11 @@ absl::StatusOr<T> SimpleTextToInt(absl::string_view op_text,
   // Extract the symbol.
   if (RE2::FullMatch(text, symbol_re, &str)) {
     if (resolver != nullptr) {
-      auto res = resolver->Resolve(str);
-      if (!res.ok()) {
-        return res.status();
+      absl::StatusOr<uint64_t> result = resolver->Resolve(str);
+      if (!result.ok()) {
+        return result.status();
       }
-      return static_cast<T>(res.value());
+      return static_cast<T>(result.value());
     }
   }
   return absl::InvalidArgumentError(absl::StrCat("Invalid argument: ", text));
@@ -102,30 +102,30 @@ void AddRiscvSourceOpBinSetters(Map& map) {
   Insert(map, *Enum::kIImm12,
          [](uint64_t address, absl::string_view text,
             ResolverInterface* resolver) -> absl::StatusOr<uint64_t> {
-           auto res = SimpleTextToInt<int32_t>(text, resolver);
-           if (!res.ok()) return res.status();
-           return Encoder::IType::InsertImm12(res.value(), 0ULL);
+           absl::StatusOr<int32_t> result = SimpleTextToInt<int32_t>(text, resolver);
+           if (!result.ok()) return result.status();
+           return Encoder::IType::InsertImm12(result.value(), 0ULL);
          });
   Insert(map, *Enum::kIUimm6,
          [](uint64_t address, absl::string_view text,
             ResolverInterface* resolver) -> absl::StatusOr<uint64_t> {
-           auto res = SimpleTextToInt<uint32_t>(text, resolver);
-           if (!res.ok()) return res.status();
-           return Encoder::RSType::InsertRUimm6(res.value(), 0ULL);
+           absl::StatusOr<uint32_t> result = SimpleTextToInt<uint32_t>(text, resolver);
+           if (!result.ok()) return result.status();
+           return Encoder::RSType::InsertRUimm6(result.value(), 0ULL);
          });
   Insert(map, *Enum::kJImm12,
          [](uint64_t address, absl::string_view text,
             ResolverInterface* resolver) -> absl::StatusOr<uint64_t> {
-           auto res = SimpleTextToInt<int32_t>(text, resolver);
-           if (!res.ok()) return res.status();
-           return Encoder::IType::InsertImm12(res.value(), 0ULL);
+           absl::StatusOr<int32_t> result = SimpleTextToInt<int32_t>(text, resolver);
+           if (!result.ok()) return result.status();
+           return Encoder::IType::InsertImm12(result.value(), 0ULL);
          });
   Insert(map, *Enum::kJImm20,
          [](uint64_t address, absl::string_view text,
             ResolverInterface* resolver) -> absl::StatusOr<uint64_t> {
-           auto res = SimpleTextToInt<int32_t>(text, resolver);
-           if (!res.ok()) return res.status();
-           uint32_t delta = res.value() - address;
+           absl::StatusOr<int32_t> result = SimpleTextToInt<int32_t>(text, resolver);
+           if (!result.ok()) return result.status();
+           uint32_t delta = result.value() - address;
            auto value = Encoder::JType::InsertJImm(delta, 0ULL);
            return value;
          });
@@ -154,16 +154,16 @@ void AddRiscvSourceOpBinSetters(Map& map) {
   Insert(map, *Enum::kSImm12,
          [](uint64_t address, absl::string_view text,
             ResolverInterface* resolver) -> absl::StatusOr<uint64_t> {
-           auto res = SimpleTextToInt<uint32_t>(text, resolver);
-           if (!res.ok()) return res.status();
-           return Encoder::SType::InsertSImm(res.value(), 0ULL);
+           absl::StatusOr<uint32_t> result = SimpleTextToInt<uint32_t>(text, resolver);
+           if (!result.ok()) return result.status();
+           return Encoder::SType::InsertSImm(result.value(), 0ULL);
          });
   Insert(map, *Enum::kUImm20,
          [](uint64_t address, absl::string_view text,
             ResolverInterface* resolver) -> absl::StatusOr<uint64_t> {
-           auto res = SimpleTextToInt<uint32_t>(text, resolver);
-           if (!res.ok()) return res.status();
-           return Encoder::UType::InsertUImm(res.value(), 0ULL);
+           absl::StatusOr<uint32_t> result = SimpleTextToInt<uint32_t>(text, resolver);
+           if (!result.ok()) return result.status();
+           return Encoder::UType::InsertUImm(result.value(), 0ULL);
          });
 }
 

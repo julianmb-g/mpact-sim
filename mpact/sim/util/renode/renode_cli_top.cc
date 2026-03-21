@@ -75,9 +75,9 @@ absl::StatusOr<int> RenodeCLITop::RenodeStep(int num) {
     // again. The steps might have been taken while the CLI was stepping.
     if (renode_steps_to_take_ <= renode_steps_taken_) break;
 
-    auto res = top_->Step(renode_steps_to_take_ - renode_steps_taken_);
-    if (res.ok()) {
-      stepped = res.value();
+    absl::StatusOr<int> result = top_->Step(renode_steps_to_take_ - renode_steps_taken_);
+    if (result.ok()) {
+      stepped = result.value();
       renode_steps_taken_ += stepped;
       // Check halt reason.
       auto halt_result = top_->GetLastHaltReason();
@@ -101,7 +101,7 @@ absl::StatusOr<int> RenodeCLITop::RenodeStep(int num) {
       // If we have stepped enough, just return.
       if (renode_steps_to_take_ <= renode_steps_taken_) break;
     } else {
-      status = res.status();
+      status = result.status();
       break;
     }
   }

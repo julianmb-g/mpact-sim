@@ -84,9 +84,9 @@ ProtoConstraintNegateExpression::~ProtoConstraintNegateExpression() {
 }
 
 absl::StatusOr<ProtoValue> ProtoConstraintNegateExpression::GetValue() const {
-  auto res = expr_->GetValue();
-  if (!res.ok()) return res;
-  return -res.value();
+  absl::StatusOr<ProtoValue> result = expr_->GetValue();
+  if (!result.ok()) return result;
+  return -result.value();
 }
 
 absl::StatusOr<ProtoValue> ProtoConstraintEnumExpression::GetValue() const {

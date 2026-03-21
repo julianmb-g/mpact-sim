@@ -88,12 +88,12 @@ class DestinationOperand {
   bool HasLatency() const { return expression_ != nullptr; }
   absl::StatusOr<int> GetLatency() const {
     if (expression_ == nullptr) return -1;
-    auto res = expression_->GetValue();
-    if (!res.ok()) {
+    absl::StatusOr<TemplateValue> result = expression_->GetValue();
+    if (!result.ok()) {
       return absl::InternalError(absl::StrCat(
-          "Template expression evaluation error", res.status().message()));
+          "Template expression evaluation error", result.status().message()));
     }
-    auto variant_value = res.value();
+    auto variant_value = result.value();
     auto* value_ptr = std::get_if<int>(&variant_value);
     if (value_ptr == nullptr) {
       return absl::InternalError("Template expression type error");

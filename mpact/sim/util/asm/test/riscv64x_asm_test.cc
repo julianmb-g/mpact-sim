@@ -69,10 +69,10 @@ class RiscV64XAssembler : public OpcodeAssemblerInterface {
       if (!status.ok()) return status;
     }
     // Call the slot matcher to get the encoded value.
-    auto res = matcher_->Encode(address, text, 0, resolver, relocations);
-    if (!res.status().ok()) return res.status();
+    absl::StatusOr<std::tuple<uint64_t, int>> result = matcher_->Encode(address, text, 0, resolver, relocations);
+    if (!result.status().ok()) return result.status();
     // Convert the value to a byte array.
-    auto [value, size] = res.value();
+    auto [value, size] = result.value();
     union {
       uint64_t i;
       uint8_t b[sizeof(uint64_t)];

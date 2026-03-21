@@ -89,9 +89,9 @@ TEST_F(SlotTest, OpcodeVec) {
   for (int inst_indx = 0; inst_indx < 4; inst_indx++) {
     EXPECT_EQ(slot_->instruction_map().size(), inst_indx);
     std::string opcode_name = absl::StrCat("opcode_", inst_indx);
-    auto res = instruction_set_->opcode_factory()->CreateOpcode(opcode_name);
-    ASSERT_TRUE(res.status().ok());
-    auto* inst = new Instruction(res.value(), slot_.get());
+    absl::StatusOr<Opcode*> result = instruction_set_->opcode_factory()->CreateOpcode(opcode_name);
+    ASSERT_TRUE(result.status().ok());
+    auto* inst = new Instruction(result.value(), slot_.get());
     EXPECT_TRUE(slot_->AppendInstruction(inst).ok());
     EXPECT_EQ(slot_->instruction_map().size(), inst_indx + 1);
     EXPECT_EQ(slot_->instruction_map().at(opcode_name), inst);

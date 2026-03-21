@@ -114,19 +114,19 @@ TEST_F(BinEncodingInfoTest, AddInstructionGroup) {
   EXPECT_TRUE(bin_encoding_info_->instruction_group_map().empty());
 
   // Add an instruction group.
-  auto res = bin_encoding_info_->AddInstructionGroup(kGroup0, kFormatWidth32,
+  absl::StatusOr<::mpact::sim::decoder::bin_format::InstructionGroup*> result = bin_encoding_info_->AddInstructionGroup(kGroup0, kFormatWidth32,
                                                      kFormat0);
-  EXPECT_TRUE(res.status().ok());
-  auto* instruction_group = res.value();
+  EXPECT_TRUE(result.status().ok());
+  auto* instruction_group = result.value();
   EXPECT_EQ(instruction_group->name(), kGroup0);
   EXPECT_EQ(instruction_group->width(), kFormatWidth32);
   EXPECT_EQ(instruction_group->format_name(), kFormat0);
   EXPECT_EQ(instruction_group->opcode_enum(), kOpcodeEnumName);
 
   // Adding it a second time doesn't work.
-  res = bin_encoding_info_->AddInstructionGroup(kGroup0, kFormatWidth32,
+  result = bin_encoding_info_->AddInstructionGroup(kGroup0, kFormatWidth32,
                                                 kFormat0);
-  EXPECT_EQ(absl::StatusCode::kAlreadyExists, res.status().code());
+  EXPECT_EQ(absl::StatusCode::kAlreadyExists, result.status().code());
 }
 
 // Bin decoder.

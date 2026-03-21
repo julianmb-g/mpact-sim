@@ -165,8 +165,8 @@ TemplateNegate::~TemplateNegate() {
 }
 
 absl::StatusOr<TemplateValue> TemplateNegate::GetValue() const {
-  auto res = expr_->GetValue();
-  return -expr_->GetValue();
+  absl::StatusOr<TemplateValue> result = expr_->GetValue();
+  return -result;
 }
 
 absl::StatusOr<TemplateExpression*> TemplateNegate::Evaluate(

@@ -787,12 +787,12 @@ void ProtoFormatVisitor::VisitSetterRef(SetterRefCtx* ctx,
                                         ProtoInstructionGroup* inst_group,
                                         ProtoEncodingInfo* encoding_info) {
   if (ctx == nullptr) return;
-  auto res = inst_group->GetSetterGroup(ctx->name->getText());
-  if (!res.ok()) {
-    error_listener()->semanticError(ctx->start, res.status().message());
+  auto status_or_setter_group = inst_group->GetSetterGroup(ctx->name->getText());
+  if (!status_or_setter_group.ok()) {
+    error_listener()->semanticError(ctx->start, status_or_setter_group.status().message());
     return;
   }
-  auto [iter, end] = res.value();
+  auto [iter, end] = status_or_setter_group.value();
   while (iter != end) {
     auto* setter_info = iter->second;
     auto status = inst_encoding->AddSetter(
@@ -1196,14 +1196,14 @@ void ProtoFormatVisitor::ProcessParentGroup(
     for (auto* child_group : child_groups) delete child_group;
     return;
   }
-  auto res = encoding_info->AddInstructionGroup(group_name, group_format);
-  if (!res.ok()) {
-    error_listener_->semanticError(attr_ctx->start, res.status().message());
+  absl::StatusOr<ProtoInstructionGroup*> result = encoding_info->AddInstructionGroup(group_name, group_format);
+  if (!result.ok()) {
+    error_listener_->semanticError(attr_ctx->start, result.status().message());
     // Clean up.
     for (auto* child_group : child_groups) delete child_group;
     return;
   }
-  auto parent_group = res.value();
+  auto parent_group = result.value();
   // For each child group, add all of it's encodings to the parent group.
   for (auto* child_group : child_groups) {
     for (auto* encoding : child_group->encodings()) {
