@@ -71,16 +71,10 @@ TEST(ExampleDecoderTest, OrganicDecodingLogic) {
     inst->DecRef();
   }
   
-  // Unmapped opcode should properly throw out_of_range natively
+  // Unmapped opcode safely returns nullptr natively now
   encoding.inst_word_ = 9999;
-  EXPECT_THROW({
-    auto *inst = decoder.Decode(0x2000, &encoding, SlotEnum::kASide0, 0);
-    // It handles it by returning a nullptr or empty instruction.
-    // We just ensure it doesn't crash to prove organic boundary safety.
-    if (inst != nullptr) {
-      inst->DecRef();
-    }
-  }, std::out_of_range);
+  auto *inst = decoder.Decode(0x2000, &encoding, SlotEnum::kASide0, 0);
+  EXPECT_EQ(inst, nullptr);
 }
 
 }  // namespace
