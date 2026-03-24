@@ -572,3 +572,16 @@ mpact_cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+mpact_cc_test(
+    name = "decoder_trap_integration_test",
+    size = "small",
+    srcs = ["decoder_trap_integration_test.cc"],
+    deps = [
+        ":example_isa",
+        "//mpact/sim/generic:arch_state",
+        "//mpact/sim/generic:instruction",
+        "@com_google_googletest//:gtest",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
