@@ -183,29 +183,6 @@ antlr4_cc_lexer(
     ],
 )
 
-mpact_cc_library(
-    name = "safe_encode_wrapper",
-    hdrs = ["safe_encode_wrapper.h"],
-    visibility = ["//visibility:public"],
-    deps = [
-        "//mpact/sim/generic:instruction",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-    ],
-)
-
-cc_test(
-    name = "safe_encode_wrapper_test",
-    srcs = ["safe_encode_wrapper_test.cc"],
-    deps = [
-        ":safe_encode_wrapper",
-        "//mpact/sim/generic:instruction",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_googletest//:gtest_main",
-    ],
-)
 
 mpact_cc_library(
     name = "bin_format_visitor",
