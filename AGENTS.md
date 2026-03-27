@@ -1,4 +1,5 @@
 # mpact-sim Agent Instructions
+
 ## Lessons Learned
 
 ### Build & Orchestration
@@ -12,6 +13,5 @@
 ### QA & Testing Gotchas
 - **Coverage Masking via Trivial Assertions (EXPECT_TRUE)**: Unit tests for generated AST decoders MUST instantiate the generated decoders (e.g. `ASide0Slot`), pass a mock encoding interface (e.g. `MockEncoding`), and organically assert decoding correctness (`inst->address()`, `EXPECT_NE(inst, nullptr)`). Do not leave trivial `EXPECT_TRUE(true)` placeholders as they mathematically mask the entire AST generation logic and constitute testing fraud.
 - **Eradication of Mock Decoding Illusions**: Do not use hand-written mocks that blindly return canned scalar vectors (e.g. `opcodes[index++]`) when testing ISA decoder boundaries (like `ASide0Slot::Decode`). These fake implementations mathematically mask missing index bounds increments and skip underlying exceptions (like `std::out_of_range` on unmapped `GetOpcode` bits). Natively implement structural bounds parsing (e.g. `inst_word_ & 0xFFFF`) and use `EXPECT_THROW` to organically test execution crashes instead of relying on the mock illusion.
-
 - **TargetEncoder Mocking Limits**: `mpact-sim` MUST introduce rigorous Integration/E2E execution tests. A mutator or wrapper component is invalid until an authentic AST payload routes through the entire execution loop natively and verifies execution traces. Mocking `TargetEncoder` classes is insufficient.
 - **Unauthorized Evasion Abstraction**: Implementing a generic `SafeEncodeWrapper` using `try...catch` in `mpact-sim` violates the `SPECS.md` explicit directive to fix the generator natively. It must not be reintroduced.
