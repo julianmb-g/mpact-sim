@@ -45,3 +45,12 @@
   - **Quote:** "Integration tests verifying the isolation boundary MUST explicitly accept both `kInternal` and `kNotFound` statuses rather than strictly expecting a 'crash' string or internal code."
   - **Impact:** Strictly expecting a "crash" string causes false-positive test failures when the decoder gracefully handles out-of-bounds indices.
   - **Action:** Update integration tests evaluating `AstEncoderSigsetjmpWorker` to explicitly accept `kNotFound` alongside `kInternal`.
+### Restored Knowledge (Data-Loss Audit Remediation - Testing Illusion Mandates)
+- **Tier 1: Hardware Simulation & Mock Isolation Rules**
+  - **Quote:** "Mocking AxiSlave with Python dictionaries and swallowing test exceptions."
+  - **Impact:** False positive 100% unit tests that fail to simulate RTL component boundaries.
+  - **Action:** tests mimicking external memory MUST instantiate REAL synthesized DDR controllers and SRAM RTL block responders. Eviscerating memory boundaries to trap timeouts is strictly forbidden.
+- **Tier 1: E2E Integration Boundary Rules**
+  - **Quote:** "Validating bytes written to memory does not prove cross-component hardware integration."
+  - **Impact:** Systemic testing illusions where isolated string matching or individual instruction evaluations bypass cross-component routing.
+  - **Action:** MUST introduce rigorous Integration/E2E execution tests. A mutator or wrapper component is invalid until an authentic AST payload (compiled ELF) routes through the entire execution loop natively and verifies execution traces. Mocking TargetEncoder classes is insufficient.
