@@ -3,6 +3,7 @@
 ## Lessons Learned
 
 ### Build & Orchestration
+- **Local Repository Prohibition**: Replacing `http_archive` with `local_repository` or `native.local_repository` in Bazel repository definitions (e.g., `repos.bzl`) is strictly forbidden across all submodules. Doing so breaks hermeticity and cross-system reproducibility.
 - **Flawed Execution Boundaries (Submodule Scope)**: Do not instruct generic toolkit submodules (like `mpact-sim`) to implement integration tests that depend on downstream concrete implementations (like `riscv_top.cc` in `mpact-riscv`). This introduces circular dependencies and breaks the Bazel build graph.
 - **Upstream Sync & Rebase Conflicts**: When resolving upstream rebase conflicts during a JIT Sync (e.g., `git rebase origin/main`), never abort the rebase or revert using `git reset`. Manually resolve conflicts by editing the file and running `git rebase --continue`.
 
