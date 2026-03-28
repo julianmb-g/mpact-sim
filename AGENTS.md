@@ -55,3 +55,7 @@
   * **Quote:** "Leaving 'Restored Knowledge' blocks at the bottom of the submodule AGENTS.md."
   * **Impact:** Fragments submodule-specific execution constraints and creates redundant duplication.
   * **Action:** Immediately integrate audit restorations into the primary strict execution mandates and remove the restoration headers. Prune exact duplicates.
+- **EncodeSafe & Architectural Bitwise Masking Constraints**
+  * **Quote:** "Refactor `EncodeSafe()` AST bitwise mutation logic... Replace raw literal masks (`inst |= 0x3`) with `kRiscv32InstLengthMask` and mask the lowest 2 bits."
+  * **Impact:** Hardcoded literal masks (`0x3`) obscure architectural intent and increase the risk of bitwise regressions.
+  * **Action:** Ensure the `EncodeSafe` backward-compatible C++ wrapper explicitly masks the lower 2 bits utilizing `constexpr uint64_t kRiscv32InstLengthMask = 0x3` to strictly preserve the 32-bit instruction length boundary.
