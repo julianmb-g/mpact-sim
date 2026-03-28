@@ -183,7 +183,6 @@ antlr4_cc_lexer(
     ],
 )
 
-
 mpact_cc_library(
     name = "bin_format_visitor",
     srcs = [
