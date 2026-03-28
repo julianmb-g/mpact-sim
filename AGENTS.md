@@ -2,17 +2,46 @@
 
 ## Lessons Learned
 
-### Build & Orchestration
-- **Local Repository Prohibition**: Replacing `http_archive` with `local_repository` or `native.local_repository` in Bazel repository definitions (e.g., `repos.bzl`) is strictly forbidden across all submodules. Doing so breaks hermeticity and cross-system reproducibility.
-- **Flawed Execution Boundaries (Submodule Scope)**: Do not instruct generic toolkit submodules (like `mpact-sim`) to implement integration tests that depend on downstream concrete implementations (like `riscv_top.cc` in `mpact-riscv`). This introduces circular dependencies and breaks the Bazel build graph.
-- **Upstream Sync & Rebase Conflicts**: When resolving upstream rebase conflicts during a JIT Sync (e.g., `git rebase origin/main`), never abort the rebase or revert using `git reset`. Manually resolve conflicts by editing the file and running `git rebase --continue`.
+### Tier 1: Critical Constraints & Blockers
 
-### C++ & System Programming
-- **Encode() Safe Fallbacks**: Natively generated `CoralnpuV2SlotMatcher::Encode()` APIs must utilize `absl::flat_hash_map::find()` rather than `.at(index)`. If a generated opcode string misses, it must gracefully return an `absl::NotFoundError` to prevent C++ exceptions and `std::abort()` crashes.
-- **Test Integrity (Crash Evasion Boundaries)**: When writing tests targeting crash recovery via `AstEncoderSigsetjmpWorker`, remember that `mpact-sim`'s decoder `Encode()` gracefully handles index out-of-bounds by returning `absl::StatusCode::kNotFound` instead of crashing via `std::abort()`. Integration tests verifying the isolation boundary MUST explicitly accept both `kInternal` and `kNotFound` statuses rather than strictly expecting a "crash" string or internal code, avoiding false-positive test failures.
+- **Hermetic Build Preservation**
+  - **Quote:** "Replacing `http_archive` with `local_repository` or `native.local_repository` in Bazel repository definitions (e.g., `repos.bzl`) is strictly forbidden across all submodules."
+  - **Impact:** Doing so breaks hermeticity and cross-system reproducibility.
+  - **Action:** Exclusively use `http_archive` for all Bazel dependencies.
 
-### QA & Testing Gotchas
-- **Coverage Masking via Trivial Assertions (EXPECT_TRUE)**: Unit tests for generated AST decoders MUST instantiate the generated decoders (e.g. `ASide0Slot`), pass a mock encoding interface (e.g. `MockEncoding`), and organically assert decoding correctness (`inst->address()`, `EXPECT_NE(inst, nullptr)`). Do not leave trivial `EXPECT_TRUE(true)` placeholders as they mathematically mask the entire AST generation logic and constitute testing fraud.
-- **Eradication of Mock Decoding Illusions**: Do not use hand-written mocks that blindly return canned scalar vectors (e.g. `opcodes[index++]`) when testing ISA decoder boundaries (like `ASide0Slot::Decode`). These fake implementations mathematically mask missing index bounds increments and skip underlying exceptions (like `std::out_of_range` on unmapped `GetOpcode` bits). Natively implement structural bounds parsing (e.g. `inst_word_ & 0xFFFF`) and use `EXPECT_THROW` to organically test execution crashes instead of relying on the mock illusion.
-- **TargetEncoder Mocking Limits**: `mpact-sim` MUST introduce rigorous Integration/E2E execution tests. A mutator or wrapper component is invalid until an authentic AST payload routes through the entire execution loop natively and verifies execution traces. Mocking `TargetEncoder` classes is insufficient.
-- **Unauthorized Evasion Abstraction**: Implementing a generic `SafeEncodeWrapper` using `try...catch` in `mpact-sim` violates the `SPECS.md` explicit directive to fix the generator natively. It must not be reintroduced.
+- **Circular Dependency Prevention**
+  - **Quote:** "Do not instruct generic toolkit submodules (like `mpact-sim`) to implement integration tests that depend on downstream concrete implementations (like `riscv_top.cc` in `mpact-riscv`)."
+  - **Impact:** This introduces circular dependencies and breaks the Bazel build graph.
+  - **Action:** Maintain strict boundary isolation; keep generic toolkit tests independent of downstream implementations.
+
+- **Git Conflict Resolution Mandate**
+  - **Quote:** "When resolving upstream rebase conflicts during a JIT Sync (e.g., `git rebase origin/main`), never abort the rebase or revert using `git reset`."
+  - **Impact:** Using `git reset` or `git rebase --abort` destroys the orchestration ledger and local state.
+  - **Action:** Manually resolve conflicts by editing the file, staging with `git add`, and executing `git rebase --continue`.
+
+- **Safe C++ API Boundaries**
+  - **Quote:** "Natively generated `CoralnpuV2SlotMatcher::Encode()` APIs must utilize `absl::flat_hash_map::find()` rather than `.at(index)`."
+  - **Impact:** Using `.at(index)` triggers C++ exceptions and `std::abort()` crashes on cache misses.
+  - **Action:** Use `.find()` and gracefully return an `absl::NotFoundError` if an opcode string misses.
+
+- **Native Generator Fixes**
+  - **Quote:** "Implementing a generic `SafeEncodeWrapper` using `try...catch` in `mpact-sim` violates the `SPECS.md` explicit directive to fix the generator natively."
+  - **Impact:** Introduces unauthorized evasion abstractions instead of resolving root architectural flaws.
+  - **Action:** Fix the generator natively. Do not reintroduce `SafeEncodeWrapper`.
+
+- **Authentic E2E Payload Routing**
+  - **Quote:** "A mutator or wrapper component is invalid until an authentic AST payload routes through the entire execution loop natively and verifies execution traces. Mocking `TargetEncoder` classes is insufficient."
+  - **Impact:** Mocking integration boundaries mathematically masks cross-component architectural routing and traps.
+  - **Action:** Introduce rigorous Integration/E2E execution tests using authentic AST payloads.
+
+- **Eradication of Mock Decoding Illusions**
+  - **Quote:** "Do not use hand-written mocks that blindly return canned scalar vectors... Do not leave trivial `EXPECT_TRUE(true)` placeholders."
+  - **Impact:** Fake implementations and trivial assertions mathematically mask missing index bounds increments and skip underlying exceptions, constituting testing fraud.
+  - **Action:** Natively implement structural bounds parsing, use `EXPECT_THROW` to organically test crashes, and assert true decoding correctness (e.g., `EXPECT_NE(inst, nullptr)`).
+
+### Tier 2: Maintainability & Test Tuning
+
+- **Crash Evasion Boundary Alignment**
+  - **Quote:** "Integration tests verifying the isolation boundary MUST explicitly accept both `kInternal` and `kNotFound` statuses rather than strictly expecting a 'crash' string or internal code."
+  - **Impact:** Strictly expecting a "crash" string causes false-positive test failures when the decoder gracefully handles out-of-bounds indices.
+  - **Action:** Update integration tests evaluating `AstEncoderSigsetjmpWorker` to explicitly accept `kNotFound` alongside `kInternal`.
