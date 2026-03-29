@@ -14,10 +14,10 @@
   * **Impact:** Introduces circular dependencies and breaks the Bazel build graph.
   * **Action:** Maintain strict boundary isolation; keep generic toolkit tests independent of downstream implementations.
 
-* **Git Conflict Resolution Mandate**
+* [FLAG: stale] **Git Conflict Resolution Mandate**
   * **Quote:** "When resolving upstream rebase conflicts, never abort the rebase or revert using `git reset`."
   * **Impact:** Destroys the orchestration ledger and local state.
-  * **Action:** Manually resolve conflicts by editing the file, staging with `git add`, and executing `git rebase --continue`.
+  * **Action:** [FLAG: stale] Manually resolve conflicts by editing the file, staging with `git add`, and executing `git rebase --continue`.
 
 * **Safe C++ API Boundaries**
   * **Quote:** "Natively generated `CoralnpuV2SlotMatcher::Encode()` APIs must utilize `absl::flat_hash_map::find()` rather than `.at(index)`."
@@ -36,10 +36,10 @@
 
 ### Tier 2: System Architecture
 
-* **Crash Evasion Boundary Alignment**
+* [FLAG: invalid] **Crash Evasion Boundary Alignment**
   * **Quote:** "Integration tests verifying the isolation boundary MUST explicitly accept both `kInternal` and `kNotFound` statuses rather than strictly expecting a 'crash' string."
   * **Impact:** Strictly expecting a "crash" string causes false-positive test failures when the decoder gracefully handles out-of-bounds indices.
-  * **Action:** Update integration tests evaluating `AstEncoderSigsetjmpWorker` to explicitly accept `kNotFound` alongside `kInternal`.
+  * **Action:** [FLAG: invalid] Update integration tests evaluating `AstEncoderSigsetjmpWorker` to explicitly accept `kNotFound` alongside `kInternal`.
 
 * **Submodule Ledger Consolidation**
   * **Quote:** "Leaving 'Restored Knowledge' blocks at the bottom of the submodule AGENTS.md."
