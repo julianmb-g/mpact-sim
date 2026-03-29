@@ -46,3 +46,9 @@
   * **Impact:** Fragments submodule-specific execution constraints and creates redundant duplication.
   * **Action:** Immediately integrate audit restorations into the primary strict execution mandates and remove the restoration headers. Prune exact duplicates.
 
+# mpact-sim Orchestration Guidelines
+
+* **Exception Substitution Hazard (absl::StatusOr)**
+  * **Quote:** "Unconditional `.value()` unwrapping throws `absl::BadStatusOrAccess`, instantly terminating the fuzzer natively in-process."
+  * **Impact:** Masks silent architectural panics or breaks downstream ABI integration points via undefined behaviors.
+  * **Action:** Developers MUST explicitly evaluate `.ok()` before accessing `.value()`. Unconditional unwraps are strictly forbidden.
