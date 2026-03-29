@@ -968,7 +968,7 @@ std::tuple<std::string, std::string> InstructionSet::GenerateEncClasses(
                     "  if (num_args != ",
                     position,
                     ") {\n"
-                    "    return absl::InvalidArgumentError(\n"
+                    "    return absl::NotFoundError(\n"
                     "        absl::StrCat(\"",
                     opcode->pascal_name(),
                     ": Invalid number of operands (\", "
