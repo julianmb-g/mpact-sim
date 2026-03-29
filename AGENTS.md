@@ -1,5 +1,4 @@
 
-
 ## Lessons Learned & Orchestration Rules
 
 ### Tier 1: Critical Blocker
@@ -27,7 +26,9 @@
 * **Anti-Mocking & Simulation Fidelity**
   * **Quote:** "Validating bytes written to memory does not prove cross-component hardware integration. Do not leave trivial `EXPECT_TRUE(true)` placeholders."
   * **Impact:** Systemic testing illusions and mathematical evasion mask cross-component architectural routing and traps.
-  * **Action:** E2E execution tests MUST natively route authentic AST payloads (compiled ELFs). Tests mimicking external memory MUST instantiate REAL synthesized DDR controllers and SRAM RTL block responders. Natively implement structural bounds parsing, use `EXPECT_THROW` to organically test crashes, and assert true decoding correctness. Mocking `TargetEncoder` or `AxiSlave` is strictly forbidden.  ### Tier 2: System Architecture
+  * **Action:** E2E execution tests MUST natively route authentic AST payloads (compiled ELFs). Tests mimicking external memory MUST instantiate REAL synthesized DDR controllers and SRAM RTL block responders. Natively implement structural bounds parsing, use `EXPECT_THROW` to organically test crashes, and assert true decoding correctness. Mocking `TargetEncoder` or `AxiSlave` is strictly forbidden.
+
+### Tier 2: System Architecture
 
 * **Exception Substitution Hazard (absl::StatusOr)**
   * **Quote:** "Unconditional `.value()` unwrapping throws `absl::BadStatusOrAccess`, instantly terminating the fuzzer natively in-process."
@@ -39,5 +40,6 @@
 * **Submodule Ledger Consolidation**
   * **Quote:** "Leaving 'Restored Knowledge' blocks at the bottom of the submodule AGENTS.md."
   * **Impact:** Fragments submodule-specific execution constraints and creates redundant duplication.
-  * **Action:** Immediately integrate audit restorations into the primary strict execution mandates and remove the restoration headers. Prune exact duplicates.  # mpact-sim Orchestration Guidelines
+  * **Action:** Immediately integrate audit restorations into the primary strict execution mandates and remove the restoration headers. Prune exact duplicates.
 
+# mpact-sim Orchestration Guidelines
