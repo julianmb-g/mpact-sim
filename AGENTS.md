@@ -43,3 +43,6 @@
   * **Action:** Immediately integrate audit restorations into the primary strict execution mandates and remove the restoration headers. Prune exact duplicates.
 
 # mpact-sim Orchestration Guidelines
+
+### Orchestration Execution Insights (Cycle 165 - mpact-sim Sync)
+* **Upstream Synchronization**: Continuous rebase syncs against `origin/main` are required to maintain a consistent orchestration ledger (`AGENTS.md`).
