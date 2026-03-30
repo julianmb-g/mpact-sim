@@ -46,3 +46,6 @@
 
 ### Orchestration Execution Insights (Cycle 167)
 * **Operand Encoding Bounds Check Exception**: The auto-generated bitwise packing logic may throw `std::out_of_range` if an operand immediate value exceeds its bit-width. Patch the generator to perform safe bounds-checking on operands and return an `absl::Status` (e.g., `absl::NotFoundError`) instead of throwing exceptions.
+
+### Orchestration Execution Insights (Cycle 167 - Operand Testing)
+* **Operand Encoding Bounds Comprehensive Test**: Ensure we have tests that comprehensively validate the new auto-generated AST encoder patch that returns `absl::OutOfRangeError` on out-of-bounds operand values, rather than crashing. These tests should cover bounds checking organically without introducing circular dependencies to downstream concrete implementations.
