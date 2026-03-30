@@ -53,3 +53,6 @@
 ### Orchestration Execution Insights (Cycle 167 - QA Audit)
 
 * **Namespace Shadowing (`absl::string_view`)**: The instruction decoder generator MUST use fully qualified global prefixes (e.g., `::absl::string_view`) when referencing external namespaces inside the local `mpact::sim::decoder` scope to prevent namespace shadowing compilation errors.
+
+### Orchestration Execution Insights (Cycle 167)
+* **Namespace Shadowing**: When generating C++ code referencing external namespaces (`absl`), always use the fully qualified global prefix (`::absl`) to prevent namespace shadowing inside nested generator blocks.
