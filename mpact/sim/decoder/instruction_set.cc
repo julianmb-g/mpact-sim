@@ -968,6 +968,7 @@ std::tuple<std::string, std::string> InstructionSet::GenerateEncClasses(
 
   absl::StrAppend(&cc_output,
                   "#include <stdexcept>\n"
+                  "#include \"absl/strings/match.h\"\n"
                   "using ::mpact::sim::util::assembler::ResolverInterface;\n"
                   "\n"
                   "namespace {\n\n"

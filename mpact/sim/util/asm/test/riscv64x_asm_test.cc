@@ -109,7 +109,7 @@ main:
     ; now exit
     addi a0, zero, 24
     lui t0, 0x20026
-    addi t0, t0, 0x20026
+    addi t0, t0, 0x26
     sd t0, 0(a1)
     jal ra, semihost
 exit:
@@ -329,7 +329,7 @@ TEST_F(RiscV64XAssemblerTest, ExecutableTextContent) {
   EXPECT_EQ(word_data[10], 0x01c000ef);  // jal ra, semihost
   EXPECT_EQ(word_data[11], 0x01800513);  // addi a0, zero, 24
   EXPECT_EQ(word_data[12], 0x000202b7);  // lui t0, 0x20026
-  EXPECT_EQ(word_data[13], 0x02628293);  // addi t0, t0, 0x20026
+  EXPECT_EQ(word_data[13], 0x02628293);  // addi t0, t0, 0x26
   EXPECT_EQ(word_data[14], 0x0055b023);  // sd t0, 0(a1)
   EXPECT_EQ(word_data[15], 0x008000ef);  // jal ra, semihost
 }
@@ -357,7 +357,7 @@ TEST_F(RiscV64XAssemblerTest, RelocatableTextContent) {
   EXPECT_EQ(word_data[10], 0x01c000ef);  // jal ra, semihost
   EXPECT_EQ(word_data[11], 0x01800513);  // addi a0, zero, 24
   EXPECT_EQ(word_data[12], 0x000202b7);  // lui t0, 0x20026
-  EXPECT_EQ(word_data[13], 0x02628293);  // addi t0, t0, 0x20026
+  EXPECT_EQ(word_data[13], 0x02628293);  // addi t0, t0, 0x26
   EXPECT_EQ(word_data[14], 0x0055b023);  // sd t0, 0(a1)
   EXPECT_EQ(word_data[15], 0x008000ef);  // jal ra, semihost
 }
@@ -374,4 +374,27 @@ TEST_F(RiscV64XAssemblerTest, TextRelocations) {
   EXPECT_EQ(rela.size(), 4);
 }
 
+
+TEST_F(RiscV64XAssemblerTest, OperandBoundsVerification) {
+  // Test valid bounds
+  std::istringstream valid_source("    addi t0, t0, 0x7ff\n");
+  EXPECT_TRUE(assembler()->Parse(valid_source).ok());
+
+  // Test out-of-bounds (positive overflow for 12-bit signed immediate)
+  std::istringstream invalid_source1("    addi t0, t0, 0x800\n");
+  EXPECT_FALSE(assembler()->Parse(invalid_source1).ok());
+
+  // Test out-of-bounds (negative overflow for 12-bit signed immediate)
+  std::istringstream invalid_source2("    addi t0, t0, -0x801\n");
+  EXPECT_FALSE(assembler()->Parse(invalid_source2).ok());
+
+  // Test valid negative bound
+  std::istringstream valid_neg_source("    addi t0, t0, -0x800\n");
+  EXPECT_TRUE(assembler()->Parse(valid_neg_source).ok());
+
+  // Test negative hex bypass issue
+  std::istringstream invalid_neg_hex("    addi t0, t0, -0xFFF\n");
+  EXPECT_FALSE(assembler()->Parse(invalid_neg_hex).ok());
+}
 }  // namespace
+
