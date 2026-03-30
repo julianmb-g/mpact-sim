@@ -49,3 +49,7 @@
 
 ### Orchestration Execution Insights (Cycle 167 - Operand Testing)
 * **Operand Encoding Bounds Comprehensive Test**: Ensure we have tests that comprehensively validate the new auto-generated AST encoder patch that returns `absl::OutOfRangeError` on out-of-bounds operand values, rather than crashing. These tests should cover bounds checking organically without introducing circular dependencies to downstream concrete implementations.
+
+### Orchestration Execution Insights (Cycle 167 - QA Audit)
+
+* **Namespace Shadowing (`absl::string_view`)**: The instruction decoder generator MUST use fully qualified global prefixes (e.g., `::absl::string_view`) when referencing external namespaces inside the local `mpact::sim::decoder` scope to prevent namespace shadowing compilation errors.
