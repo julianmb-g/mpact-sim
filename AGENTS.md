@@ -43,3 +43,6 @@
 * **Upstream Synchronization**: Continuous rebase syncs against `origin/main` are required to maintain a consistent orchestration ledger (`AGENTS.md`).
 
 ### Globally Relevant Execution Rules (Appended)
+
+### Orchestration Execution Insights (Cycle 167)
+* **Operand Encoding Bounds Check Exception**: The auto-generated bitwise packing logic may throw `std::out_of_range` if an operand immediate value exceeds its bit-width. Patch the generator to perform safe bounds-checking on operands and return an `absl::Status` (e.g., `absl::NotFoundError`) instead of throwing exceptions.
