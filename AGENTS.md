@@ -1,4 +1,3 @@
-
 ## Lessons Learned & Orchestration Rules
 
 ### Tier 1: Critical Blocker
@@ -23,11 +22,6 @@
   * **Impact:** Introduces unauthorized evasion abstractions instead of resolving root architectural flaws.
   * **Action:** Fix the generator natively utilizing strict bitwise masking (`constexpr uint64_t kRiscv32InstLengthMask = 0x3`). Do not reintroduce `SafeEncodeWrapper` or evasion wrappers.
 
-* **Safe C++ API Boundaries**
-  * **Quote:** "Natively generated `CoralnpuV2SlotMatcher::Encode()` APIs must utilize `absl::flat_hash_map::find()` rather than `.at(index)`."
-  * **Impact:** Using `.at(index)` triggers C++ exceptions and `std::abort()` crashes on cache misses.
-  * **Action:** Use `.find()` and gracefully return an `absl::NotFoundError` if an opcode string misses.
-
 ### Tier 2: System Architecture
 
 * **Exception Substitution Hazard (absl::StatusOr)**
@@ -45,22 +39,7 @@
 # mpact-sim Orchestration Guidelines
 
 ### Orchestration Execution Insights (Cycle 165 - mpact-sim Sync)
+
 * **Upstream Synchronization**: Continuous rebase syncs against `origin/main` are required to maintain a consistent orchestration ledger (`AGENTS.md`).
 
-
 ### Globally Relevant Execution Rules (Appended)
-
-* **Dangerous Commands & Missing Teardown (Bazel Deadlocks)**
-  * **Quote:** "Launching massive monolithic Bazel test suites concurrently without pkill -f bazel or resource constraints guarantees CI orchestrator timeouts."
-  * **Impact:** CI timeout due to Bazel server memory exhaustion.
-  * **Action:** Prepend and append `pkill -f "bazel" || true` to all Bazel batch executions. Apply strict `--local_resources=cpu=8 --local_resources=memory=HOST_RAM*0.5` flags.
-
-* **Toolchain Isolation & Hermetic Boundaries**
-  * **Quote:** "The RISC-V cross-compilers... must be installed on the host machine. Hermetic Build Exemption..."
-  * **Impact:** Autonomous agents will pollute the hermetic Bazel workspace with host toolchains if not explicitly bounded.
-  * **Action:** Agents must strictly enforce Cross-Compiler Testing Matrix & Toolchain Isolation. Exclusively `tinygrad` is allowed to use host cross-compilers; all other Bazel submodules must use strict hermetic toolchains.
-
-* **Backward Compatibility & Crash Tracing**
-  * **Quote:** "Abstracting root cause locations hides the source of crashes. Legacy keyword arguments must be strictly preserved via `**kwargs`."
-  * **Impact:** Causes cascading API contract breakages and obscures exact component failures.
-  * **Action:** Explicitly fix files instead of relying on broad mocking. Ensure safe fallbacks via `**kwargs` when refactoring core APIs.
