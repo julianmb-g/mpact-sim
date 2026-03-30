@@ -763,6 +763,68 @@ std::string InstructionSet::GenerateOperandEncoder(
     int position, absl::string_view op_name, const OperandLocator& locator,
     const Opcode* opcode) const {
   std::string output;
+  int bit_width = 0;
+  bool is_unsigned = false;
+  std::string op_str(op_name);
+  std::transform(op_str.begin(), op_str.end(), op_str.begin(), ::tolower);
+  auto pos = op_str.find("imm");
+  if (pos != std::string::npos) {
+    if (pos > 0) {
+      char prefix = op_str[pos - 1];
+      if (prefix == '_') {
+         if (pos > 1) prefix = op_str[pos - 2];
+      }
+      if (prefix == 'u') is_unsigned = true;
+    }
+    std::string num_str = op_str.substr(pos + 3);
+    if (!num_str.empty() && isdigit(num_str[0])) {
+      bit_width = std::stoi(num_str);
+    }
+  }
+
+  std::string bounds_check;
+  if (bit_width > 0 && bit_width < 64) {
+    if (is_unsigned) {
+      uint64_t max_val = (1ULL << bit_width) - 1;
+      absl::StrAppend(&bounds_check,
+                      "  {\n"
+                      "    uint64_t raw_val = 0;\n"
+                      "    if (operands[", position, "].substr(0, 2) == \"0x\") {\n"
+                      "      if (absl::SimpleHexAtoi(operands[", position, "].substr(2), &raw_val)) {\n"
+                      "        if (raw_val > ", max_val, "ULL) {\n"
+                      "          return absl::OutOfRangeError(absl::StrCat(\"Operand \", \"", op_name, "\", \" value \", raw_val, \" exceeds bit-width ", bit_width, "\"));\n"
+                      "        }\n"
+                      "      }\n"
+                      "    } else if (absl::SimpleAtoi(operands[", position, "], &raw_val)) {\n"
+                      "      if (raw_val > ", max_val, "ULL) {\n"
+                      "        return absl::OutOfRangeError(absl::StrCat(\"Operand \", \"", op_name, "\", \" value \", raw_val, \" exceeds bit-width ", bit_width, "\"));\n"
+                      "      }\n"
+                      "    }\n"
+                      "  }\n");
+    } else {
+      int64_t max_val = (1ULL << (bit_width - 1)) - 1;
+      int64_t min_val = -(1LL << (bit_width - 1));
+      absl::StrAppend(&bounds_check,
+                      "  {\n"
+                      "    int64_t raw_val = 0;\n"
+                      "    if (operands[", position, "].substr(0, 2) == \"0x\") {\n"
+                      "      if (absl::SimpleHexAtoi(operands[", position, "].substr(2), &raw_val)) {\n"
+                      "        if (raw_val < ", min_val, "LL || raw_val > ", max_val, "LL) {\n"
+                      "          return absl::OutOfRangeError(absl::StrCat(\"Operand \", \"", op_name, "\", \" value \", raw_val, \" exceeds bit-width ", bit_width, "\"));\n"
+                      "        }\n"
+                      "      }\n"
+                      "    } else if (absl::SimpleAtoi(operands[", position, "], &raw_val)) {\n"
+                      "      if (raw_val < ", min_val, "LL || raw_val > ", max_val, "LL) {\n"
+                      "        return absl::OutOfRangeError(absl::StrCat(\"Operand \", \"", op_name, "\", \" value \", raw_val, \" exceeds bit-width ", bit_width, "\"));\n"
+                      "      }\n"
+                      "    }\n"
+                      "  }\n");
+    }
+  }
+
+  if (!bounds_check.empty()) {
+    absl::StrAppend(&output, bounds_check);
+  }
   switch (locator.type) {
     case OperandLocator::kPredicate: {
       std::string pred_op =
@@ -905,6 +967,7 @@ std::tuple<std::string, std::string> InstructionSet::GenerateEncClasses(
 )");
 
   absl::StrAppend(&cc_output,
+                  "#include <stdexcept>\n"
                   "using ::mpact::sim::util::assembler::ResolverInterface;\n"
                   "\n"
                   "namespace {\n\n"
@@ -962,6 +1025,9 @@ std::tuple<std::string, std::string> InstructionSet::GenerateEncClasses(
     }
     absl::StrAppend(&suffix,
                     "  return std::make_tuple(encoding, bit_size);\n"
+                    "  } catch (const std::out_of_range& e) {\n"
+                    "    return absl::OutOfRangeError(e.what());\n"
+                    "  }\n"
                     "}\n\n");
     absl::StrAppend(&cc_output, prefix,
                     "  auto num_args = operands.size();\n"
@@ -975,7 +1041,8 @@ std::tuple<std::string, std::string> InstructionSet::GenerateEncClasses(
                     "num_args, \") - expected ",
                     position,
                     "\"));\n"
-                    "  }\n",
+                    "  }\n"
+                    "  try {\n",
                     suffix);
   }
   absl::StrAppend(&array, "};\n\n");
