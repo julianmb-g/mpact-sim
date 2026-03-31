@@ -9,8 +9,3 @@
 
 ### Orchestration Insights
 * **Upstream Synchronization**: Continuous rebase syncs against `origin/main` are required to maintain a consistent orchestration ledger (`AGENTS.md`).
-### Git & Orchestration Operations
-[FLAG: stale] * **Upstream Synchronization Strictness:** When checking for remote divergence or integrating new changes within this submodule, you MUST explicitly query the `upstream` tracking branch. You are STRICTLY FORBIDDEN from defaulting to `origin`. To view commits that exist upstream but are missing locally, use the exact command: `git log <local_branch>..upstream/<branch> --oneline` (Note: Use `master` for tinygrad, `main` for all others). NEVER run `git fetch` or `git pull` yourself; strictly rely on the pre-fetched `upstream/*` references.
-
-### Git & Orchestration Operations
-[FLAG: stale] * **Upstream Synchronization Strictness:** When checking for remote divergence or integrating new changes within this submodule, you MUST explicitly query the `upstream` tracking branch. You are STRICTLY FORBIDDEN from defaulting to `origin`. To view commits that exist upstream but are missing locally, use the exact command: `git log <local_branch>..upstream/<branch> --oneline` (Note: Use `master` for tinygrad, `main` for all others). NEVER run `git fetch` or `git pull` yourself; strictly rely on the pre-fetched `upstream/*` references.
