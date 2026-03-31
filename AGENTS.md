@@ -30,11 +30,11 @@
 
 ### Code Generation & Boundaries
 
-* **Namespace Shadowing (`absl::string_view`)**
+* [FLAG: stale] **Namespace Shadowing (`absl::string_view`)**
   * **Quote:** "Namespace shadowing inside nested generator blocks."
   * **Impact:** Compilation errors when generating C++ code that references external namespaces inside local scopes.
   * **Action:** When generating C++ code referencing external namespaces (like `absl`), ALWAYS use fully qualified global prefixes (e.g., `::absl::string_view`, `::absl`) to prevent namespace shadowing.
-* **Operand Encoding Bounds Check Exception**
+* [FLAG: stale] **Operand Encoding Bounds Check Exception**
   * **Quote:** "The auto-generated bitwise packing logic may throw `std::out_of_range` if an operand immediate value exceeds its bit-width."
   * **Impact:** Exceptions fatally crash the process.
   * **Action:** Patch the generator to perform safe bounds-checking on operands and return an `absl::Status` (e.g., `absl::NotFoundError` or `absl::OutOfRangeError`) instead of throwing exceptions. Ensure comprehensive testing organically validates this without downstream circular dependencies.
@@ -45,14 +45,14 @@
   * **Action:** Continuous rebase syncs against `origin/main` are required to maintain a consistent orchestration ledger (`AGENTS.md`).
 * **Submodule Ledger Consolidation**
   * **Action:** Immediately integrate audit restorations into the primary strict execution mandates and remove restoration headers. Prune exact duplicates.
-* **Code Generator `#include` Injections and Namespace Shadowing**
+* [FLAG: stale] **Code Generator `#include` Injections and Namespace Shadowing**
   * **Impact:** Emitting `#include <stdexcept>` or `#include "absl/strings/match.h"` directives inside `mpact::sim::riscv::isa64` causes the included library's internal namespaces to be incorrectly nested, creating severe shadowing collisions.
   * **Action:** `GenerateEncFilePrologs` MUST strictly emit all `#include` directives at the global file scope, entirely before opening any nested `namespace` blocks.
-* **Negative Hex String Evasion (`-0x...`) in `SimpleTextToInt`**
+* [FLAG: stale] **Negative Hex String Evasion (`-0x...`) in `SimpleTextToInt`**
   * **Impact:** Standard regexes like `^0x[0-9a-f]+$` and decimal parsers like `absl::SimpleAtoi` silently fail to parse negative hex strings like `-0x800`. This bypasses generator bounds checks, throwing unhandled `std::out_of_range` exceptions in downstream bitpackers.
   * **Action:** `SimpleTextToInt` must explicitly match the negative sign `(-?)` preceding `0x` prefixes, invert the integer via `absl::SimpleHexAtoi`, and evaluate bounds checks securely.
 
 ### Code Generation & ISA Literal Namespaces
-* **Namespace Shadowing in `.isa` and String Literals**
+* [FLAG: stale] **Namespace Shadowing in `.isa` and String Literals**
   * **Impact:** The code generator blind-copies C++ string literals from `.isa`, `.bin_fmt`, and `.proto_fmt` files into local `namespace` scopes. Writing `absl::bind_front` in a `.isa` file injects an un-prefixed reference that triggers compilation failures during tests.
   * **Action:** You must apply the global scope prefix `::absl::` explicitly inside the string literals and instruction semantics logic of all DSL configuration files (e.g., `::absl::bind_front`).
