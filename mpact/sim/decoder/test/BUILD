@@ -225,6 +225,8 @@ mpact_cc_test(
     ],
     deps = [
         ":example_isa",
+        "//mpact/sim/util/program_loader:elf_loader",
+        "//mpact/sim/util/memory:memory",
         "//mpact/sim/generic:arch_state",
         "//mpact/sim/generic:instruction",
         "@com_google_absl//absl/container:flat_hash_map",
@@ -579,6 +581,8 @@ mpact_cc_test(
     srcs = ["decoder_trap_integration_test.cc"],
     deps = [
         ":example_isa",
+        "//mpact/sim/util/program_loader:elf_loader",
+        "//mpact/sim/util/memory:memory",
         "//mpact/sim/generic:arch_state",
         "//mpact/sim/generic:instruction",
         "@com_google_googletest//:gtest",
