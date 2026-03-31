@@ -51,3 +51,8 @@
 * **Negative Hex String Evasion (`-0x...`) in `SimpleTextToInt`**
   * **Impact:** Standard regexes like `^0x[0-9a-f]+$` and decimal parsers like `absl::SimpleAtoi` silently fail to parse negative hex strings like `-0x800`. This bypasses generator bounds checks, throwing unhandled `std::out_of_range` exceptions in downstream bitpackers.
   * **Action:** `SimpleTextToInt` must explicitly match the negative sign `(-?)` preceding `0x` prefixes, invert the integer via `absl::SimpleHexAtoi`, and evaluate bounds checks securely.
+
+### Code Generation & ISA Literal Namespaces
+* **Namespace Shadowing in `.isa` and String Literals**
+  * **Impact:** The code generator blind-copies C++ string literals from `.isa`, `.bin_fmt`, and `.proto_fmt` files into local `namespace` scopes. Writing `absl::bind_front` in a `.isa` file injects an un-prefixed reference that triggers compilation failures during tests.
+  * **Action:** You must apply the global scope prefix `::absl::` explicitly inside the string literals and instruction semantics logic of all DSL configuration files (e.g., `::absl::bind_front`).
