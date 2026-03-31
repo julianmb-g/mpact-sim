@@ -8,5 +8,6 @@
 * **Native Generator Fixes**: Fix generators natively using strict bitwise masking (e.g., `constexpr uint64_t kRiscv32InstLengthMask = 0x3`). Do not rely on `SafeEncodeWrapper` or `try...catch` abstractions.
 
 ### Orchestration Insights
-* [FLAG: invalid] **Upstream Synchronization**: Continuous rebase syncs against `origin/main` are required to maintain a consistent orchestration ledger (`AGENTS.md`).
+* **Upstream Synchronization Strictness**: JIT upstream synchronization operations must strictly verify `upstream/main` divergence atomically via `git log HEAD..upstream/main --oneline`. You are STRICTLY FORBIDDEN from defaulting to `origin` for these checks or running `git pull`/`git fetch`.
+* **JIT Sync Verification**: Upstream synchronization tasks MUST execute the specified verification tests (e.g., `bazel test //mpact/sim/decoder/...`) natively before completing the atomic cycle, even if the tracking branch is fully synchronized, to guarantee CI stability.
 * **Testing Illusion Review**: Verify all bounds are strictly checked. No bypassing.
