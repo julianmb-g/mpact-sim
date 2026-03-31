@@ -89,16 +89,16 @@ Format::~Format() {
 
 // Add a field to the current format with the given width and signed/unsigned
 // attribute.
-absl::Status Format::AddField(std::string name, bool is_signed, int width) {
+::absl::Status Format::AddField(std::string name, bool is_signed, int width) {
   // Make sure that the name isn't used already in the format.
   if (field_map_.contains(name)) {
-    return absl::InvalidArgumentError(
-        absl::StrCat("Field '", name, "' already defined"));
+    return ::absl::InvalidArgumentError(
+        ::absl::StrCat("Field '", name, "' already defined"));
   }
   auto field = new Field(name, is_signed, width, this);
   field_vec_.push_back(new FieldOrFormat(field));
   field_map_.insert(std::make_pair(name, field));
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
 // Add a format reference field - name of another format - to the current
@@ -111,16 +111,16 @@ void Format::AddFormatReferenceField(std::string format_alias,
 
 // Add an overlay to the current format. An overlay is a named alias for a
 // not necessarily contiguous nor in order collection of bits in the format.
-absl::StatusOr<Overlay*> Format::AddFieldOverlay(std::string name,
+::absl::StatusOr<Overlay*> Format::AddFieldOverlay(std::string name,
                                                  bool is_signed, int width) {
   // Make sure that the name isn't used already in the format.
   if (overlay_map_.contains(name)) {
-    return absl::InvalidArgumentError(
-        absl::StrCat("Overlay '", name, "' already defined as an overlay"));
+    return ::absl::InvalidArgumentError(
+        ::absl::StrCat("Overlay '", name, "' already defined as an overlay"));
   }
   if (field_map_.contains(name)) {
-    return absl::InvalidArgumentError(
-        absl::StrCat("Overlay '", name, "' already defined as a field"));
+    return ::absl::InvalidArgumentError(
+        ::absl::StrCat("Overlay '", name, "' already defined as a field"));
   }
   auto overlay = new Overlay(name, is_signed, width, this);
   overlay_map_.insert(std::make_pair(name, overlay));
@@ -128,14 +128,14 @@ absl::StatusOr<Overlay*> Format::AddFieldOverlay(std::string name,
 }
 
 // Return the named field if it exists, nullptr otherwise.
-Field* Format::GetField(absl::string_view field_name) const {
+Field* Format::GetField(::absl::string_view field_name) const {
   auto iter = field_map_.find(field_name);
   if (iter == field_map_.end()) return nullptr;
   return iter->second;
 }
 
 // Return the named field if it exists, nullptr otherwise.
-Overlay* Format::GetOverlay(absl::string_view overlay_name) const {
+Overlay* Format::GetOverlay(::absl::string_view overlay_name) const {
   auto iter = overlay_map_.find(overlay_name);
   if (iter == overlay_map_.end()) return nullptr;
   return iter->second;
@@ -143,24 +143,24 @@ Overlay* Format::GetOverlay(absl::string_view overlay_name) const {
 
 // Return the string containing the integer type used to contain the current
 // format. If it is greater than 128 bits, will use a byte array (int8_t *).
-// If it is 65 to 128 bits, will use absl::[u]int128.
+// If it is 65 to 128 bits, will use ::absl::[u]int128.
 std::string Format::GetUIntType(int bitwidth) const {
   if (bitwidth > 128) return "uint8_t *";
-  if (bitwidth > 64) return "absl::uint128";
-  return absl::StrCat("uint", GetIntTypeBitWidth(bitwidth), "_t");
+  if (bitwidth > 64) return "::absl::uint128";
+  return ::absl::StrCat("uint", GetIntTypeBitWidth(bitwidth), "_t");
 }
 
 std::string Format::GetIntType(int bitwidth) const {
   if (bitwidth > 128) return "int8_t *";
-  if (bitwidth > 64) return "absl::int128";
-  return absl::StrCat("int", GetIntTypeBitWidth(bitwidth), "_t");
+  if (bitwidth > 64) return "::absl::int128";
+  return ::absl::StrCat("int", GetIntTypeBitWidth(bitwidth), "_t");
 }
 
 // Return the int type byte width (1, 2, 4, 8, 16) or (-1 if it's bigger), of
 // the integer type that would fit this format.
 int Format::GetIntTypeBitWidth(int bitwidth) const {
-  auto shift = absl::bit_width(static_cast<unsigned>(bitwidth)) - 1;
-  if (absl::popcount(static_cast<unsigned>(bitwidth)) > 1) shift++;
+  auto shift = ::absl::bit_width(static_cast<unsigned>(bitwidth)) - 1;
+  if (::absl::popcount(static_cast<unsigned>(bitwidth)) > 1) shift++;
   shift = std::max(shift, 3);
   if (shift > 7) return -1;
   return 1 << shift;
@@ -168,18 +168,18 @@ int Format::GetIntTypeBitWidth(int bitwidth) const {
 
 // Once all the formats have been read in, this method is called to check the
 // format and update any widths that depended on other formats being read in.
-absl::Status Format::ComputeAndCheckFormatWidth() {
+::absl::Status Format::ComputeAndCheckFormatWidth() {
   // If there is a base format name, look up that format, verify that the widths
   // are the same.
   if (!base_format_name_.empty()) {
     auto* base_format = encoding_info_->GetFormat(base_format_name_);
     if (base_format == nullptr) {
-      return absl::InternalError(
-          absl::StrCat("Format ", name(), " refers to undefined base format ",
+      return ::absl::InternalError(
+          ::absl::StrCat("Format ", name(), " refers to undefined base format ",
                        base_format_name_));
     }
     if (base_format->declared_width() != declared_width_) {
-      return absl::InternalError(absl::StrCat(
+      return ::absl::InternalError(::absl::StrCat(
           "Format ", name_, " (", declared_width_,
           ") differs in width from base format ", base_format->name(), " (",
           base_format->declared_width(), ")"));
@@ -208,7 +208,7 @@ absl::Status Format::ComputeAndCheckFormatWidth() {
         std::string fmt_name = field_or_format->format_name();
         format = encoding_info_->GetFormat(fmt_name);
         if (format == nullptr) {
-          return absl::InternalError(absl::StrCat(
+          return ::absl::InternalError(::absl::StrCat(
               "Format '", name(), "' refers to undefined format ", fmt_name));
         }
         field_or_format->set_format(format);
@@ -219,7 +219,7 @@ absl::Status Format::ComputeAndCheckFormatWidth() {
           std::make_pair(field_or_format->format_alias(), field_or_format));
     }
     if (computed_width_ != declared_width_) {
-      return absl::InternalError(absl::StrCat(
+      return ::absl::InternalError(::absl::StrCat(
           "Format '", name_, "' declared width (", declared_width_,
           ") differs from computed width (", computed_width_, ")"));
     }
@@ -231,8 +231,8 @@ absl::Status Format::ComputeAndCheckFormatWidth() {
   }
   // Set the type names.
   int_type_name_ = GetIntType(declared_width_);
-  uint_type_name_ = absl::StrCat("u", int_type_name_);
-  return absl::OkStatus();
+  uint_type_name_ = ::absl::StrCat("u", int_type_name_);
+  return ::absl::OkStatus();
 }
 
 // The extractor functions in the generated code are all generated within a
@@ -357,18 +357,18 @@ std::string Format::GeneratePackedStructFieldExtractor(
   std::string h_output;
   int width = field->width;
   std::string return_type = GetUIntType(width);
-  std::string signature = absl::StrCat("inline ", return_type, " Extract",
+  std::string signature = ::absl::StrCat("inline ", return_type, " Extract",
                                        ToPascalCase(field->name), "(");
   if (declared_width_ < 64) {
-    absl::StrAppend(&signature, GetUIntType(declared_width_), " value) {\n");
+    ::absl::StrAppend(&signature, GetUIntType(declared_width_), " value) {\n");
   } else {
-    absl::StrAppend(&signature, "const uint8_t *value) {\n");
+    ::absl::StrAppend(&signature, "const uint8_t *value) {\n");
   }
-  absl::StrAppend(&h_output, signature);
+  ::absl::StrAppend(&h_output, signature);
   // Now start the body.
-  std::string union_type = absl::StrCat("const ", ToSnakeCase(name()),
+  std::string union_type = ::absl::StrCat("const ", ToSnakeCase(name()),
                                         "::Union", ToPascalCase(name()));
-  absl::StrAppend(&h_output, "  ", union_type,
+  ::absl::StrAppend(&h_output, "  ", union_type,
                   " *packed_union;\n"
                   "  packed_union = reinterpret_cast<",
                   union_type, "*>(",
@@ -386,11 +386,11 @@ std::string Format::GenerateFieldExtractor(const Field* field) const {
   std::string result_type_name =
       field->is_signed ? GetIntType(return_width) : GetUIntType(return_width);
   std::string argument_type_name = GetUIntType(computed_width_);
-  std::string signature = absl::StrCat(
+  std::string signature = ::absl::StrCat(
       result_type_name, " Extract", ToPascalCase(field->name), "(",
       computed_width_ > 128 ? "const " : "", argument_type_name, " value)");
 
-  absl::StrAppend(&h_output, "inline ", signature, " {\n");
+  ::absl::StrAppend(&h_output, "inline ", signature, " {\n");
 
   // Generate extraction function. For fields it's a simple shift and mask if
   // the source format width <= 64 bits. Slightly more involved with format
@@ -399,24 +399,24 @@ std::string Format::GenerateFieldExtractor(const Field* field) const {
   if (declared_width_ <= 64) {
     uint64_t mask = (1ULL << field->width) - 1;
     if (field->low == 0) {
-      expr = absl::StrCat("value & 0x", absl::Hex(mask));
+      expr = ::absl::StrCat("value & 0x", ::absl::Hex(mask));
     } else {
-      expr = absl::StrCat(" (value >> ", field->low, ") & 0x", absl::Hex(mask));
+      expr = ::absl::StrCat(" (value >> ", field->low, ") & 0x", ::absl::Hex(mask));
     }
   } else if (declared_width_ <= 128) {
-    absl::StrAppend(&h_output,
-                    "  absl::uint128 mask = 1;\n"
+    ::absl::StrAppend(&h_output,
+                    "  ::absl::uint128 mask = 1;\n"
                     "  mask = (mask << ",
                     field->width, ") - 1;\n");
     if (field->low == 0) {
-      expr = absl::StrCat("value & mask");
+      expr = ::absl::StrCat("value & mask");
     } else {
-      expr = absl::StrCat(" (value >> ", field->low, ") & mask");
+      expr = ::absl::StrCat(" (value >> ", field->low, ") & mask");
     }
   } else {
     // For format width > 128 bits, use the templated extract helper function.
     int byte_size = (declared_width_ + 7) / 8;
-    expr = absl::StrCat("internal::ExtractBits<", result_type_name, ">(value, ",
+    expr = ::absl::StrCat("internal::ExtractBits<", result_type_name, ">(value, ",
                         byte_size, ", ", field->high, ", ", field->width, ")");
   }
 
@@ -425,26 +425,26 @@ std::string Format::GenerateFieldExtractor(const Field* field) const {
   if (field->is_signed) {
     int shift = return_width - field->width;
     sign_extension =
-        absl::StrCat("  ", result_type_name, " result = (", expr, ") << ",
+        ::absl::StrCat("  ", result_type_name, " result = (", expr, ") << ",
                      shift, ";\n  result = result >> ", shift, ";\n");
     expr = "result";
   }
   if (declared_width_ <= 64) {
-    absl::StrAppend(&h_output, sign_extension, "  return ", expr, ";\n}\n\n");
+    ::absl::StrAppend(&h_output, sign_extension, "  return ", expr, ";\n}\n\n");
   } else if ((declared_width_ <= 128) && (return_width <= 64)) {
-    absl::StrAppend(&h_output, sign_extension, "  return absl::Uint128Low64(",
+    ::absl::StrAppend(&h_output, sign_extension, "  return ::absl::Uint128Low64(",
                     expr, ");\n}\n\n");
   } else {
-    absl::StrAppend(&h_output, sign_extension, "  return ", expr, ";\n}\n\n");
+    ::absl::StrAppend(&h_output, sign_extension, "  return ", expr, ";\n}\n\n");
   }
   // If the parent format size is not a power of two, also create an extractor
   // that takes a uint8_t * parameter.
   if ((declared_width_ <= 128) &&
-      (absl::popcount(static_cast<unsigned>(declared_width_)) > 1)) {
-    absl::StrAppend(&h_output, "inline ", result_type_name, " Extract",
+      (::absl::popcount(static_cast<unsigned>(declared_width_)) > 1)) {
+    ::absl::StrAppend(&h_output, "inline ", result_type_name, " Extract",
                     ToPascalCase(field->name), "(const uint8_t *value) {\n");
     int byte_size = (declared_width_ + 7) / 8;
-    absl::StrAppend(&h_output, "  return internal::ExtractBits<",
+    ::absl::StrAppend(&h_output, "  return internal::ExtractBits<",
                     result_type_name, ">(value, ", byte_size, ", ", field->high,
                     ", ", field->width, ");\n}\n\n");
   }
@@ -463,8 +463,8 @@ std::string Format::GeneratePackedStructFieldInserter(
   }
   field_type_name = GetUIntType(field->width);
   std::string union_type =
-      absl::StrCat(ToSnakeCase(name()), "::Union", ToPascalCase(name()));
-  absl::StrAppend(&h_output, "static inline ", inst_word_type_name, " Insert",
+      ::absl::StrCat(ToSnakeCase(name()), "::Union", ToPascalCase(name()));
+  ::absl::StrAppend(&h_output, "static inline ", inst_word_type_name, " Insert",
                   ToPascalCase(field->name), "(", field_type_name, " value, ",
                   inst_word_type_name,
                   " inst_word) {\n"
@@ -495,42 +495,42 @@ std::string Format::GenerateFieldInserter(const Field* field) const {
   } else {
     field_type_name = GetUIntType(field->width);
   }
-  absl::StrAppend(&h_output, "static inline ", inst_word_type_name, " Insert",
+  ::absl::StrAppend(&h_output, "static inline ", inst_word_type_name, " Insert",
                   ToPascalCase(field->name), "(", field_type_name, " value, ",
                   inst_word_type_name, " inst_word) {\n");
   if (declared_width_ <= 64) {
     uint64_t mask = ((1ULL << field->width) - 1) << field->low;
     std::string shift;
     if (field->low != 0) {
-      shift = absl::StrCat(" << ", field->low);
+      shift = ::absl::StrCat(" << ", field->low);
     }
-    absl::StrAppend(&h_output, "  inst_word = (inst_word & ~0x",
-                    absl::Hex(mask), "ULL)", " | ((value", shift, ") & 0x",
-                    absl::Hex(mask),
+    ::absl::StrAppend(&h_output, "  inst_word = (inst_word & ~0x",
+                    ::absl::Hex(mask), "ULL)", " | ((value", shift, ") & 0x",
+                    ::absl::Hex(mask),
                     "ULL);\n"
                     "  return inst_word;\n"
                     "}\n");
   } else if (declared_width_ <= 128) {
-    absl::StrAppend(&h_output,
-                    "  absl::uint128 mask = 1;\n"
+    ::absl::StrAppend(&h_output,
+                    "  ::absl::uint128 mask = 1;\n"
                     "  mask = (mask << ",
                     field->width, ") - 1;\n");
     if (field->low != 0) {
-      absl::StrAppend(&h_output, "  mask = mask << ", field->low, ";\n");
+      ::absl::StrAppend(&h_output, "  mask = mask << ", field->low, ";\n");
     }
-    absl::StrAppend(&h_output,
+    ::absl::StrAppend(&h_output,
                     "  inst_word = (inst_word & ~mask) | (value & mask);\n"
                     "  return inst_word;\n"
                     "}\n");
   } else if (field->width <= 128) {
     int byte_size = (declared_width_ + 7) / 8;
-    absl::StrAppend(&h_output, "  internal::InsertBits(inst_word, ", byte_size,
+    ::absl::StrAppend(&h_output, "  internal::InsertBits(inst_word, ", byte_size,
                     ", ", field->high, ", ", field->width,
                     ", value);\n"
                     "  return inst_word;\n"
                     "}\n");
   } else {
-    absl::StrAppend(&h_output,
+    ::absl::StrAppend(&h_output,
                     "  LOG(FATAL) << \" Support for fields > 128 bits not "
                     "implemented - "
                     "yet.\";\n"
@@ -551,12 +551,12 @@ std::string Format::GenerateOverlayInserter(Overlay* overlay) const {
   } else {
     overlay_type_name = GetUIntType(overlay->declared_width());
   }
-  absl::StrAppend(&h_output, "static inline ", result_type_name, " Insert",
+  ::absl::StrAppend(&h_output, "static inline ", result_type_name, " Insert",
                   ToPascalCase(overlay->name()), "(", overlay_type_name,
                   " value, ", result_type_name, " inst_word) {\n");
   // Mark error if either the overlay or the format is > 64 bits.
   if (overlay->declared_width() > 128) {
-    absl::StrAppend(&h_output,
+    ::absl::StrAppend(&h_output,
                     "  LOG(FATAL) << \" Support for overlays > 128 bits "
                     "not implemented - "
                     "yet.\";\n"
@@ -567,16 +567,16 @@ std::string Format::GenerateOverlayInserter(Overlay* overlay) const {
   int remaining = overlay->declared_width();
   int byte_size = (declared_width_ + 7) / 8;
   if (declared_width_ <= 128) {
-    absl::StrAppend(&h_output, "  ", result_type_name, " tmp;\n");
+    ::absl::StrAppend(&h_output, "  ", result_type_name, " tmp;\n");
     // Track the leftmost bit in the overlay.
     if (declared_width_ > 64) {
-      absl::StrAppend(&h_output, "  absl::uint128 mask;\n");
+      ::absl::StrAppend(&h_output, "  ::absl::uint128 mask;\n");
       use_mask_variable = true;
     }
   } else {
-    absl::StrAppend(&h_output, "  ", overlay_type_name, " tmp;\n");
+    ::absl::StrAppend(&h_output, "  ", overlay_type_name, " tmp;\n");
     if (overlay->declared_width() > 64) {
-      absl::StrAppend(&h_output, "  absl::uint128 mask;\n");
+      ::absl::StrAppend(&h_output, "  ::absl::uint128 mask;\n");
       use_mask_variable = true;
     }
   }
@@ -589,35 +589,35 @@ std::string Format::GenerateOverlayInserter(Overlay* overlay) const {
     }
     std::string shift;
     if (remaining - width > 0) {
-      shift = absl::StrCat(" >> ", remaining - width);
+      shift = ::absl::StrCat(" >> ", remaining - width);
     }
     if (use_mask_variable) {
-      absl::StrAppend(&h_output,
+      ::absl::StrAppend(&h_output,
                       "  mask = 1;\n"
                       "  mask = (mask << ",
                       width, ") - 1;\n");
-      absl::StrAppend(&h_output, "  tmp = (value ", shift, ") & mask;\n");
+      ::absl::StrAppend(&h_output, "  tmp = (value ", shift, ") & mask;\n");
     } else {
       uint64_t mask = ((1ULL << width) - 1);
       // Extract the bits from the overlay value for the current component.
-      absl::StrAppend(&h_output, "  tmp = (value ", shift, ") & 0x",
-                      absl::Hex(mask), "ULL;\n");
+      ::absl::StrAppend(&h_output, "  tmp = (value ", shift, ") & 0x",
+                      ::absl::Hex(mask), "ULL;\n");
     }
     shift.clear();
     if (bits_or_field->low() != 0) {
-      shift = absl::StrCat(" << ", bits_or_field->low());
+      shift = ::absl::StrCat(" << ", bits_or_field->low());
     }
     if (declared_width_ <= 128) {
-      absl::StrAppend(&h_output, "  inst_word |= (tmp ", shift, ");\n");
+      ::absl::StrAppend(&h_output, "  inst_word |= (tmp ", shift, ");\n");
     } else {
-      absl::StrAppend(&h_output, "  internal::InsertBits(inst_word, ",
+      ::absl::StrAppend(&h_output, "  internal::InsertBits(inst_word, ",
                       byte_size, ", ", bits_or_field->high(), ", ", width,
                       ",  tmp);\n");
     }
 
     remaining -= width;
   }
-  absl::StrAppend(&h_output, "  return inst_word;\n}\n");
+  ::absl::StrAppend(&h_output, "  return inst_word;\n}\n");
   return h_output;
 }
 
@@ -633,8 +633,8 @@ std::string Format::GeneratePackedStructFormatInserter(
   }
   std::string format_type_name = GetUIntType(format->declared_width());
   std::string union_type =
-      absl::StrCat(ToSnakeCase(name()), "::Union", ToPascalCase(name()));
-  absl::StrAppend(&h_output, "static inline ", inst_word_type_name, " Insert",
+      ::absl::StrCat(ToSnakeCase(name()), "::Union", ToPascalCase(name()));
+  ::absl::StrAppend(&h_output, "static inline ", inst_word_type_name, " Insert",
                   ToPascalCase(format_alias), "(", format_type_name, " value, ",
                   inst_word_type_name,
                   " inst_word) {\n"
@@ -677,12 +677,12 @@ std::string Format::GenerateReplicatedFormatInserter(
   } else {
     format_type_name = GetUIntType(format->declared_width());
   }
-  absl::StrAppend(&h_output, "static inline ", target_type_name, " Insert",
+  ::absl::StrAppend(&h_output, "static inline ", target_type_name, " Insert",
                   ToPascalCase(format_alias), "(", "int index, ",
                   format_type_name, " value, ", target_type_name,
                   " inst_word) {\n");
   if (format->declared_width() > 128) {
-    absl::StrAppend(&h_output,
+    ::absl::StrAppend(&h_output,
                     "  LOG(FATAL) << \" Support for formats > 128 bits not "
                     "implemented - "
                     "yet.\";\n"
@@ -693,16 +693,16 @@ std::string Format::GenerateReplicatedFormatInserter(
   int low = high - width + 1;
   if (declared_width_ <= 64) {
     uint64_t mask = (1ULL << width) - 1;
-    absl::StrAppend(&h_output, "  int low = ", low, " - (index * ", width,
+    ::absl::StrAppend(&h_output, "  int low = ", low, " - (index * ", width,
                     ");\n"
                     "  return (inst_word & (~0x",
-                    absl::Hex(mask), "ULL << low))", " | ((value << low) & (0x",
-                    absl::Hex(mask), "ULL << low));\n}\n");
+                    ::absl::Hex(mask), "ULL << low))", " | ((value << low) & (0x",
+                    ::absl::Hex(mask), "ULL << low));\n}\n");
   } else if (declared_width_ <= 128) {
-    absl::StrAppend(
+    ::absl::StrAppend(
         &h_output, "  int low = ", low, " - (index * ", width,
         ");\n"
-        "  absl::uint128 mask = 1;\n"
+        "  ::absl::uint128 mask = 1;\n"
         "  mask = (mask << ",
         width,
         ") - 1;\n"
@@ -710,7 +710,7 @@ std::string Format::GenerateReplicatedFormatInserter(
         "  return (inst_word & ~mask) | (value << low) & mask;\n}\n");
   } else {
     int byte_size = (declared_width_ + 7) / 8;
-    absl::StrAppend(&h_output, "  internal::InsertBits(inst_word, ", byte_size,
+    ::absl::StrAppend(&h_output, "  internal::InsertBits(inst_word, ", byte_size,
                     ", ", high, " - (index * ", width, "), ", width,
                     ", value);\n"
                     "  return inst_word;\n}\n");
@@ -730,11 +730,11 @@ std::string Format::GenerateSingleFormatInserter(std::string_view format_alias,
     format_type_name = GetUIntType(format->declared_width());
   }
 
-  absl::StrAppend(&h_output, "static inline ", target_type_name, " Insert",
+  ::absl::StrAppend(&h_output, "static inline ", target_type_name, " Insert",
                   ToPascalCase(format_alias), "(", format_type_name, " value, ",
                   target_type_name, " inst_word) {\n");
   if (format->declared_width() > 128) {
-    absl::StrAppend(&h_output,
+    ::absl::StrAppend(&h_output,
                     "  LOG(FATAL) << \" Support for formats > 128 bits not "
                     "implemented - "
                     "yet.\";\n"
@@ -745,26 +745,26 @@ std::string Format::GenerateSingleFormatInserter(std::string_view format_alias,
   int low = high - width + 1;
   std::string shift;
   if (low != 0) {
-    shift = absl::StrCat(" << ", low);
+    shift = ::absl::StrCat(" << ", low);
   }
   if (declared_width_ <= 64) {
     uint64_t mask = ((1ULL << width) - 1) << low;
-    absl::StrAppend(&h_output, "  return (inst_word & (~0x", absl::Hex(mask),
-                    "ULL))", " | ((value ", shift, ") & 0x", absl::Hex(mask),
+    ::absl::StrAppend(&h_output, "  return (inst_word & (~0x", ::absl::Hex(mask),
+                    "ULL))", " | ((value ", shift, ") & 0x", ::absl::Hex(mask),
                     "ULL);\n}\n");
   } else if (declared_width_ <= 128) {
-    absl::StrAppend(&h_output,
-                    "  absl::uint128 mask = 1;\n"
+    ::absl::StrAppend(&h_output,
+                    "  ::absl::uint128 mask = 1;\n"
                     "  mask = (mask << ",
                     width, ") - 1;\n");
     if (low > 0) {
-      absl::StrAppend(&h_output, "  mask = mask << ", low, ";\n");
+      ::absl::StrAppend(&h_output, "  mask = mask << ", low, ";\n");
     }
-    absl::StrAppend(&h_output, "  return (inst_word & ~mask) | (value ", shift,
+    ::absl::StrAppend(&h_output, "  return (inst_word & ~mask) | (value ", shift,
                     ") & mask;\n}\n");
   } else {
     int byte_size = (declared_width_ + 7) / 8;
-    absl::StrAppend(&h_output, "  internal::InsertBits(inst_word, ", byte_size,
+    ::absl::StrAppend(&h_output, "  internal::InsertBits(inst_word, ", byte_size,
                     ", ", high, ", ", width,
                     ", value);\n"
                     "  return inst_word;\n}\n");
@@ -773,23 +773,23 @@ std::string Format::GenerateSingleFormatInserter(std::string_view format_alias,
 }
 
 std::string Format::GeneratePackedStructFormatExtractor(
-    absl::string_view format_alias, const Format* format, int high,
+    ::absl::string_view format_alias, const Format* format, int high,
     int size) const {
   std::string h_output;
   int width = format->declared_width();
   std::string return_type = GetUIntType(width);
-  std::string signature = absl::StrCat("inline ", return_type, " Extract",
+  std::string signature = ::absl::StrCat("inline ", return_type, " Extract",
                                        ToPascalCase(format_alias), "(");
   if (declared_width_ < 64) {
-    absl::StrAppend(&signature, GetUIntType(declared_width_), " value) {\n");
+    ::absl::StrAppend(&signature, GetUIntType(declared_width_), " value) {\n");
   } else {
-    absl::StrAppend(&signature, "const uint8_t *value) {\n");
+    ::absl::StrAppend(&signature, "const uint8_t *value) {\n");
   }
-  absl::StrAppend(&h_output, signature);
+  ::absl::StrAppend(&h_output, signature);
   // Now start the body.
-  std::string union_type = absl::StrCat("const ", ToSnakeCase(name()),
+  std::string union_type = ::absl::StrCat("const ", ToSnakeCase(name()),
                                         "::Union", ToPascalCase(name()));
-  absl::StrAppend(&h_output, "  ", union_type,
+  ::absl::StrAppend(&h_output, "  ", union_type,
                   " *packed_union;\n"
                   "  packed_union = reinterpret_cast<",
                   union_type, " *>(",
@@ -801,7 +801,7 @@ std::string Format::GeneratePackedStructFormatExtractor(
 
 // This method generates the format extractors for the current format (for
 // when a format contains other formats).
-std::string Format::GenerateFormatExtractor(absl::string_view format_alias,
+std::string Format::GenerateFormatExtractor(::absl::string_view format_alias,
                                             const Format* format, int high,
                                             int size) const {
   std::string h_output;  // For each format generate an extractor.
@@ -810,81 +810,81 @@ std::string Format::GenerateFormatExtractor(absl::string_view format_alias,
   if (width > 128) {
     encoding_info_->error_listener()->semanticError(
         nullptr,
-        absl::StrCat("Cannot generate a format extractor for format '",
+        ::absl::StrCat("Cannot generate a format extractor for format '",
                      format->name(), "': format is wider than 128 bits"));
     return "";
   }
   std::string return_type = GetUIntType(width);
-  std::string signature = absl::StrCat("inline ", return_type, " Extract",
+  std::string signature = ::absl::StrCat("inline ", return_type, " Extract",
                                        ToPascalCase(format_alias), "(");
   if (declared_width_ <= 128) {
     // If the source format is <= 128 bits, then use an int type.
     std::string arg_type = GetUIntType(declared_width_);
-    absl::StrAppend(&signature, arg_type, " value");
+    ::absl::StrAppend(&signature, arg_type, " value");
   } else {
     // Otherwise use a pointer to uint8_t type.
-    absl::StrAppend(&signature, "const uint8_t *value");
+    ::absl::StrAppend(&signature, "const uint8_t *value");
   }
   // If the format has multiple instances add an index parameter.
   if (size > 1) {
-    absl::StrAppend(&signature, ", int index");
+    ::absl::StrAppend(&signature, ", int index");
   }
-  absl::StrAppend(&signature, ")");
+  ::absl::StrAppend(&signature, ")");
   // Now start the body.
-  absl::StrAppend(&h_output, signature, " {\n");
+  ::absl::StrAppend(&h_output, signature, " {\n");
   std::string expr;
   if (declared_width_ <= 128) {
     // If the source format can be stored in a uint128 or smaller.
     int low = high - width + 1;
     std::string shift;
     if (size > 1) {
-      shift = absl::StrCat("(", low, " + (index - 1) * ", width, ")");
+      shift = ::absl::StrCat("(", low, " + (index - 1) * ", width, ")");
     } else {
-      shift = absl::StrCat(low);
+      shift = ::absl::StrCat(low);
     }
     if (declared_width_ <= 64) {
       uint64_t mask = (1ULL << width) - 1;
       expr =
-          absl::StrCat("(value >> ", shift, ") & 0x", absl::Hex(mask), ";\n");
-      absl::StrAppend(&h_output, "  return ", expr, ";\n}\n\n");
+          ::absl::StrCat("(value >> ", shift, ") & 0x", ::absl::Hex(mask), ";\n");
+      ::absl::StrAppend(&h_output, "  return ", expr, ";\n}\n\n");
     } else {
-      absl::StrAppend(&h_output,
-                      "  absl::uint128 mask = 1;\n"
+      ::absl::StrAppend(&h_output,
+                      "  ::absl::uint128 mask = 1;\n"
                       "  mask = (mask << ",
                       width, ") - 1;\n");
-      expr = absl::StrCat("(value >> ", shift, ") & mask");
+      expr = ::absl::StrCat("(value >> ", shift, ") & mask");
       if (width <= 64) {
-        absl::StrAppend(&h_output, "  return absl::Uint128Low64(", expr,
+        ::absl::StrAppend(&h_output, "  return ::absl::Uint128Low64(", expr,
                         ");\n}\n\n");
       } else {
-        absl::StrAppend(&h_output, "  return ", expr, ";\n}\n\n");
+        ::absl::StrAppend(&h_output, "  return ", expr, ";\n}\n\n");
       }
     }
   } else {
     // If the source format is stored in uint8_t[].
     int byte_size = (declared_width_ + 7) / 8;
-    expr = absl::StrCat("internal::ExtractBits<", return_type, ">(value, ",
+    expr = ::absl::StrCat("internal::ExtractBits<", return_type, ">(value, ",
                         byte_size, ", ", high);
     if (size > 1) {
-      absl::StrAppend(&expr, " - (index * ", width, ")");
+      ::absl::StrAppend(&expr, " - (index * ", width, ")");
     }
-    absl::StrAppend(&expr, ", ", width, ")");
-    absl::StrAppend(&h_output, "  return ", expr, ";\n}\n\n");
+    ::absl::StrAppend(&expr, ", ", width, ")");
+    ::absl::StrAppend(&h_output, "  return ", expr, ";\n}\n\n");
   }
   // If the parent format size is not a power of two, also create an
   // extractor that takes a uint8_t * parameter.
   if ((declared_width_ <= 128) &&
-      (absl::popcount(static_cast<unsigned>(declared_width_)) > 1)) {
-    absl::StrAppend(&h_output, "inline ", return_type, " Extract",
+      (::absl::popcount(static_cast<unsigned>(declared_width_)) > 1)) {
+    ::absl::StrAppend(&h_output, "inline ", return_type, " Extract",
                     ToPascalCase(format_alias), "(const uint8_t *value) {\n");
     int byte_size = (declared_width_ + 7) / 8;
-    expr = absl::StrCat("internal::ExtractBits<", return_type, ">(value, ",
+    expr = ::absl::StrCat("internal::ExtractBits<", return_type, ">(value, ",
                         byte_size, ", ", high);
     if (size > 1) {
-      absl::StrAppend(&expr, " - (index * ", width, ")");
+      ::absl::StrAppend(&expr, " - (index * ", width, ")");
     }
-    absl::StrAppend(&expr, ", ", width, ")");
-    absl::StrAppend(&h_output, "  return ", expr, ";\n}\n\n");
+    ::absl::StrAppend(&expr, ", ", width, ")");
+    ::absl::StrAppend(&h_output, "  return ", expr, ";\n}\n\n");
   }
   return h_output;
 }
@@ -902,19 +902,19 @@ std::string Format::GeneratePackedStructOverlayExtractor(
                                 ? GetIntType(overlay->declared_width())
                                 : GetUIntType(overlay->declared_width());
   std::string signature =
-      absl::StrCat("inline ", return_type, " Extract",
+      ::absl::StrCat("inline ", return_type, " Extract",
                    ToPascalCase(overlay->name()), "(", arg_type, " value)");
-  absl::StrAppend(&h_output, signature, " {\n  ", return_type, " result;\n",
+  ::absl::StrAppend(&h_output, signature, " {\n  ", return_type, " result;\n",
                   overlay->WritePackedStructValueExtractor("value", "result"));
   if (overlay->is_signed()) {
     int shift = GetIntTypeBitWidth(overlay->declared_width()) -
                 overlay->declared_width();
-    absl::StrAppend(&h_output, "  result = result << ", shift,
+    ::absl::StrAppend(&h_output, "  result = result << ", shift,
                     ";\n"
                     "  result = result >> ",
                     shift, ";\n");
   }
-  absl::StrAppend(&h_output,
+  ::absl::StrAppend(&h_output,
                   "  return result;\n"
                   "}\n\n");
   return h_output;
@@ -930,35 +930,35 @@ std::string Format::GenerateOverlayExtractor(Overlay* overlay) const {
 
   std::string arg_type = GetUIntType(declared_width_);
   std::string signature =
-      absl::StrCat("inline ", return_type, " Extract",
+      ::absl::StrCat("inline ", return_type, " Extract",
                    ToPascalCase(overlay->name()), "(", arg_type, " value)");
 
   // Generate definition.
-  absl::StrAppend(&h_output, signature,
+  ::absl::StrAppend(&h_output, signature,
                   " {\n"
                   "  ",
                   return_type, " result;\n");
   if (declared_width_ <= 64) {
-    absl::StrAppend(&h_output,
+    ::absl::StrAppend(&h_output,
                     overlay->WriteSimpleValueExtractor("value", "result"));
   } else {
-    absl::StrAppend(&h_output, overlay->WriteComplexValueExtractor(
+    ::absl::StrAppend(&h_output, overlay->WriteComplexValueExtractor(
                                    "value", "result", return_type));
   }
   if (overlay->is_signed()) {
     int shift = GetIntTypeBitWidth(overlay->declared_width()) -
                 overlay->declared_width();
-    absl::StrAppend(&h_output, "  result = result << ", shift,
+    ::absl::StrAppend(&h_output, "  result = result << ", shift,
                     ";\n"
                     "  result = result >> ",
                     shift, ";\n");
   }
   if ((declared_width_ > 64) && (overlay->declared_width() <= 64)) {
-    absl::StrAppend(&h_output,
+    ::absl::StrAppend(&h_output,
                     "  return UInt128Low64(result();\n"
                     "}\n\n");
   } else {
-    absl::StrAppend(&h_output,
+    ::absl::StrAppend(&h_output,
                     "  return result;\n"
                     "}\n\n");
   }
@@ -972,7 +972,7 @@ std::string Format::GenerateInserters() const {
   if (extractors_.empty() && overlay_extractors_.empty()) {
     return h_output;
   }
-  absl::StrAppend(&h_output, "struct ", ToPascalCase(name()), " {\n\n");
+  ::absl::StrAppend(&h_output, "struct ", ToPascalCase(name()), " {\n\n");
   // First fields and formats.
   std::string inserter;
   for (auto& [unused, field_or_format_ptr] : extractors_) {
@@ -983,7 +983,7 @@ std::string Format::GenerateInserters() const {
       } else {
         inserter = GenerateFieldInserter(field_or_format_ptr->field());
       }
-      absl::StrAppend(&h_output, inserter);
+      ::absl::StrAppend(&h_output, inserter);
     } else {
       if (layout() == Layout::kPackedStruct) {
         inserter = GeneratePackedStructFormatInserter(
@@ -994,22 +994,22 @@ std::string Format::GenerateInserters() const {
             field_or_format_ptr->format_alias(), field_or_format_ptr->format(),
             field_or_format_ptr->high(), field_or_format_ptr->size());
       }
-      absl::StrAppend(&h_output, inserter);
+      ::absl::StrAppend(&h_output, inserter);
     }
   }
   // Next the overlays.
   for (auto& [unused, overlay_ptr] : overlay_extractors_) {
     auto inserter = GenerateOverlayInserter(overlay_ptr);
-    absl::StrAppend(&h_output, inserter);
+    ::absl::StrAppend(&h_output, inserter);
   }
-  absl::StrAppend(&h_output, "};  // struct ", ToPascalCase(name()), "\n\n");
+  ::absl::StrAppend(&h_output, "};  // struct ", ToPascalCase(name()), "\n\n");
   return h_output;
 }
 
 std::string Format::GeneratePackedStructTypes() const {
   std::string h_output;
   // First the struct.
-  absl::StrAppend(&h_output, "struct Packed", ToPascalCase(name()), " {\n");
+  ::absl::StrAppend(&h_output, "struct Packed", ToPascalCase(name()), " {\n");
   for (auto it = field_vec_.rbegin(); it != field_vec_.rend(); ++it) {
     auto* component = *it;
     if (component->is_field()) {
@@ -1017,20 +1017,20 @@ std::string Format::GeneratePackedStructTypes() const {
       std::string field_type = component->field()->is_signed
                                    ? GetIntType(width)
                                    : GetUIntType(width);
-      absl::StrAppend(&h_output, "  ", field_type, " ",
+      ::absl::StrAppend(&h_output, "  ", field_type, " ",
                       component->field()->name, " : ",
                       component->field()->width, ";\n");
     } else {
-      absl::StrAppend(&h_output, "  ",
+      ::absl::StrAppend(&h_output, "  ",
                       GetUIntType(component->format()->declared_width()), " ",
                       component->format_alias(), " : ",
                       component->format()->declared_width(), ";\n");
     }
   }
-  absl::StrAppend(&h_output, "} ABSL_ATTRIBUTE_PACKED;\n\n");
+  ::absl::StrAppend(&h_output, "} ABSL_ATTRIBUTE_PACKED;\n\n");
   // Next the union.
   int num_bytes = (declared_width_ + 7) / 8;
-  absl::StrAppend(&h_output, "union Union", ToPascalCase(name()),
+  ::absl::StrAppend(&h_output, "union Union", ToPascalCase(name()),
                   " {\n"
                   "  Packed",
                   ToPascalCase(name()), " ", ToSnakeCase(name()),
@@ -1039,9 +1039,9 @@ std::string Format::GeneratePackedStructTypes() const {
                   num_bytes, "];\n");
   // If it is 64 bits or less, add an unsigned integer value type.
   if (declared_width_ <= 64) {
-    absl::StrAppend(&h_output, "  ", GetUIntType(declared_width_), " value;\n");
+    ::absl::StrAppend(&h_output, "  ", GetUIntType(declared_width_), " value;\n");
   }
-  absl::StrAppend(&h_output, "};\n\n");
+  ::absl::StrAppend(&h_output, "};\n\n");
   return h_output;
 }
 
@@ -1053,23 +1053,23 @@ Extractors Format::GenerateExtractors() const {
   }
 
   extractors.class_output =
-      absl::StrCat("class ", ToPascalCase(name()), " {\n public:\n", "  ",
+      ::absl::StrCat("class ", ToPascalCase(name()), " {\n public:\n", "  ",
                    ToPascalCase(name()), "() = default;\n\n");
 
   // Use a separate namespace for each format.
   extractors.h_output =
-      absl::StrCat("namespace ", ToSnakeCase(name()), " {\n\n");
+      ::absl::StrCat("namespace ", ToSnakeCase(name()), " {\n\n");
   extractors.types_output =
-      absl::StrCat("namespace ", ToSnakeCase(name()), " {\n\n");
+      ::absl::StrCat("namespace ", ToSnakeCase(name()), " {\n\n");
 
-  std::string get_size = absl::StrCat("constexpr int k", ToPascalCase(name()),
+  std::string get_size = ::absl::StrCat("constexpr int k", ToPascalCase(name()),
                                       "Size = ", declared_width(), ";\n\n");
-  absl::StrAppend(&extractors.h_output, get_size);
-  absl::StrAppend(&extractors.class_output, "static ", get_size);
+  ::absl::StrAppend(&extractors.h_output, get_size);
+  ::absl::StrAppend(&extractors.class_output, "static ", get_size);
 
   // If this format has a packed struct layout, generate the types required.
   if (layout() == Layout::kPackedStruct) {
-    absl::StrAppend(&extractors.types_output, GeneratePackedStructTypes());
+    ::absl::StrAppend(&extractors.types_output, GeneratePackedStructTypes());
   }
 
   // First fields and formats.
@@ -1082,8 +1082,8 @@ Extractors Format::GenerateExtractors() const {
       } else {
         extractor = GenerateFieldExtractor(field_or_format_ptr->field());
       }
-      absl::StrAppend(&extractors.h_output, extractor);
-      absl::StrAppend(&extractors.class_output, "static ", extractor);
+      ::absl::StrAppend(&extractors.h_output, extractor);
+      ::absl::StrAppend(&extractors.class_output, "static ", extractor);
     } else {
       std::string extractor;
       if (layout() == Layout::kPackedStruct) {
@@ -1095,8 +1095,8 @@ Extractors Format::GenerateExtractors() const {
             field_or_format_ptr->format_alias(), field_or_format_ptr->format(),
             field_or_format_ptr->high(), field_or_format_ptr->size());
       }
-      absl::StrAppend(&extractors.h_output, extractor);
-      absl::StrAppend(&extractors.class_output, "static ", extractor);
+      ::absl::StrAppend(&extractors.h_output, extractor);
+      ::absl::StrAppend(&extractors.class_output, "static ", extractor);
     }
   }
 
@@ -1108,15 +1108,15 @@ Extractors Format::GenerateExtractors() const {
     } else {
       extractor = GenerateOverlayExtractor(overlay_ptr);
     }
-    absl::StrAppend(&extractors.h_output, extractor);
-    absl::StrAppend(&extractors.class_output, "static ", extractor);
+    ::absl::StrAppend(&extractors.h_output, extractor);
+    ::absl::StrAppend(&extractors.class_output, "static ", extractor);
   }
 
-  absl::StrAppend(&extractors.h_output, "}  // namespace ", ToSnakeCase(name()),
+  ::absl::StrAppend(&extractors.h_output, "}  // namespace ", ToSnakeCase(name()),
                   "\n\n");
-  absl::StrAppend(&extractors.types_output, "}  // namespace ",
+  ::absl::StrAppend(&extractors.types_output, "}  // namespace ",
                   ToSnakeCase(name()), "\n\n");
-  absl::StrAppend(&extractors.class_output, "};\n\n");
+  ::absl::StrAppend(&extractors.class_output, "};\n\n");
   return extractors;
 }
 

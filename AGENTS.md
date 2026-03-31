@@ -45,3 +45,9 @@
   * **Action:** Continuous rebase syncs against `origin/main` are required to maintain a consistent orchestration ledger (`AGENTS.md`).
 * **Submodule Ledger Consolidation**
   * **Action:** Immediately integrate audit restorations into the primary strict execution mandates and remove restoration headers. Prune exact duplicates.
+* **Code Generator `#include` Injections and Namespace Shadowing**
+  * **Impact:** Emitting `#include <stdexcept>` or `#include "absl/strings/match.h"` directives inside `mpact::sim::riscv::isa64` causes the included library's internal namespaces to be incorrectly nested, creating severe shadowing collisions.
+  * **Action:** `GenerateEncFilePrologs` MUST strictly emit all `#include` directives at the global file scope, entirely before opening any nested `namespace` blocks.
+* **Negative Hex String Evasion (`-0x...`) in `SimpleTextToInt`**
+  * **Impact:** Standard regexes like `^0x[0-9a-f]+$` and decimal parsers like `absl::SimpleAtoi` silently fail to parse negative hex strings like `-0x800`. This bypasses generator bounds checks, throwing unhandled `std::out_of_range` exceptions in downstream bitpackers.
+  * **Action:** `SimpleTextToInt` must explicitly match the negative sign `(-?)` preceding `0x` prefixes, invert the integer via `absl::SimpleHexAtoi`, and evaluate bounds checks securely.

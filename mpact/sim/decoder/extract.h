@@ -48,8 +48,8 @@ uint64_t ExtractValue(uint64_t value, const ExtractionRecipe& recipe);
 // with the name stored in 'value' and the result should be stored in variable
 // named as stored in 'result'. Each line in the code is indented by 'indent'.
 std::string WriteExtraction(const ExtractionRecipe& recipe,
-                            absl::string_view value, absl::string_view result,
-                            absl::string_view indent);
+                            ::absl::string_view value, ::absl::string_view result,
+                            ::absl::string_view indent);
 
 // Based on the bit mask passed in 'value', create a mask, shift and or recipe
 // to extract the corresponding bits in a packed format without changing the

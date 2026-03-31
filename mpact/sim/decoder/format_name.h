@@ -28,15 +28,15 @@ namespace instruction_set {
 // TODO(torerik) Replace locally defined function with a library version
 // if available.
 // Function to convert to PascalCase.
-std::string ToPascalCase(absl::string_view name);
+std::string ToPascalCase(::absl::string_view name);
 // Function to convert to snake_case.
-std::string ToSnakeCase(absl::string_view name);
+std::string ToSnakeCase(::absl::string_view name);
 // Function to generate header file guard name.
-std::string ToHeaderGuard(absl::string_view name);
+std::string ToHeaderGuard(::absl::string_view name);
 // Function to generate lower case version of name.
-std::string ToLowerCase(absl::string_view name);
+std::string ToLowerCase(::absl::string_view name);
 // Return a string with the number of spaces equal to the length of str.
-std::string Indent(absl::string_view str);
+std::string Indent(::absl::string_view str);
 // Return a string with the num spaces.
 std::string Indent(int num);
 }  // namespace instruction_set

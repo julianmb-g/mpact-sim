@@ -83,7 +83,7 @@ void EncodingGroup::AdjustMask() {
     value_ &= ~parent_mask;
   }
   std::sort(encoding_vec_.begin(), encoding_vec_.end(),
-            absl::bind_front(&EncodingLess, mask_ & ~constant_ & ~ignore_));
+            ::absl::bind_front(&EncodingLess, mask_ & ~constant_ & ~ignore_));
 }
 
 // Adds an instruction encoding to the encoding group.
@@ -132,23 +132,23 @@ void EncodingGroup::AddSubGroups() {
   simple_decoding_ = IsSimpleDecode();
   discriminator_recipe_ = GetExtractionRecipe(mask_ & ~constant_);
   discriminator_size_ =
-      discriminator_ == 0 ? 0 : 1 << absl::popcount(discriminator_);
+      discriminator_ == 0 ? 0 : 1 << ::absl::popcount(discriminator_);
   unsigned shift =
-      absl::bit_width(static_cast<unsigned>(inst_group_->width())) - 1;
-  if (absl::popcount(static_cast<unsigned>(inst_group_->width())) > 1) {
+      ::absl::bit_width(static_cast<unsigned>(inst_group_->width())) - 1;
+  if (::absl::popcount(static_cast<unsigned>(inst_group_->width())) > 1) {
     shift++;
   }
   shift = std::max(shift, 3U);
   if (shift > 6) {
     inst_word_type_ = "\n#error instruction word wider than 64 bits\n";
   } else {
-    inst_word_type_ = absl::StrCat("uint", 1 << shift, "_t");
+    inst_word_type_ = ::absl::StrCat("uint", 1 << shift, "_t");
   }
   // Get the recipe for extracting only the varying bits that are part of the
   // mask into a compressed (i.e., bits are all adjacent) value.
   auto recipe = GetExtractionRecipe(discriminator_);
   // Iterate across the possible values of the compressed varying bits.
-  for (int i = 0; i < (1 << absl::popcount(discriminator_)); i++) {
+  for (int i = 0; i < (1 << ::absl::popcount(discriminator_)); i++) {
     // Create a new group for the current value 'i'.
     auto* encoding_group = new EncodingGroup(
         this, inst_group_, ignore_ | constant_ | discriminator_);
@@ -182,7 +182,7 @@ void EncodingGroup::AddSubGroups() {
       // is less than 2.
       int max = 0;
       for (auto* group : encoding_group->encoding_group_vec_) {
-        max = std::max(max, absl::popcount(group->varying()));
+        max = std::max(max, ::absl::popcount(group->varying()));
       }
       if (max < 2) {
         for (auto* group : encoding_group->encoding_group_vec_) {
@@ -196,11 +196,11 @@ void EncodingGroup::AddSubGroups() {
       encoding_group->discriminator_recipe_ = GetExtractionRecipe(
           encoding_group->mask_ & ~encoding_group->constant_);
       encoding_group->discriminator_size_ =
-          1 << absl::popcount(encoding_group->discriminator_);
+          1 << ::absl::popcount(encoding_group->discriminator_);
       encoding_group->simple_decoding_ = encoding_group->IsSimpleDecode();
       unsigned shift =
-          absl::bit_width(static_cast<unsigned>(inst_group_->width())) - 1;
-      if (absl::popcount(static_cast<unsigned>(inst_group_->width())) > 1) {
+          ::absl::bit_width(static_cast<unsigned>(inst_group_->width())) - 1;
+      if (::absl::popcount(static_cast<unsigned>(inst_group_->width())) > 1) {
         shift++;
       }
       shift = std::max(shift, 3U);
@@ -209,7 +209,7 @@ void EncodingGroup::AddSubGroups() {
             "\n#error instruction word wider than 64 bits\n";
       } else {
         encoding_group->inst_word_type_ =
-            absl::StrCat("uint", 1 << shift, "_t");
+            ::absl::StrCat("uint", 1 << shift, "_t");
       }
     }
     encoding_group_vec_.push_back(encoding_group);
@@ -227,7 +227,7 @@ void EncodingGroup::CheckEncodings() const {
       int value = ExtractValue(enc->GetValue(), discriminator_recipe_);
       if (value == prev_value) {
         inst_group_->encoding_info()->error_listener()->semanticError(
-            nullptr, absl::StrCat("Duplicate encodings in instruction group ",
+            nullptr, ::absl::StrCat("Duplicate encodings in instruction group ",
                                   inst_group_->name(), ": ", enc->name(),
                                   " and ", prev_enc->name()));
       }
@@ -242,13 +242,13 @@ void EncodingGroup::CheckEncodings() const {
 
 // Emit the initializers of the decode function tables/opcode tables used
 // by the decoding functions.
-void EncodingGroup::EmitInitializers(absl::string_view name,
+void EncodingGroup::EmitInitializers(::absl::string_view name,
                                      std::string* initializers_ptr,
                                      const std::string& opcode_enum) const {
   if (discriminator_size_ == 0) return;
-  absl::StrAppend(initializers_ptr, "constexpr int kParseGroup", name,
+  ::absl::StrAppend(initializers_ptr, "constexpr int kParseGroup", name,
                   "_Size = ", discriminator_size_, ";\n\n");
-  absl::StrAppend(initializers_ptr, "absl::AnyInvocable<std::pair<",
+  ::absl::StrAppend(initializers_ptr, "::absl::AnyInvocable<std::pair<",
                   opcode_enum, ", FormatEnum>(", inst_word_type_,
                   ")>"
                   " parse_group_",
@@ -266,29 +266,29 @@ void EncodingGroup::EmitInitializers(absl::string_view name,
     }
     // Line start indent.
     if ((i % per_line) == 0) {
-      absl::StrAppend(initializers_ptr, "   ");
+      ::absl::StrAppend(initializers_ptr, "   ");
     }
     if (i == value) {
-      absl::StrAppend(initializers_ptr, " &Decode", name, "_", absl::Hex(i),
+      ::absl::StrAppend(initializers_ptr, " &Decode", name, "_", ::absl::Hex(i),
                       ",");
       encoding_index++;
     } else {
-      absl::StrAppend(initializers_ptr, " &Decode", inst_group_->name(),
+      ::absl::StrAppend(initializers_ptr, " &Decode", inst_group_->name(),
                       "None,");
     }
 
     // Break the line every 4 items.
     if ((i % per_line) == per_line - 1) {
-      absl::StrAppend(initializers_ptr, "\n");
+      ::absl::StrAppend(initializers_ptr, "\n");
     }
   }
-  absl::StrAppend(initializers_ptr, "};\n\n");
+  ::absl::StrAppend(initializers_ptr, "};\n\n");
   for (auto const* enc_grp : encoding_group_vec_) {
     // Don't create initializers for leaf encoding groups. They don't need them.
     if (enc_grp->encoding_group_vec_.empty()) continue;
-    std::string grp_name = absl::StrCat(
+    std::string grp_name = ::absl::StrCat(
         name, "_",
-        absl::Hex(ExtractValue(enc_grp->encoding_vec_[0]->GetValue(),
+        ::absl::Hex(ExtractValue(enc_grp->encoding_vec_[0]->GetValue(),
                                discriminator_recipe_)));
     enc_grp->EmitInitializers(grp_name, initializers_ptr, opcode_enum);
   }
@@ -296,21 +296,21 @@ void EncodingGroup::EmitInitializers(absl::string_view name,
 
 // Generate the code for the decoders, both the declarations in the .h file as
 // well as the definitions in the .cc file.
-void EncodingGroup::EmitDecoders(absl::string_view name,
+void EncodingGroup::EmitDecoders(::absl::string_view name,
                                  std::string* declarations_ptr,
                                  std::string* definitions_ptr,
                                  const std::string& opcode_enum) const {
   // Generate the decode function signature.
   std::string signature =
-      absl::StrCat("std::pair<", opcode_enum, ", FormatEnum> Decode", name, "(",
+      ::absl::StrCat("std::pair<", opcode_enum, ", FormatEnum> Decode", name, "(",
                    inst_word_type_, " inst_word)");
-  absl::StrAppend(declarations_ptr, signature, ";\n");
-  absl::StrAppend(definitions_ptr, signature, " {\n");
+  ::absl::StrAppend(declarations_ptr, signature, ";\n");
+  ::absl::StrAppend(definitions_ptr, signature, " {\n");
   // Generate the index extraction code if the discriminator size is > 0.
   std::string index_extraction;
   if (!discriminator_recipe_.empty()) {
-    index_extraction = absl::StrCat("  ", inst_word_type_, " index;\n");
-    absl::StrAppend(
+    index_extraction = ::absl::StrCat("  ", inst_word_type_, " index;\n");
+    ::absl::StrAppend(
         &index_extraction,
         WriteExtraction(discriminator_recipe_, "inst_word", "index", "  "));
   }
@@ -318,16 +318,16 @@ void EncodingGroup::EmitDecoders(absl::string_view name,
   std::string constant_test;
   if (constant_) {
     uint64_t const_value = encoding_vec_[0]->GetValue() & constant_;
-    absl::StrAppend(&constant_test, "  if ((inst_word & 0x",
-                    absl::Hex(constant_), ") != 0x", absl::Hex(const_value),
+    ::absl::StrAppend(&constant_test, "  if ((inst_word & 0x",
+                    ::absl::Hex(constant_), ") != 0x", ::absl::Hex(const_value),
                     ") return std::make_pair(", opcode_enum,
                     "::kNone, FormatEnum::kNone);\n");
   }
   if (!encoding_group_vec_.empty()) {
     // Create decoder for a non-leaf encoding group. Just extract the index
     // and call the next level decode.
-    absl::StrAppend(definitions_ptr, constant_test, index_extraction);
-    absl::StrAppend(definitions_ptr, "  return parse_group_", name,
+    ::absl::StrAppend(definitions_ptr, constant_test, index_extraction);
+    ::absl::StrAppend(definitions_ptr, "  return parse_group_", name,
                     "[index](inst_word);\n");
   } else {
     // Create decoder for a leaf encoding group.
@@ -338,7 +338,7 @@ void EncodingGroup::EmitDecoders(absl::string_view name,
       if (encoding_vec_.size() == 1) {
         // If the table size is 1, no need to generate the table, just return
         // the opcode.
-        absl::StrAppend(definitions_ptr, constant_test,
+        ::absl::StrAppend(definitions_ptr, constant_test,
                         "  return std::make_pair(", opcode_enum, "::k",
                         ToPascalCase(encoding_vec_[0]->name()),
                         ", FormatEnum::k",
@@ -347,76 +347,76 @@ void EncodingGroup::EmitDecoders(absl::string_view name,
         // First generate the table of opcodes. The opcodes are in order of the
         // extracted discriminator value. If there are gaps, fill them in with
         // kNone values.
-        int count = 1 << absl::popcount(discriminator_);
-        absl::StrAppend(definitions_ptr, "  static constexpr std::pair<",
+        int count = 1 << ::absl::popcount(discriminator_);
+        ::absl::StrAppend(definitions_ptr, "  static constexpr std::pair<",
                         opcode_enum, ", FormatEnum> opcodes[", count,
                         "] = {\n");
         int entry = 0;
         for (auto* enc : encoding_vec_) {
           int value = ExtractValue(enc->GetValue(), discriminator_recipe_);
           while (entry < value) {
-            absl::StrAppend(definitions_ptr, "    {", opcode_enum,
+            ::absl::StrAppend(definitions_ptr, "    {", opcode_enum,
                             "::kNone, FormatEnum::kNone},\n");
             entry++;
           }
-          absl::StrAppend(definitions_ptr, "    {", opcode_enum, "::k",
+          ::absl::StrAppend(definitions_ptr, "    {", opcode_enum, "::k",
                           ToPascalCase(enc->name()), ", FormatEnum::k",
                           ToPascalCase(enc->format_name()), "},\n");
           entry++;
         }
         while (entry < count) {
-          absl::StrAppend(definitions_ptr, "    {", opcode_enum,
+          ::absl::StrAppend(definitions_ptr, "    {", opcode_enum,
                           "::kNone, FormatEnum::kNone},\n");
           entry++;
         }
-        absl::StrAppend(definitions_ptr, "  };\n");
+        ::absl::StrAppend(definitions_ptr, "  };\n");
         // Return the appropriate opcode.
-        absl::StrAppend(definitions_ptr, constant_test, index_extraction);
-        absl::StrAppend(definitions_ptr, "  return opcodes[index];\n");
+        ::absl::StrAppend(definitions_ptr, constant_test, index_extraction);
+        ::absl::StrAppend(definitions_ptr, "  return opcodes[index];\n");
       }
     } else {  // if (simple_decoding_)
       // Non simple decoding requires a sequence of if statements, as some
       // of the opcodes may have additional constraints == or != on bitfields
       // or overlays.
-      absl::StrAppend(definitions_ptr, constant_test, index_extraction);
+      ::absl::StrAppend(definitions_ptr, constant_test, index_extraction);
       EmitComplexDecoderBody(definitions_ptr, index_extraction, opcode_enum);
     }
   }
 
-  absl::StrAppend(definitions_ptr, "}\n\n");
+  ::absl::StrAppend(definitions_ptr, "}\n\n");
 
   if (encoding_group_vec_.empty()) return;
 
   for (auto const* enc_grp : encoding_group_vec_) {
     uint64_t value = ExtractValue(enc_grp->encoding_vec_[0]->GetValue(),
                                   discriminator_recipe_);
-    std::string grp_name = absl::StrCat(name, "_", absl::Hex(value));
+    std::string grp_name = ::absl::StrCat(name, "_", ::absl::Hex(value));
     enc_grp->EmitDecoders(grp_name, declarations_ptr, definitions_ptr,
                           opcode_enum);
   }
 }
 
 void EncodingGroup::EmitComplexDecoderBody(
-    std::string* definitions_ptr, absl::string_view index_extraction,
-    absl::string_view opcode_enum) const {
+    std::string* definitions_ptr, ::absl::string_view index_extraction,
+    ::absl::string_view opcode_enum) const {
   // If the index_extraction is empty, use a series of if statements.
   if (index_extraction.empty()) {
     EmitComplexDecoderBodyIfSequence(definitions_ptr, opcode_enum);
     return;
   }
   // Group the encodings by index value.
-  absl::btree_map<uint64_t, std::vector<InstructionEncoding*>> encoding_map;
+  ::absl::btree_map<uint64_t, std::vector<InstructionEncoding*>> encoding_map;
   for (auto* encoding : encoding_vec_) {
     // Get the discriminator value.
     uint64_t index_value =
         ExtractValue(encoding->GetValue(), discriminator_recipe_);
     encoding_map[index_value].push_back(encoding);
   }
-  absl::StrAppend(definitions_ptr, "  switch (index) {\n");
+  ::absl::StrAppend(definitions_ptr, "  switch (index) {\n");
   // For each index value, generate the 'case' statement.
   for (auto& [index_value, encodings] : encoding_map) {
-    absl::flat_hash_set<std::string> extracted;
-    absl::StrAppend(definitions_ptr, "    case 0x", absl::Hex(index_value),
+    ::absl::flat_hash_set<std::string> extracted;
+    ::absl::StrAppend(definitions_ptr, "    case 0x", ::absl::Hex(index_value),
                     ": {\n");
     int if_count = 0;
     for (auto* encoding : encodings) {
@@ -426,19 +426,19 @@ void EncodingGroup::EmitComplexDecoderBody(
       if_count += EmitEncodingIfStatement(/*indent*/ 4, encoding, opcode_enum,
                                           extracted, definitions_ptr);
     }
-    if (if_count > 0) absl::StrAppend(definitions_ptr, "      break;\n");
-    absl::StrAppend(definitions_ptr, "    }\n");
+    if (if_count > 0) ::absl::StrAppend(definitions_ptr, "      break;\n");
+    ::absl::StrAppend(definitions_ptr, "    }\n");
   }
-  absl::StrAppend(definitions_ptr, "    default: break;\n", "  }\n",
+  ::absl::StrAppend(definitions_ptr, "    default: break;\n", "  }\n",
                   "  return std::make_pair(", opcode_enum,
                   "::kNone, FormatEnum::kNone);\n");
 }
 
 void EncodingGroup::EmitComplexDecoderBodyIfSequence(
-    std::string* definitions_ptr, absl::string_view opcode_enum) const {
+    std::string* definitions_ptr, ::absl::string_view opcode_enum) const {
   // For each instruction in the encoding vec, generate the if statement
   // to see if the instruction is matched.
-  absl::flat_hash_set<std::string> extracted;
+  ::absl::flat_hash_set<std::string> extracted;
   int count = 0;
   // For equal constraints, some can be ignored because those bits are
   // wholly considered by the parent groups or the discriminator.
@@ -450,18 +450,18 @@ void EncodingGroup::EmitComplexDecoderBodyIfSequence(
                                      extracted, definitions_ptr);
   }
   if (count > 0) {
-    absl::StrAppend(definitions_ptr, "  return std::make_pair(", opcode_enum,
+    ::absl::StrAppend(definitions_ptr, "  return std::make_pair(", opcode_enum,
                     "::kNone, FormatEnum::kNone);\n");
   }
 }
 
 void EncodingGroup::ProcessConstraint(
-    const absl::flat_hash_set<std::string>& extracted, Constraint* constraint,
+    const ::absl::flat_hash_set<std::string>& extracted, Constraint* constraint,
     std::string* definitions_ptr) const {
   if (constraint->field != nullptr) {
     // Field constraint.
     Field* field = constraint->field;
-    std::string name = absl::StrCat(field->name, "_value");
+    std::string name = ::absl::StrCat(field->name, "_value");
     if (extracted.contains(name)) return;
     uint64_t mask = ((1ULL << field->width) - 1);
     // If the bits in the field are already handled by a parent or
@@ -475,14 +475,14 @@ void EncodingGroup::ProcessConstraint(
 
   // It's an overlay constraint.
   Overlay* overlay = constraint->overlay;
-  std::string name = absl::StrCat(overlay->name(), "_value");
+  std::string name = ::absl::StrCat(overlay->name(), "_value");
   uint64_t mask = 0;
   // Get the bits that correspond to the overlay.
   auto result = overlay->GetBitField((1 << overlay->declared_width()) - 1);
   if (result.ok()) {
     mask = result.value();
   } else {
-    absl::StrAppend(definitions_ptr,
+    ::absl::StrAppend(definitions_ptr,
                     "#error Internal error: cannot extract value from ",
                     overlay->name());
     return;
@@ -497,7 +497,7 @@ void EncodingGroup::ProcessConstraint(
 
 int EncodingGroup::EmitEncodingIfStatement(
     int indent, const InstructionEncoding* encoding,
-    absl::string_view opcode_enum, absl::flat_hash_set<std::string>& extracted,
+    ::absl::string_view opcode_enum, ::absl::flat_hash_set<std::string>& extracted,
     std::string* definitions_ptr) const {
   std::string indent_str(indent + 2, ' ');
   // Write any field/overlay extractions needed for the encoding (that
@@ -534,11 +534,11 @@ int EncodingGroup::EmitEncodingIfStatement(
   // Ensure the number of parentheses are appropriate to the number of
   // conjunctions in the if statement.
   if (count > 1) {
-    absl::StrAppend(definitions_ptr, indent_str, "if (", condition,
+    ::absl::StrAppend(definitions_ptr, indent_str, "if (", condition,
                     specialization ? ") {\n" : ")\n");
     indent_str.append("  ");
   } else if (count == 1) {
-    absl::StrAppend(definitions_ptr, indent_str, "if ", condition,
+    ::absl::StrAppend(definitions_ptr, indent_str, "if ", condition,
                     specialization ? " {\n" : "\n");
     indent_str.append("  ");
   }
@@ -559,61 +559,61 @@ int EncodingGroup::EmitEncodingIfStatement(
       spec_count += EmitOtherConstraintConditions(
           encoding->other_constraints(), spec_connector, &spec_condition);
       if (spec_count > 1) {
-        absl::StrAppend(definitions_ptr, indent_str, if_str, "(",
+        ::absl::StrAppend(definitions_ptr, indent_str, if_str, "(",
                         spec_condition, ") {\n");
         indent_str.append("  ");
       } else if (spec_count == 1) {
-        absl::StrAppend(definitions_ptr, indent_str, if_str, spec_condition,
+        ::absl::StrAppend(definitions_ptr, indent_str, if_str, spec_condition,
                         " {\n");
       }
-      absl::StrAppend(definitions_ptr, indent_str, "  return std::make_pair(",
+      ::absl::StrAppend(definitions_ptr, indent_str, "  return std::make_pair(",
                       opcode_enum, "::k", ToPascalCase(encoding->name()),
                       ", FormatEnum::k", ToPascalCase(encoding->format_name()),
                       ");\n");
       if_str = "} else if ";
     }
-    absl::StrAppend(definitions_ptr, indent_str, "} else {\n");
+    ::absl::StrAppend(definitions_ptr, indent_str, "} else {\n");
     indent_str.append("  ");
   }
-  absl::StrAppend(definitions_ptr, indent_str, "return std::make_pair(",
+  ::absl::StrAppend(definitions_ptr, indent_str, "return std::make_pair(",
                   opcode_enum, "::k", ToPascalCase(encoding->name()),
                   ", FormatEnum::k", ToPascalCase(encoding->format_name()),
                   ");\n");
   if (specialization) {
     // Close the if statements.
     indent_str = indent_str.substr(2);
-    absl::StrAppend(definitions_ptr, indent_str, "}\n");
+    ::absl::StrAppend(definitions_ptr, indent_str, "}\n");
     indent_str = indent_str.substr(2);
-    absl::StrAppend(definitions_ptr, indent_str, "}\n");
+    ::absl::StrAppend(definitions_ptr, indent_str, "}\n");
   }
   return count != 0 ? 1 : 0;
 }
 
 void EncodingGroup::EmitFieldExtraction(
     const Field* field, const std::string& indent_str,
-    absl::flat_hash_set<std::string>& extracted,
+    ::absl::flat_hash_set<std::string>& extracted,
     std::string* definitions_ptr) const {
-  std::string name = absl::StrCat(field->name, "_value");
+  std::string name = ::absl::StrCat(field->name, "_value");
   if (!extracted.contains(name)) {
     std::string data_type;
     if (field->width > inst_group_->width()) {
-      auto shift = absl::bit_width(static_cast<unsigned>(field->width)) - 1;
-      if (absl::popcount(static_cast<unsigned>(field->width)) > 1) shift++;
+      auto shift = ::absl::bit_width(static_cast<unsigned>(field->width)) - 1;
+      if (::absl::popcount(static_cast<unsigned>(field->width)) > 1) shift++;
       shift = std::max(shift, 3);
       if (shift > 6) {
         LOG(ERROR) << "Field '" << field->name << "' width: " << field->width
                    << " > 64 bits";
         data_type =
-            absl::StrCat("#error field width ", field->width, " > 64 bits");
+            ::absl::StrCat("#error field width ", field->width, " > 64 bits");
       } else {
-        data_type = absl::StrCat("uint", 1 << shift, "_t");
+        data_type = ::absl::StrCat("uint", 1 << shift, "_t");
       }
     } else {
       data_type = inst_word_type_;
     }
     uint64_t mask = ((1ULL << field->width) - 1);
-    absl::StrAppend(definitions_ptr, indent_str, data_type, " ", name,
-                    " = (inst_word >> ", field->low, ") & 0x", absl::Hex(mask),
+    ::absl::StrAppend(definitions_ptr, indent_str, data_type, " ", name,
+                    " = (inst_word >> ", field->low, ") & 0x", ::absl::Hex(mask),
                     ";\n");
     extracted.insert(name);
   }
@@ -621,29 +621,29 @@ void EncodingGroup::EmitFieldExtraction(
 
 void EncodingGroup::EmitOverlayExtraction(
     const Overlay* overlay, const std::string& indent_str,
-    absl::flat_hash_set<std::string>& extracted,
+    ::absl::flat_hash_set<std::string>& extracted,
     std::string* definitions_ptr) const {
-  std::string name = absl::StrCat(overlay->name(), "_value");
+  std::string name = ::absl::StrCat(overlay->name(), "_value");
   if (!extracted.contains(name)) {
     auto ovl_width = overlay->declared_width();
     std::string data_type;
     if (ovl_width > inst_group_->width()) {
-      auto shift = absl::bit_width(static_cast<unsigned>(ovl_width)) - 1;
-      if (absl::popcount(static_cast<unsigned>(ovl_width)) > 1) shift++;
+      auto shift = ::absl::bit_width(static_cast<unsigned>(ovl_width)) - 1;
+      if (::absl::popcount(static_cast<unsigned>(ovl_width)) > 1) shift++;
       shift = std::max(shift, 3);
       if (shift > 6) {
         LOG(ERROR) << "Field '" << overlay->name() << "' width: " << ovl_width
                    << " > 64 bits";
         data_type =
-            absl::StrCat("#error overlay width ", ovl_width, " > 64 bits");
+            ::absl::StrCat("#error overlay width ", ovl_width, " > 64 bits");
       } else {
-        data_type = absl::StrCat("uint", 1 << shift, "_t");
+        data_type = ::absl::StrCat("uint", 1 << shift, "_t");
       }
     } else {
       data_type = inst_word_type_;
     }
-    absl::StrAppend(definitions_ptr, indent_str, data_type, " ", name, ";\n");
-    absl::StrAppend(definitions_ptr, indent_str,
+    ::absl::StrAppend(definitions_ptr, indent_str, data_type, " ", name, ";\n");
+    ::absl::StrAppend(definitions_ptr, indent_str,
                     overlay->WriteSimpleValueExtractor("inst_word", name));
     extracted.insert(name);
   }
@@ -651,7 +651,7 @@ void EncodingGroup::EmitOverlayExtraction(
 
 void EncodingGroup::EmitExtractions(int indent,
                                     const std::vector<Constraint*>& constraints,
-                                    absl::flat_hash_set<std::string>& extracted,
+                                    ::absl::flat_hash_set<std::string>& extracted,
                                     std::string* definitions_ptr) const {
   std::string indent_str(indent + 2, ' ');
   // Write any field/overlay extractions needed for the constraints.
@@ -685,22 +685,22 @@ int EncodingGroup::EmitOtherConstraintConditions(
     if (constraint->can_ignore) continue;
 
     std::string comparison(kComparison[static_cast<int>(constraint->type)]);
-    std::string lhs_name = absl::StrCat((constraint->field != nullptr)
+    std::string lhs_name = ::absl::StrCat((constraint->field != nullptr)
                                             ? constraint->field->name
                                             : constraint->overlay->name(),
                                         "_value");
     std::string rhs;
     if ((constraint->rhs_field != nullptr) ||
         (constraint->rhs_overlay != nullptr)) {
-      rhs = absl::StrCat((constraint->rhs_field != nullptr)
+      rhs = ::absl::StrCat((constraint->rhs_field != nullptr)
                              ? constraint->rhs_field->name
                              : constraint->rhs_overlay->name(),
                          "_value");
     } else {
-      rhs = absl::StrCat("0x", absl::Hex(constraint->value));
+      rhs = ::absl::StrCat("0x", ::absl::Hex(constraint->value));
     }
 
-    absl::StrAppend(condition, connector, "(", lhs_name, " ", comparison, " ",
+    ::absl::StrAppend(condition, connector, "(", lhs_name, " ", comparison, " ",
                     rhs, ")");
     connector = " &&\n          ";
     count++;
@@ -709,18 +709,18 @@ int EncodingGroup::EmitOtherConstraintConditions(
 }
 
 int EncodingGroup::EmitConstraintConditions(
-    const std::vector<Constraint*>& constraints, absl::string_view comparison,
+    const std::vector<Constraint*>& constraints, ::absl::string_view comparison,
     std::string& connector, std::string* condition) const {
   int count = 0;
   for (auto const* constraint : constraints) {
     std::string comparison(kComparison[static_cast<int>(constraint->type)]);
     if (constraint->can_ignore) continue;
-    std::string name = absl::StrCat((constraint->field != nullptr)
+    std::string name = ::absl::StrCat((constraint->field != nullptr)
                                         ? constraint->field->name
                                         : constraint->overlay->name(),
                                     "_value");
-    absl::StrAppend(condition, connector, "(", name, " ", comparison, " 0x",
-                    absl::Hex(constraint->value), ")");
+    ::absl::StrAppend(condition, connector, "(", name, " ", comparison, " 0x",
+                    ::absl::Hex(constraint->value), ")");
     connector = " &&\n          ";
     count++;
   }
@@ -731,7 +731,7 @@ int EncodingGroup::EmitConstraintConditions(
 // TODO(torerik): remove when no longer needed.
 std::string EncodingGroup::DumpGroup(std::string prefix, std::string indent) {
   std::string output;
-  auto pad = absl::PadSpec::kZeroPad8;
+  auto pad = ::absl::PadSpec::kZeroPad8;
   uint64_t grp_value;
   if (parent_ == nullptr) {
     auto grp_recipe = GetExtractionRecipe(constant_);
@@ -742,15 +742,15 @@ std::string EncodingGroup::DumpGroup(std::string prefix, std::string indent) {
   }
   uint64_t const_value = encoding_vec_[0]->GetValue() & constant_;
   uint64_t discriminator = mask_ & ~constant_;
-  absl::StrAppend(
+  ::absl::StrAppend(
       &output, "//", indent, prefix, "GROUP:\n//", indent,
-      "  mask:          ", absl::Hex(mask_, pad), "\n//", indent,
-      "  ignore:        ", absl::Hex(ignore_, pad), "\n//", indent,
-      "  constant:      ", absl::Hex(constant_, pad), " : ",
-      absl::Hex(const_value, pad), "\n//", indent, indent,
-      "  varying:       ", absl::Hex(varying_, pad), "\n//", indent,
-      "  value:         ", absl::Hex(grp_value, pad), "\n//", indent,
-      "  discriminator: ", absl::Hex(discriminator, pad), "\n//", indent,
+      "  mask:          ", ::absl::Hex(mask_, pad), "\n//", indent,
+      "  ignore:        ", ::absl::Hex(ignore_, pad), "\n//", indent,
+      "  constant:      ", ::absl::Hex(constant_, pad), " : ",
+      ::absl::Hex(const_value, pad), "\n//", indent, indent,
+      "  varying:       ", ::absl::Hex(varying_, pad), "\n//", indent,
+      "  value:         ", ::absl::Hex(grp_value, pad), "\n//", indent,
+      "  discriminator: ", ::absl::Hex(discriminator, pad), "\n//", indent,
       "  simple:       ", simple_decoding_ ? "true\n//" : "false\n//", indent,
       "  leaf:         ",
       encoding_group_vec_.empty() ? "true\n//" : "false\n//",
@@ -759,23 +759,23 @@ std::string EncodingGroup::DumpGroup(std::string prefix, std::string indent) {
     auto recipe = GetExtractionRecipe(varying_ & mask_ & ~ignore_);
     for (auto* enc : encoding_vec_) {
       uint64_t value = ExtractValue(enc->GetValue(), recipe);
-      absl::StrAppend(&output, "//", indent, "  ", enc->name(), ": ",
-                      absl::Hex(enc->GetValue() & varying_ & mask_, pad), " : ",
-                      absl::Hex(value, pad), ": ");
+      ::absl::StrAppend(&output, "//", indent, "  ", enc->name(), ": ",
+                      ::absl::Hex(enc->GetValue() & varying_ & mask_, pad), " : ",
+                      ::absl::Hex(value, pad), ": ");
       uint64_t mask = enc->GetCombinedMask();  // ^ mask_;
       if (parent_ != nullptr) {
         mask &= ~(parent_->mask());
       }
       if (mask != 0) {
         mask &= ~ignore_;
-        absl::StrAppend(&output, absl::Hex(mask, pad), ": ");
+        ::absl::StrAppend(&output, ::absl::Hex(mask, pad), ": ");
       }
       for (auto* constraint : enc->equal_extracted_constraints()) {
         std::string name = constraint->field == nullptr
                                ? constraint->overlay->name()
                                : constraint->field->name;
-        absl::StrAppend(&output, " ", name, " == ",
-                        absl::Hex(constraint->value, absl::PadSpec::kZeroPad8),
+        ::absl::StrAppend(&output, " ", name, " == ",
+                        ::absl::Hex(constraint->value, ::absl::PadSpec::kZeroPad8),
                         " ");
       }
       for (auto* constraint : enc->other_constraints()) {
@@ -788,17 +788,17 @@ std::string EncodingGroup::DumpGroup(std::string prefix, std::string indent) {
         } else if (constraint->rhs_overlay != nullptr) {
           rhs_value = constraint->rhs_overlay->name();
         } else {
-          rhs_value = absl::StrCat(
-              absl::Hex(constraint->value, absl::PadSpec::kZeroPad8));
+          rhs_value = ::absl::StrCat(
+              ::absl::Hex(constraint->value, ::absl::PadSpec::kZeroPad8));
         }
-        absl::StrAppend(&output, " ", name, " ", constraint->type, " ",
+        ::absl::StrAppend(&output, " ", name, " ", constraint->type, " ",
                         rhs_value, " ");
       }
-      absl::StrAppend(&output, "\n");
+      ::absl::StrAppend(&output, "\n");
     }
   } else {
     for (auto* group : encoding_group_vec_) {
-      absl::StrAppend(&output, group->DumpGroup("SUB" + prefix, indent + "  "));
+      ::absl::StrAppend(&output, group->DumpGroup("SUB" + prefix, indent + "  "));
     }
   }
   return output;

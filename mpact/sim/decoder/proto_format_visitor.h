@@ -71,7 +71,7 @@ class ProtoFormatVisitor {
   //   proto_dirs: vector of directories from which to resolve proto files.
   //   proto_files: vector of .proto files to import.
   //   directory: target directory to generate the C++ files in.
-  absl::Status Process(const std::vector<std::string>& file_names,
+  ::absl::Status Process(const std::vector<std::string>& file_names,
                        const std::string& decoder_name, std::string_view prefix,
                        const std::vector<std::string>& include_roots,
                        const std::vector<std::string>& proto_dirs,
@@ -110,7 +110,7 @@ class ProtoFormatVisitor {
   const google::protobuf::EnumValueDescriptor* GetEnumValueDescriptor(
       const std::string& full_name) const;
   // Get the numeric value of the named enumeration member.
-  absl::StatusOr<int> GetEnumValue(const std::string& enum_name) const;
+  ::absl::StatusOr<int> GetEnumValue(const std::string& enum_name) const;
   // Helpful template function used to find a descriptor by name.
   template <typename T>
   const T* FindByName(const std::string& message_name, const std::string& name,
@@ -168,10 +168,10 @@ class ProtoFormatVisitor {
   // Process instruction groups.
   void ProcessSingleGroup(DecoderAttributeCtx* attr_ctx,
                           ProtoEncodingInfo* encoding_info,
-                          absl::flat_hash_set<std::string>& group_name_set);
+                          ::absl::flat_hash_set<std::string>& group_name_set);
   void ProcessParentGroup(DecoderAttributeCtx* attr_ctx,
                           ProtoEncodingInfo* encoding_info,
-                          absl::flat_hash_set<std::string>& group_name_set);
+                          ::absl::flat_hash_set<std::string>& group_name_set);
 
   // Called to generate and emit code for the decoder according to the parsed
   // input file.
@@ -202,13 +202,13 @@ class ProtoFormatVisitor {
   std::string decoder_name_;
   // Descriptor pool.
   const google::protobuf::DescriptorPool* descriptor_pool_;
-  absl::flat_hash_map<std::string, const google::protobuf::FileDescriptor*>
+  ::absl::flat_hash_map<std::string, const google::protobuf::FileDescriptor*>
       file_descriptor_map_;
   // Using decl map.
-  absl::flat_hash_map<std::string, std::string> using_decl_map_;
+  ::absl::flat_hash_map<std::string, std::string> using_decl_map_;
   // Maps from identifiers to declaration contexts.
-  absl::flat_hash_map<std::string, InstructionGroupDefCtx*> group_decl_map_;
-  absl::flat_hash_map<std::string, DecoderDefCtx*> decoder_decl_map_;
+  ::absl::flat_hash_map<std::string, InstructionGroupDefCtx*> group_decl_map_;
+  ::absl::flat_hash_map<std::string, DecoderDefCtx*> decoder_decl_map_;
   // AntlrParserWrapper vector.
   std::vector<ProtoFmtAntlrParserWrapper*> antlr_parser_wrappers_;
 };

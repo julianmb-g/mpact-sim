@@ -34,11 +34,11 @@ class MultiFileErrorCollector
   MultiFileErrorCollector(const MultiFileErrorCollector&) = delete;
   MultiFileErrorCollector& operator=(const MultiFileErrorCollector&) = delete;
 
-  void RecordError(absl::string_view filename, int line, int column,
-                   absl::string_view message) override {
-    LOG(ERROR) << absl::StrCat("Line ", line, " Column ", column, ": ", message,
+  void RecordError(::absl::string_view filename, int line, int column,
+                   ::absl::string_view message) override {
+    LOG(ERROR) << ::absl::StrCat("Line ", line, " Column ", column, ": ", message,
                                "\n");
-    absl::StrAppend(&error_, "Line ", line, " Column ", column, ": ", message,
+    ::absl::StrAppend(&error_, "Line ", line, " Column ", column, ": ", message,
                     "\n");
   }
   const std::string& GetError() const { return error_; }
@@ -93,7 +93,7 @@ TEST_F(ProtoConstraintExpressionTest, EnumExpression) {
   // Verify the type of the enum expr.
   EXPECT_EQ(enum_expr.cpp_type(),
             google::protobuf::FieldDescriptor::CPPTYPE_INT32);
-  absl::StatusOr<ProtoValue> result = enum_expr.GetValue();
+  ::absl::StatusOr<ProtoValue> result = enum_expr.GetValue();
   // Get the value (std::variant)
   EXPECT_TRUE(result.status().ok());
   auto expr_value = result.value();
@@ -188,7 +188,7 @@ TEST_F(ProtoConstraintExpressionTest, NegateExpression) {
       ProtoValue(static_cast<std::string>("hello world")));
   ProtoConstraintNegateExpression neg_string_expr(val_expr);
   EXPECT_EQ(CppType<std::string>::value, neg_string_expr.cpp_type());
-  absl::StatusOr<ProtoValue> result = neg_string_expr.GetValue();
+  ::absl::StatusOr<ProtoValue> result = neg_string_expr.GetValue();
   EXPECT_FALSE(result.status().ok());
 }
 

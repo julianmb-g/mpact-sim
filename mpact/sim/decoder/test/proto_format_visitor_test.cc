@@ -62,7 +62,7 @@ class ProtoFormatVisitorTest : public testing::Test {
 TEST_F(ProtoFormatVisitorTest, EmptyProto) {
   // Set up input and output file paths.
   std::vector<std::string> input_files = {
-      absl::StrCat(kDepotPath, "/testfiles/", kEmptyBaseName, ".proto_fmt")};
+      ::absl::StrCat(kDepotPath, "/testfiles/", kEmptyBaseName, ".proto_fmt")};
   ASSERT_TRUE(FileExists(input_files[0]));
   std::string output_dir = getenv(kTestUndeclaredOutputsDir);
   ProtoFormatVisitor visitor;
@@ -76,7 +76,7 @@ TEST_F(ProtoFormatVisitorTest, EmptyProto) {
 TEST_F(ProtoFormatVisitorTest, ExampleProto) {
   // Set up input and output file paths.
   std::vector<std::string> input_files = {
-      absl::StrCat(kDepotPath, "/testfiles/", kRiscV32BaseName, ".proto_fmt")};
+      ::absl::StrCat(kDepotPath, "/testfiles/", kRiscV32BaseName, ".proto_fmt")};
   ASSERT_TRUE(FileExists(input_files[0]));
   std::string output_dir = getenv(kTestUndeclaredOutputsDir);
   ProtoFormatVisitor visitor;

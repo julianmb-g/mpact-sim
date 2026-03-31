@@ -43,7 +43,7 @@ static constexpr char kRootDir[] = "";
 
 int main(int argc, char** argv) {
   // Process the command line options.
-  auto arg_vec = absl::ParseCommandLine(argc, argv);
+  auto arg_vec = ::absl::ParseCommandLine(argc, argv);
 
   std::vector<std::string> file_names;
 
@@ -53,17 +53,17 @@ int main(int argc, char** argv) {
   }
 
   // Get the flag values.
-  std::string output_dir = absl::GetFlag(FLAGS_output_dir);
-  std::string prefix = absl::GetFlag(FLAGS_prefix);
-  std::string decoder_name = absl::GetFlag(FLAGS_decoder_name);
+  std::string output_dir = ::absl::GetFlag(FLAGS_output_dir);
+  std::string prefix = ::absl::GetFlag(FLAGS_prefix);
+  std::string decoder_name = ::absl::GetFlag(FLAGS_decoder_name);
 
-  auto include_roots_string = absl::GetFlag(FLAGS_include);
+  auto include_roots_string = ::absl::GetFlag(FLAGS_include);
   std::vector<std::string> include_roots =
-      absl::StrSplit(include_roots_string, ',', absl::SkipWhitespace());
+      ::absl::StrSplit(include_roots_string, ',', ::absl::SkipWhitespace());
 
-  auto proto_dirs_string = absl::GetFlag(FLAGS_proto_include);
+  auto proto_dirs_string = ::absl::GetFlag(FLAGS_proto_include);
   std::vector<std::string> proto_include =
-      absl::StrSplit(proto_dirs_string, ',', absl::SkipWhitespace());
+      ::absl::StrSplit(proto_dirs_string, ',', ::absl::SkipWhitespace());
 
   if (strlen(kRootDir) > 0) {
     char cwd[1024];
@@ -75,9 +75,9 @@ int main(int argc, char** argv) {
     }
   }
 
-  auto proto_files_string = absl::GetFlag(FLAGS_proto_files);
+  auto proto_files_string = ::absl::GetFlag(FLAGS_proto_files);
   std::vector<std::string> proto_files =
-      absl::StrSplit(proto_files_string, ',', absl::SkipWhitespace());
+      ::absl::StrSplit(proto_files_string, ',', ::absl::SkipWhitespace());
 
   if (prefix.empty()) {
     std::cerr << "Error: prefix must be specified and non-empty" << std::endl;

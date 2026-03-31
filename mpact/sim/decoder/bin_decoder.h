@@ -37,7 +37,7 @@ class InstructionGroup;
 class BinDecoder {
  public:
   using InstructionGroupMultiMap =
-      absl::btree_multimap<std::string, InstructionGroup*>;
+      ::absl::btree_multimap<std::string, InstructionGroup*>;
 
   BinDecoder(std::string name, BinEncodingInfo* encoding_info,
              DecoderErrorListener* error_listener);

@@ -77,7 +77,7 @@ InstructionEncoding::~InstructionEncoding() {
   specializations_.clear();
 }
 
-absl::StatusOr<Constraint*> InstructionEncoding::CreateConstraint(
+::absl::StatusOr<Constraint*> InstructionEncoding::CreateConstraint(
     ConstraintType type, std::string lhs_name, std::string rhs_name) {
   Constraint constraint;
   constraint.type = type;
@@ -85,7 +85,7 @@ absl::StatusOr<Constraint*> InstructionEncoding::CreateConstraint(
   auto* lhs_field = format_->GetField(lhs_name);
   if (lhs_field != nullptr) {
     if (lhs_field->width >= 64) {
-      return absl::OutOfRangeError(absl::StrCat(
+      return ::absl::OutOfRangeError(::absl::StrCat(
           "Field '", lhs_field->name,
           "' is too wide to create constraint - ust be <= 64 bits"));
     }
@@ -95,7 +95,7 @@ absl::StatusOr<Constraint*> InstructionEncoding::CreateConstraint(
     auto* lhs_overlay = format_->GetOverlay(lhs_name);
     if (lhs_overlay == nullptr) {
       // If neither, it's an error.
-      return absl::NotFoundError(absl::StrCat(
+      return ::absl::NotFoundError(::absl::StrCat(
           "Format '", format_->name(),
           "' does not contain a field or overlay named ", lhs_name));
     }
@@ -105,7 +105,7 @@ absl::StatusOr<Constraint*> InstructionEncoding::CreateConstraint(
   auto* rhs_field = format_->GetField(rhs_name);
   if (rhs_field != nullptr) {
     if (rhs_field->width >= 64) {
-      return absl::OutOfRangeError(absl::StrCat(
+      return ::absl::OutOfRangeError(::absl::StrCat(
           "Field '", rhs_field->name,
           "' is too wide to create constraint - ust be <= 64 bits"));
     }
@@ -115,7 +115,7 @@ absl::StatusOr<Constraint*> InstructionEncoding::CreateConstraint(
     auto* rhs_overlay = format_->GetOverlay(rhs_name);
     if (rhs_overlay == nullptr) {
       // If neither, it's an error.
-      return absl::NotFoundError(absl::StrCat(
+      return ::absl::NotFoundError(::absl::StrCat(
           "Format '", format_->name(),
           "' does not contain a field or overlay named ", rhs_name));
     }
@@ -125,41 +125,41 @@ absl::StatusOr<Constraint*> InstructionEncoding::CreateConstraint(
   return result;
 }
 
-absl::StatusOr<Constraint*> InstructionEncoding::CreateConstraint(
+::absl::StatusOr<Constraint*> InstructionEncoding::CreateConstraint(
     ConstraintType type, std::string field_name, int64_t value) {
   // Check if the field name is indeed a field.
   auto* field = format_->GetField(field_name);
   if (field != nullptr) {
     if (field->width >= 64) {
-      return absl::OutOfRangeError(absl::StrCat(
+      return ::absl::OutOfRangeError(::absl::StrCat(
           "Field '", field->name,
           "' is too wide to create constraint - ust be <= 64 bits"));
     }
     bool is_signed = field->is_signed;
     if (!is_signed) {
       if ((value < 0) || (value >= (1ULL << field->width))) {
-        return absl::OutOfRangeError(absl::StrCat(
+        return ::absl::OutOfRangeError(::absl::StrCat(
             "Constraint value (", value, ") out of range for unsigned field '",
             field_name, "'"));
       }
     } else {  // Field is signed.
       // Only eq and ne constraints are allowed on signed fields.
       if (type != ConstraintType::kEq && type != ConstraintType::kNe) {
-        return absl::InvalidArgumentError(
-            absl::StrCat("Only eq and ne constraints allowed on signed field: ",
+        return ::absl::InvalidArgumentError(
+            ::absl::StrCat("Only eq and ne constraints allowed on signed field: ",
                          field_name));
       }
       // Check that the value is in range.
       if (value < 0) {
         int64_t min_value = -(1 << (field->width - 1));
         if (value < min_value) {
-          return absl::OutOfRangeError(absl::StrCat(
+          return ::absl::OutOfRangeError(::absl::StrCat(
               "Constraint value (", value, ") out of range for signed field '",
               field_name, "'"));
         }
       } else {
         if (value >= (1 << (field->width - 1))) {
-          return absl::OutOfRangeError(absl::StrCat(
+          return ::absl::OutOfRangeError(::absl::StrCat(
               "Constraint value (", value, ") out of range for signed field '",
               field_name, "'"));
         }
@@ -176,7 +176,7 @@ absl::StatusOr<Constraint*> InstructionEncoding::CreateConstraint(
   auto* overlay = format_->GetOverlay(field_name);
   if (overlay == nullptr) {
     // If neither, it's an error.
-    return absl::NotFoundError(absl::StrCat(
+    return ::absl::NotFoundError(::absl::StrCat(
         "Format '", format_->name(),
         "' does not contain a field or overlay named ", field_name));
   }
@@ -184,26 +184,26 @@ absl::StatusOr<Constraint*> InstructionEncoding::CreateConstraint(
   bool is_signed = overlay->is_signed();
   if (!is_signed) {
     if ((value >= (1 << width)) || (value < 0)) {
-      return absl::OutOfRangeError(absl::StrCat(
+      return ::absl::OutOfRangeError(::absl::StrCat(
           "Constraint value exceeds field width for field '", field_name, "'"));
     }
   } else {
     if (type != ConstraintType::kEq && type != ConstraintType::kNe) {
-      return absl::InvalidArgumentError(
-          absl::StrCat("Only eq and ne constraints allowed on signed overlay: ",
+      return ::absl::InvalidArgumentError(
+          ::absl::StrCat("Only eq and ne constraints allowed on signed overlay: ",
                        field_name));
     }  // Check that the value is in range.
     if (value < 0) {
       int64_t min_value = -(1 << (width - 1));
       if (value < min_value) {
-        return absl::OutOfRangeError(absl::StrCat(
+        return ::absl::OutOfRangeError(::absl::StrCat(
             "Constraint value (", value, ") out of range for signed overlay '",
             field_name, "'"));
       }
       value = value & ((1 << width) - 1);
     } else {
       if (value >= (1 << (width - 1))) {
-        return absl::OutOfRangeError(absl::StrCat(
+        return ::absl::OutOfRangeError(::absl::StrCat(
             "Constraint value (", value, ") out of range for signed overlay '",
             field_name, "'"));
       }
@@ -218,11 +218,11 @@ absl::StatusOr<Constraint*> InstructionEncoding::CreateConstraint(
   return constraint;
 }
 
-absl::Status InstructionEncoding::AddEqualConstraint(std::string field_name,
+::absl::Status InstructionEncoding::AddEqualConstraint(std::string field_name,
                                                      int64_t value) {
   // Invalidate the computed masks and values when a new constraint is added.
   mask_set_ = false;
-  absl::StatusOr<Constraint*> result = CreateConstraint(ConstraintType::kEq, field_name, value);
+  ::absl::StatusOr<Constraint*> result = CreateConstraint(ConstraintType::kEq, field_name, value);
   if (!result.ok()) return result.status();
   auto* constraint = result.value();
   if ((constraint->overlay != nullptr) &&
@@ -235,30 +235,30 @@ absl::Status InstructionEncoding::AddEqualConstraint(std::string field_name,
   } else {
     equal_constraints_.push_back(constraint);
   }
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
-absl::Status InstructionEncoding::AddOtherConstraint(ConstraintType type,
+::absl::Status InstructionEncoding::AddOtherConstraint(ConstraintType type,
                                                      std::string field_name,
                                                      int64_t value) {
-  absl::StatusOr<Constraint*> result = CreateConstraint(type, field_name, value);
+  ::absl::StatusOr<Constraint*> result = CreateConstraint(type, field_name, value);
   if (!result.ok()) return result.status();
   auto* constraint = result.value();
   other_constraints_.push_back(constraint);
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
-absl::Status InstructionEncoding::AddOtherConstraint(
+::absl::Status InstructionEncoding::AddOtherConstraint(
     ConstraintType type, const std::string& lhs_name,
     const std::string& rhs_name) {
-  absl::StatusOr<Constraint*> result = CreateConstraint(type, lhs_name, rhs_name);
+  ::absl::StatusOr<Constraint*> result = CreateConstraint(type, lhs_name, rhs_name);
   if (!result.ok()) return result.status();
   auto* constraint = result.value();
   other_constraints_.push_back(constraint);
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
-absl::Status InstructionEncoding::ComputeMaskAndValue() {
+::absl::Status InstructionEncoding::ComputeMaskAndValue() {
   // First consider equal constraints.
   mask_ = 0;
   for (auto* constraint : equal_constraints_) {
@@ -271,7 +271,7 @@ absl::Status InstructionEncoding::ComputeMaskAndValue() {
       mask <<= shift;
       value = constraint->value << shift;
     } else {
-      absl::StatusOr<uint64_t> result = constraint->overlay->GetBitField(constraint->value);
+      ::absl::StatusOr<uint64_t> result = constraint->overlay->GetBitField(constraint->value);
       if (!result.ok()) return result.status();
       value = result.value();
       mask = constraint->overlay->mask();
@@ -319,7 +319,7 @@ absl::Status InstructionEncoding::ComputeMaskAndValue() {
     }
   }
   mask_set_ = true;
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
 uint64_t InstructionEncoding::GetMask() {
@@ -344,18 +344,18 @@ uint64_t InstructionEncoding::GetCombinedMask() {
   return mask_ | extracted_mask_ | other_mask_;
 }
 
-absl::Status InstructionEncoding::AddSpecialization(
+::absl::Status InstructionEncoding::AddSpecialization(
     const std::string& name, InstructionEncoding* encoding) {
   if (specializations_.contains(name)) {
     format_->encoding_info()->error_listener()->semanticError(
-        nullptr, absl::StrCat("Duplicate instruction specialization name '",
+        nullptr, ::absl::StrCat("Duplicate instruction specialization name '",
                               name, "' in format '", format_name_, "'."));
-    return absl::AlreadyExistsError(
-        absl::StrCat("Duplicate instruction specialization name '", name,
+    return ::absl::AlreadyExistsError(
+        ::absl::StrCat("Duplicate instruction specialization name '", name,
                      "' in format '", format_name_, "'."));
   }
   specializations_.insert(std::make_pair(name, encoding));
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
 uint64_t InstructionEncoding::GetValue() {

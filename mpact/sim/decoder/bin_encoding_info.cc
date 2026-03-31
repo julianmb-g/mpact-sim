@@ -53,12 +53,12 @@ void BinEncodingInfo::AddIncludeFile(std::string include_file) {
 }
 
 // Adding a format that does not have a parent (to inherit from ).
-absl::StatusOr<Format*> BinEncodingInfo::AddFormat(std::string name,
+::absl::StatusOr<Format*> BinEncodingInfo::AddFormat(std::string name,
                                                    int width) {
   // Verify that the format name hasn't been used.
   if (format_map_.contains(name)) {
-    return absl::AlreadyExistsError(
-        absl::StrCat("Error: format '", name, "' already defined"));
+    return ::absl::AlreadyExistsError(
+        ::absl::StrCat("Error: format '", name, "' already defined"));
   }
   auto format = new Format(name, width, this);
   format_map_.emplace(name, format);
@@ -66,12 +66,12 @@ absl::StatusOr<Format*> BinEncodingInfo::AddFormat(std::string name,
 }
 
 // Adding a format that does have a parent.
-absl::StatusOr<Format*> BinEncodingInfo::AddFormat(std::string name, int width,
+::absl::StatusOr<Format*> BinEncodingInfo::AddFormat(std::string name, int width,
                                                    std::string parent_name) {
   // Verify that the format name hasn't been used.
   if (format_map_.contains(name)) {
-    return absl::AlreadyExistsError(
-        absl::StrCat("Error: format '", name, "' already defined"));
+    return ::absl::AlreadyExistsError(
+        ::absl::StrCat("Error: format '", name, "' already defined"));
   }
   auto format = new Format(name, width, parent_name, this);
   format_map_.emplace(name, format);
@@ -79,7 +79,7 @@ absl::StatusOr<Format*> BinEncodingInfo::AddFormat(std::string name, int width,
 }
 
 // Lookup a format by name. Return nullptr if it isn't found.
-Format* BinEncodingInfo::GetFormat(absl::string_view name) const {
+Format* BinEncodingInfo::GetFormat(::absl::string_view name) const {
   auto iter = format_map_.find(name);
   if (iter == format_map_.end()) return nullptr;
   return iter->second;
@@ -87,11 +87,11 @@ Format* BinEncodingInfo::GetFormat(absl::string_view name) const {
 
 // Add the named instruction group. Instruction encodings are added directly
 // to the group using the returned pointer.
-absl::StatusOr<InstructionGroup*> BinEncodingInfo::AddInstructionGroup(
+::absl::StatusOr<InstructionGroup*> BinEncodingInfo::AddInstructionGroup(
     std::string name, int width, std::string format_name) {
   if (instruction_group_map_.contains(name)) {
-    return absl::AlreadyExistsError(
-        absl::StrCat("Error: instruction group '", name, "' already defined"));
+    return ::absl::AlreadyExistsError(
+        ::absl::StrCat("Error: instruction group '", name, "' already defined"));
   }
   auto group =
       new InstructionGroup(name, width, format_name, opcode_enum_, this);

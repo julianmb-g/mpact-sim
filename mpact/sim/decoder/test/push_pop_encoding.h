@@ -60,13 +60,13 @@ class PushPopEncoding : public PushPopInstEncodingBase {
 
  private:
   using SourceOpGetterMap =
-      absl::flat_hash_map<int, absl::AnyInvocable<SourceOperandInterface*()>>;
-  using DestOpGetterMap = absl::flat_hash_map<
-      int, absl::AnyInvocable<DestinationOperandInterface*(int)>>;
-  using ListSourceOpGetterMap = absl::flat_hash_map<
-      int, absl::AnyInvocable<std::vector<SourceOperandInterface*>()>>;
-  using ListDestOpGetterMap = absl::flat_hash_map<
-      int, absl::AnyInvocable<std::vector<DestinationOperandInterface*>(
+      ::absl::flat_hash_map<int, ::absl::AnyInvocable<SourceOperandInterface*()>>;
+  using DestOpGetterMap = ::absl::flat_hash_map<
+      int, ::absl::AnyInvocable<DestinationOperandInterface*(int)>>;
+  using ListSourceOpGetterMap = ::absl::flat_hash_map<
+      int, ::absl::AnyInvocable<std::vector<SourceOperandInterface*>()>>;
+  using ListDestOpGetterMap = ::absl::flat_hash_map<
+      int, ::absl::AnyInvocable<std::vector<DestinationOperandInterface*>(
                const std::vector<int>&)>>;
 
   ArchState* state_;

@@ -55,7 +55,7 @@ ABSL_FLAG(std::string, isa_name, "", "isa name");
 ABSL_FLAG(std::string, include, "", "include file directories");
 
 int main(int argc, char** argv) {
-  auto arg_vec = absl::ParseCommandLine(argc, argv);
+  auto arg_vec = ::absl::ParseCommandLine(argc, argv);
 
   std::vector<std::string> file_names;
 
@@ -66,13 +66,13 @@ int main(int argc, char** argv) {
   mpact::sim::machine_description::instruction_set::InstructionSetVisitor
       visitor;
 
-  std::string output_dir = absl::GetFlag(FLAGS_output_dir);
-  std::string prefix = absl::GetFlag(FLAGS_prefix);
-  std::string isa_name = absl::GetFlag(FLAGS_isa_name);
+  std::string output_dir = ::absl::GetFlag(FLAGS_output_dir);
+  std::string prefix = ::absl::GetFlag(FLAGS_prefix);
+  std::string isa_name = ::absl::GetFlag(FLAGS_isa_name);
   std::vector<std::string> include_dirs;
-  auto include_dirs_string = absl::GetFlag(FLAGS_include);
+  auto include_dirs_string = ::absl::GetFlag(FLAGS_include);
   include_dirs =
-      absl::StrSplit(include_dirs_string, ',', absl::SkipWhitespace());
+      ::absl::StrSplit(include_dirs_string, ',', ::absl::SkipWhitespace());
 
   if (prefix.empty()) {
     std::cerr << "Error: prefix must be specified and non-empty" << std::endl;

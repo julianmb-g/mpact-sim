@@ -36,13 +36,13 @@ uint64_t ExtractValue(uint64_t value,
 }
 
 std::string WriteExtraction(const std::vector<ExtractionStep>& recipe,
-                            absl::string_view value, absl::string_view result,
-                            absl::string_view indent) {
+                            ::absl::string_view value, ::absl::string_view result,
+                            ::absl::string_view indent) {
   std::string output;
   std::string assign = " = ";
   for (auto [mask, shift] : recipe) {
-    absl::StrAppend(&output, indent, result, assign, "(", value, " >> ", shift,
-                    ") & 0x", absl::Hex(mask), ";\n");
+    ::absl::StrAppend(&output, indent, result, assign, "(", value, " >> ", shift,
+                    ") & 0x", ::absl::Hex(mask), ";\n");
     assign = " |= ";
   }
   return output;

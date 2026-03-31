@@ -91,29 +91,29 @@ class Overlay {
   // Add a bit constant to the overlay.
   void AddBitConstant(BinaryNum bin_num);
   // Add an entire field from the format to the overlay.
-  absl::Status AddFieldReference(std::string field_name);
+  ::absl::Status AddFieldReference(std::string field_name);
   // Add only the bit ranges from the given field to the overlay (in order of
   // appearance in the vector).
-  absl::Status AddFieldReference(std::string field_name,
+  ::absl::Status AddFieldReference(std::string field_name,
                                  const std::vector<BitRange>& ranges);
   // Add the bit ranges from the format to the overlay (in order of appearance
   // in the vector).
-  absl::Status AddFormatReference(const std::vector<BitRange>& ranges);
+  ::absl::Status AddFormatReference(const std::vector<BitRange>& ranges);
 
   // Adjusts high/low of each field reference.
-  absl::Status ComputeHighLow();
+  ::absl::Status ComputeHighLow();
   // Given input as the bit value of the format, returns the unsigned bit value
   // of the overlay as specified by the components.
-  absl::StatusOr<uint64_t> GetValue(uint64_t input) const;
-  std::string WriteSimpleValueExtractor(absl::string_view value,
-                                        absl::string_view result) const;
-  std::string WritePackedStructValueExtractor(absl::string_view value,
-                                              absl::string_view result) const;
-  absl::StatusOr<uint64_t> GetValue(uint8_t* input);
-  std::string WriteComplexValueExtractor(absl::string_view value,
-                                         absl::string_view result,
-                                         absl::string_view return_type) const;
-  absl::StatusOr<uint64_t> GetBitField(uint64_t input);
+  ::absl::StatusOr<uint64_t> GetValue(uint64_t input) const;
+  std::string WriteSimpleValueExtractor(::absl::string_view value,
+                                        ::absl::string_view result) const;
+  std::string WritePackedStructValueExtractor(::absl::string_view value,
+                                              ::absl::string_view result) const;
+  ::absl::StatusOr<uint64_t> GetValue(uint8_t* input);
+  std::string WriteComplexValueExtractor(::absl::string_view value,
+                                         ::absl::string_view result,
+                                         ::absl::string_view return_type) const;
+  ::absl::StatusOr<uint64_t> GetBitField(uint64_t input);
 
   bool operator==(const Overlay& rhs) const;
   bool operator!=(const Overlay& rhs) const;

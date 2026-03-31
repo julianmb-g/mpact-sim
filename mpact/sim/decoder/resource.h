@@ -66,18 +66,18 @@ class Resource {
 // resources.
 class ResourceFactory {
  public:
-  using ResourceMap = absl::btree_map<std::string, Resource*>;
-  using ArgumentSet = absl::btree_set<std::string>;
+  using ResourceMap = ::absl::btree_map<std::string, Resource*>;
+  using ArgumentSet = ::absl::btree_set<std::string>;
 
   ResourceFactory() = default;
   ~ResourceFactory();
 
   // If the resource doesn't yet exist, create a new resource and return the
   // pointer, otherwise return an error code.
-  absl::StatusOr<Resource*> CreateResource(absl::string_view name);
+  ::absl::StatusOr<Resource*> CreateResource(::absl::string_view name);
   // Return the named resource, or if it does not exist, create it, and return
   // a pointer to the newly created resource.
-  Resource* GetOrInsertResource(absl::string_view name);
+  Resource* GetOrInsertResource(::absl::string_view name);
   const ResourceMap& resource_map() const { return resource_map_; }
 
  private:

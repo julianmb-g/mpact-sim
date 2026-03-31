@@ -73,7 +73,7 @@ void Instruction::AppendResourceAcquire(const ResourceReference* resource_ref) {
   resource_acquire_vec_.push_back(resource_ref);
 }
 
-void Instruction::AddInstructionAttribute(absl::string_view attr_name,
+void Instruction::AddInstructionAttribute(::absl::string_view attr_name,
                                           TemplateExpression* expression) {
   // See if the attribute is already defined. If not, create a new attribute
   // in the map, otherwise update the expression.
@@ -87,7 +87,7 @@ void Instruction::AddInstructionAttribute(absl::string_view attr_name,
 }
 
 // Add an attribute with the default value 1.
-void Instruction::AddInstructionAttribute(absl::string_view attr_name) {
+void Instruction::AddInstructionAttribute(::absl::string_view attr_name) {
   AddInstructionAttribute(attr_name, new TemplateConstant(1));
 }
 
@@ -97,7 +97,7 @@ void Instruction::AppendDisasmFormat(DisasmFormat* disasm_format) {
 
 // Creating a derived instruction involves copying attributes and re-evaluating
 // any expressions that depend on any slot template instantiation values.
-absl::StatusOr<Instruction*> Instruction::CreateDerivedInstruction(
+::absl::StatusOr<Instruction*> Instruction::CreateDerivedInstruction(
     TemplateInstantiationArgs* args) const {
   // First try to create a derived opcode object. Fail if it fails.
   auto op_result =
@@ -142,7 +142,7 @@ absl::StatusOr<Instruction*> Instruction::CreateDerivedInstruction(
       new_inst->AddInstructionAttribute(attr_name, result.value());
     } else {
       delete new_inst;
-      return absl::InternalError(absl::StrCat(
+      return ::absl::InternalError(::absl::StrCat(
           "Failed to create derived instruction for '", opcode()->name(), "'"));
     }
   }
@@ -159,7 +159,7 @@ absl::StatusOr<Instruction*> Instruction::CreateDerivedInstruction(
   return result.status();
 }
 
-absl::StatusOr<ResourceReference*> Instruction::CreateDerivedResourceRef(
+::absl::StatusOr<ResourceReference*> Instruction::CreateDerivedResourceRef(
     const ResourceReference* ref, TemplateInstantiationArgs* args) const {
   TemplateExpression* begin_expr = nullptr;
   TemplateExpression* end_expr = nullptr;
@@ -168,7 +168,7 @@ absl::StatusOr<ResourceReference*> Instruction::CreateDerivedResourceRef(
   if (ref->begin_expression != nullptr) {
     auto result = ref->begin_expression->Evaluate(args);
     if (!result.ok()) {
-      return absl::InternalError(absl::StrCat(
+      return ::absl::InternalError(::absl::StrCat(
           "Failed to create derived instruction for '", opcode()->name(),
           "': error evaluating begin expression"));
     }
@@ -179,7 +179,7 @@ absl::StatusOr<ResourceReference*> Instruction::CreateDerivedResourceRef(
   if (ref->end_expression != nullptr) {
     auto result = ref->end_expression->Evaluate(args);
     if (!result.ok()) {
-      return absl::InternalError(absl::StrCat(
+      return ::absl::InternalError(::absl::StrCat(
           "Failed to create derived instruction for '", opcode()->name(),
           "': error evaluating begin expression"));
     }
@@ -193,7 +193,7 @@ absl::StatusOr<ResourceReference*> Instruction::CreateDerivedResourceRef(
 // The destination op is stored in the opcode object, however, the child pointer
 // is in the instruction object, so traverse the instructions along the child
 // chain to find the destination operand.
-DestinationOperand* Instruction::GetDestOp(absl::string_view op_name) const {
+DestinationOperand* Instruction::GetDestOp(::absl::string_view op_name) const {
   auto dest_op = opcode()->GetDestOp(op_name);
   if (dest_op != nullptr) return dest_op;
 

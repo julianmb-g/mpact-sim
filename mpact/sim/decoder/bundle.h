@@ -38,21 +38,21 @@ class InstructionSet;
 class Bundle {
  public:
   // Constructor and destructor.
-  Bundle(absl::string_view name, InstructionSet* instruction_set,
+  Bundle(::absl::string_view name, InstructionSet* instruction_set,
          BundleDeclCtx* ctx);
   virtual ~Bundle() = default;
 
   // Append a slot to the bundle. In case the slot has multiple instances,
   // a non-empty vector of instance numbers specify which slot instances are
   // part of this bundle.
-  void AppendSlot(absl::string_view slot_name,
+  void AppendSlot(::absl::string_view slot_name,
                   const std::vector<int>& instance_vec);
   // Append a sub bundle to this bundle.
-  void AppendBundleName(absl::string_view bundle_name);
+  void AppendBundleName(::absl::string_view bundle_name);
   // Return string for  bundle class declaration.
-  std::string GenerateClassDeclaration(absl::string_view encoding_type) const;
+  std::string GenerateClassDeclaration(::absl::string_view encoding_type) const;
   // Return string for bundle class definition.
-  std::string GenerateClassDefinition(absl::string_view encoding_type) const;
+  std::string GenerateClassDefinition(::absl::string_view encoding_type) const;
 
   // Getters and setters.
   const BundleDeclCtx* ctx() const { return ctx_; }

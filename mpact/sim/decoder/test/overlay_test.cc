@@ -93,7 +93,7 @@ TEST_F(OverlayTest, AddFieldReference) {
       new Overlay(kOverlayName, /*is_signed=*/false, kOverlayWidth, format_);
   // Fail to add a reference to an unknown field.
   EXPECT_EQ(overlay->AddFieldReference("immXYZ").code(),
-            absl::StatusCode::kInternal);
+            ::absl::StatusCode::kInternal);
   ASSERT_TRUE(overlay->AddFieldReference(kImm3Name).ok());
   ASSERT_TRUE(overlay->ComputeHighLow().ok());
   EXPECT_EQ(overlay->computed_width(), kImm3Width);
@@ -112,23 +112,23 @@ TEST_F(OverlayTest, AddFieldRangeReference) {
       overlay
           ->AddFieldReference("immXYZ", std::vector<BitRange>{BitRange{3, 2}})
           .code(),
-      absl::StatusCode::kInternal);
+      ::absl::StatusCode::kInternal);
   // Fail to add a reference with an illegal bit range.
   EXPECT_EQ(
       overlay
           ->AddFieldReference(kImm2Name, std::vector<BitRange>{BitRange{0, 1}})
           .code(),
-      absl::StatusCode::kInternal);
+      ::absl::StatusCode::kInternal);
   EXPECT_EQ(
       overlay
           ->AddFieldReference(kImm2Name, std::vector<BitRange>{BitRange{10, 0}})
           .code(),
-      absl::StatusCode::kInternal);
+      ::absl::StatusCode::kInternal);
   EXPECT_EQ(
       overlay
           ->AddFieldReference(kImm2Name, std::vector<BitRange>{BitRange{0, 10}})
           .code(),
-      absl::StatusCode::kInternal);
+      ::absl::StatusCode::kInternal);
   ASSERT_TRUE(
       overlay
           ->AddFieldReference(kImm2Name, std::vector<BitRange>{BitRange{0, 0}})
@@ -148,14 +148,14 @@ TEST_F(OverlayTest, AddFormatReference) {
   // Fail to add a reference to an unknown field.
   EXPECT_EQ(overlay->AddFormatReference(std::vector<BitRange>{BitRange{18, 16}})
                 .code(),
-            absl::StatusCode::kInternal);
+            ::absl::StatusCode::kInternal);
   // Fail to add a reference with an illegal bit range.
   EXPECT_EQ(overlay->AddFormatReference(std::vector<BitRange>{BitRange{10, 12}})
                 .code(),
-            absl::StatusCode::kInternal);
+            ::absl::StatusCode::kInternal);
   EXPECT_EQ(overlay->AddFormatReference(std::vector<BitRange>{BitRange{10, 18}})
                 .code(),
-            absl::StatusCode::kInternal);
+            ::absl::StatusCode::kInternal);
   ASSERT_TRUE(
       overlay->AddFormatReference(std::vector<BitRange>{BitRange{12, 10}})
           .ok());
@@ -227,11 +227,11 @@ TEST_F(OverlayTest, WriteSimpleExtractor) {
 
   auto c_code = overlay->WriteSimpleValueExtractor("value", "result");
   EXPECT_THAT(c_code, testing::HasSubstr(
-                          absl::StrCat("result = (value & 0x20) << 1;")));
+                          ::absl::StrCat("result = (value & 0x20) << 1;")));
   EXPECT_THAT(c_code, testing::HasSubstr(
-                          absl::StrCat("result |= (value & 0x40) >> 4;")));
+                          ::absl::StrCat("result |= (value & 0x40) >> 4;")));
   EXPECT_THAT(c_code, testing::HasSubstr(
-                          absl::StrCat("result |= (value & 0x1c00) >> 7;")));
+                          ::absl::StrCat("result |= (value & 0x1c00) >> 7;")));
   delete overlay;
 }
 

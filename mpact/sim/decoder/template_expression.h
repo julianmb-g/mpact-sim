@@ -27,7 +27,7 @@
 // This file contains classes that represent and can evaluate expressions
 // consisting of literals, template parameters, and operations: unary minus,
 // add, subtract, multiply and divide. The value of the expression is
-// abstracted to an absl::variant type. Currently, the only type that is
+// abstracted to an ::absl::variant type. Currently, the only type that is
 // supported is int, but putting the variant in now makes it easier to add
 // support for others later.
 
@@ -68,13 +68,13 @@ class TemplateExpression {
   // Returns the value of the expression provided it can be computed without
   // having to resolve any template parameters (i.e., the expression tree
   // does not contain any template parameter nodes.
-  virtual absl::StatusOr<TemplateValue> GetValue() const = 0;
+  virtual ::absl::StatusOr<TemplateValue> GetValue() const = 0;
   // Returns a new expression tree where any template parameters have been
   // resolved against the argument expressions that are passed in. Constant
   // subexpressions are collapsed into constant nodes wherever possible. Note
   // that the argument expressions may themselves contain template parameters
   // for the "surrounding" template, so it may not resolve to a constant value.
-  virtual absl::StatusOr<TemplateExpression*> Evaluate(
+  virtual ::absl::StatusOr<TemplateExpression*> Evaluate(
       TemplateInstantiationArgs*) = 0;
   // Returns true if the expression can be evaluated to a constant.
   virtual bool IsConstant() const = 0;
@@ -86,8 +86,8 @@ class TemplateConstant : public TemplateExpression {
  public:
   explicit TemplateConstant(int val) : value_(val) {}
   explicit TemplateConstant(TemplateValue val) : value_(val) {}
-  absl::StatusOr<TemplateValue> GetValue() const override { return value_; }
-  absl::StatusOr<TemplateExpression*> Evaluate(
+  ::absl::StatusOr<TemplateValue> GetValue() const override { return value_; }
+  ::absl::StatusOr<TemplateExpression*> Evaluate(
       TemplateInstantiationArgs*) override;
   bool IsConstant() const override { return true; }
   TemplateExpression* DeepCopy() const override;
@@ -105,7 +105,7 @@ class BinaryTemplateExpression : public TemplateExpression {
   TemplateExpression* DeepCopy() const final {
     return new T(lhs_->DeepCopy(), rhs_->DeepCopy());
   }
-  absl::StatusOr<TemplateExpression*> Evaluate(
+  ::absl::StatusOr<TemplateExpression*> Evaluate(
       TemplateInstantiationArgs* args) final {
     auto lhs = lhs_->Evaluate(args);
     if (!lhs.ok()) return lhs.status();
@@ -131,7 +131,7 @@ class BinaryTemplateExpression : public TemplateExpression {
     }
   }
 
-  absl::StatusOr<TemplateValue> GetValue() const final {
+  ::absl::StatusOr<TemplateValue> GetValue() const final {
     return T::Operator(lhs_->GetValue(), rhs_->GetValue());
   }
 
@@ -160,8 +160,8 @@ class SlotConstant : public TemplateExpression {
  public:
   explicit SlotConstant(TemplateExpression* expr) : expr_(expr) {}
   ~SlotConstant() override;
-  absl::StatusOr<TemplateValue> GetValue() const override;
-  absl::StatusOr<TemplateExpression*> Evaluate(
+  ::absl::StatusOr<TemplateValue> GetValue() const override;
+  ::absl::StatusOr<TemplateExpression*> Evaluate(
       TemplateInstantiationArgs* args) override;
   bool IsConstant() const override { return expr_->IsConstant(); }
   TemplateExpression* DeepCopy() const override;
@@ -174,8 +174,8 @@ class SlotConstant : public TemplateExpression {
 class TemplateParam : public TemplateExpression {
  public:
   explicit TemplateParam(TemplateFormal* param) : param_(param) {}
-  absl::StatusOr<TemplateValue> GetValue() const override;
-  absl::StatusOr<TemplateExpression*> Evaluate(
+  ::absl::StatusOr<TemplateValue> GetValue() const override;
+  ::absl::StatusOr<TemplateExpression*> Evaluate(
       TemplateInstantiationArgs* args) override;
   bool IsConstant() const override { return false; }
   TemplateExpression* DeepCopy() const override;
@@ -189,8 +189,8 @@ class TemplateNegate : public TemplateExpression {
  public:
   explicit TemplateNegate(TemplateExpression* expr) : expr_(expr) {}
   ~TemplateNegate() override;
-  absl::StatusOr<TemplateValue> GetValue() const override;
-  absl::StatusOr<TemplateExpression*> Evaluate(
+  ::absl::StatusOr<TemplateValue> GetValue() const override;
+  ::absl::StatusOr<TemplateExpression*> Evaluate(
       TemplateInstantiationArgs* args) override;
   bool IsConstant() const override { return expr_->IsConstant(); }
   TemplateExpression* DeepCopy() const override;
@@ -204,9 +204,9 @@ class TemplateMultiply : public BinaryTemplateExpression<TemplateMultiply> {
  public:
   TemplateMultiply(TemplateExpression* lhs, TemplateExpression* rhs)
       : BinaryTemplateExpression(lhs, rhs) {}
-  static absl::StatusOr<TemplateValue> Operator(
-      const absl::StatusOr<TemplateValue>& lhs,
-      const absl::StatusOr<TemplateValue>& rhs);
+  static ::absl::StatusOr<TemplateValue> Operator(
+      const ::absl::StatusOr<TemplateValue>& lhs,
+      const ::absl::StatusOr<TemplateValue>& rhs);
 };
 
 // Divide expression node.
@@ -214,9 +214,9 @@ class TemplateDivide : public BinaryTemplateExpression<TemplateDivide> {
  public:
   TemplateDivide(TemplateExpression* lhs, TemplateExpression* rhs)
       : BinaryTemplateExpression(lhs, rhs) {}
-  static absl::StatusOr<TemplateValue> Operator(
-      const absl::StatusOr<TemplateValue>& lhs,
-      const absl::StatusOr<TemplateValue>& rhs);
+  static ::absl::StatusOr<TemplateValue> Operator(
+      const ::absl::StatusOr<TemplateValue>& lhs,
+      const ::absl::StatusOr<TemplateValue>& rhs);
 };
 
 // Add expression node.
@@ -224,9 +224,9 @@ class TemplateAdd : public BinaryTemplateExpression<TemplateAdd> {
  public:
   TemplateAdd(TemplateExpression* lhs, TemplateExpression* rhs)
       : BinaryTemplateExpression(lhs, rhs) {}
-  static absl::StatusOr<TemplateValue> Operator(
-      const absl::StatusOr<TemplateValue>& lhs,
-      const absl::StatusOr<TemplateValue>& rhs);
+  static ::absl::StatusOr<TemplateValue> Operator(
+      const ::absl::StatusOr<TemplateValue>& lhs,
+      const ::absl::StatusOr<TemplateValue>& rhs);
 };
 
 // Subtract expression node.
@@ -234,21 +234,21 @@ class TemplateSubtract : public BinaryTemplateExpression<TemplateSubtract> {
  public:
   TemplateSubtract(TemplateExpression* lhs, TemplateExpression* rhs)
       : BinaryTemplateExpression(lhs, rhs) {}
-  static absl::StatusOr<TemplateValue> Operator(
-      const absl::StatusOr<TemplateValue>& lhs,
-      const absl::StatusOr<TemplateValue>& rhs);
+  static ::absl::StatusOr<TemplateValue> Operator(
+      const ::absl::StatusOr<TemplateValue>& lhs,
+      const ::absl::StatusOr<TemplateValue>& rhs);
 };
 
 // Function expression node.
 class TemplateFunction : public TemplateExpression {
  public:
   using Evaluator =
-      std::function<absl::StatusOr<TemplateValue>(TemplateInstantiationArgs*)>;
+      std::function<::absl::StatusOr<TemplateValue>(TemplateInstantiationArgs*)>;
   TemplateFunction(Evaluator evaluator, TemplateInstantiationArgs* args)
       : evaluator_(std::move(evaluator)), args_(args) {}
   ~TemplateFunction() override;
-  absl::StatusOr<TemplateValue> GetValue() const override;
-  absl::StatusOr<TemplateExpression*> Evaluate(
+  ::absl::StatusOr<TemplateValue> GetValue() const override;
+  ::absl::StatusOr<TemplateExpression*> Evaluate(
       TemplateInstantiationArgs* args) override;
   bool IsConstant() const override;
   TemplateExpression* DeepCopy() const override;

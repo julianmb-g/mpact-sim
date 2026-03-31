@@ -64,9 +64,9 @@ class ProtoConstraintValueSet {
   ~ProtoConstraintValueSet();
 
   // Intersect rhs with this, modifying this value set.
-  absl::Status IntersectWith(const ProtoConstraintValueSet& rhs);
+  ::absl::Status IntersectWith(const ProtoConstraintValueSet& rhs);
   // Simply add the sub ranges associated with rhs to this.
-  absl::Status UnionWith(const ProtoConstraintValueSet& rhs);
+  ::absl::Status UnionWith(const ProtoConstraintValueSet& rhs);
 
   bool IsEmpty() const;
 

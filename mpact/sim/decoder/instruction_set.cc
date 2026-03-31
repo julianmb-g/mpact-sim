@@ -38,33 +38,33 @@ namespace sim {
 namespace machine_description {
 namespace instruction_set {
 
-static void EmitEnumNames(const absl::btree_set<std::string>& names,
-                          absl::string_view namespace_name,
-                          absl::string_view op_name, std::string& h_output,
+static void EmitEnumNames(const ::absl::btree_set<std::string>& names,
+                          ::absl::string_view namespace_name,
+                          ::absl::string_view op_name, std::string& h_output,
                           std::string& cc_output) {
   // Emit array of enum names.
-  absl::StrAppend(&cc_output, "const char *k", op_name,
+  ::absl::StrAppend(&cc_output, "const char *k", op_name,
                   "Names[static_cast<int>(", op_name,
                   "Enum::kPastMaxValue)] = {\n"
                   "  ",
                   namespace_name, "::kNoneName,\n");
-  absl::StrAppend(&h_output, "namespace ", namespace_name,
+  ::absl::StrAppend(&h_output, "namespace ", namespace_name,
                   " {\n"
                   "  constexpr char kNoneName[] = \"none\";\n");
   for (auto const& name : names) {
-    absl::StrAppend(&h_output, "  constexpr char k", name, "Name[] = \"", name,
+    ::absl::StrAppend(&h_output, "  constexpr char k", name, "Name[] = \"", name,
                     "\";\n");
-    absl::StrAppend(&cc_output, "  ", namespace_name, "::k", name, "Name,\n");
+    ::absl::StrAppend(&cc_output, "  ", namespace_name, "::k", name, "Name,\n");
   }
-  absl::StrAppend(&cc_output, "};\n\n");
-  absl::StrAppend(&h_output, "}  // namespace ", namespace_name,
+  ::absl::StrAppend(&cc_output, "};\n\n");
+  ::absl::StrAppend(&h_output, "}  // namespace ", namespace_name,
                   "\n\n"
                   "  extern const char *k",
                   op_name, "Names[static_cast<int>(", op_name,
                   "Enum::kPastMaxValue)];\n\n");
 }
 
-InstructionSet::InstructionSet(absl::string_view name)
+InstructionSet::InstructionSet(::absl::string_view name)
     : opcode_factory_(std::make_unique<OpcodeFactory>()),
       resource_factory_(std::make_unique<ResourceFactory>()),
       name_(name),
@@ -91,19 +91,19 @@ void InstructionSet::AddSlot(Slot* slot) {
 }
 
 // Lookup bundle and slot by name.
-Bundle* InstructionSet::GetBundle(absl::string_view bundle_name) const {
+Bundle* InstructionSet::GetBundle(::absl::string_view bundle_name) const {
   auto iter = bundle_map_.find(bundle_name);
   if (iter == bundle_map_.end()) return nullptr;
   return iter->second;
 }
 
-Slot* InstructionSet::GetSlot(absl::string_view slot_name) const {
+Slot* InstructionSet::GetSlot(::absl::string_view slot_name) const {
   auto iter = slot_map_.find(slot_name);
   if (iter == slot_map_.end()) return nullptr;
   return iter->second;
 }
 
-absl::Status InstructionSet::AnalyzeResourceUse() {
+::absl::Status InstructionSet::AnalyzeResourceUse() {
   for (auto const* slot : slot_order_) {
     for (auto& [unused, inst_ptr] : slot->instruction_map()) {
       for (auto const* def : inst_ptr->resource_acquire_vec()) {
@@ -121,7 +121,7 @@ absl::Status InstructionSet::AnalyzeResourceUse() {
       }
     }
   }
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
 void InstructionSet::ComputeSlotAndBundleOrders() {
@@ -283,22 +283,22 @@ void InstructionSet::AddToSlotOrder(Slot* slot) {
 //  };
 
 std::string InstructionSet::GenerateClassDeclarations(
-    absl::string_view file_name, absl::string_view opcode_file_name,
-    absl::string_view encoding_type) const {
+    ::absl::string_view file_name, ::absl::string_view opcode_file_name,
+    ::absl::string_view encoding_type) const {
   std::string output;
 
   std::string factory_class_name = pascal_name() + "InstructionSetFactory";
 
-  absl::StrAppend(&output, "class ", factory_class_name, ";\n");
+  ::absl::StrAppend(&output, "class ", factory_class_name, ";\n");
   for (auto const* slot : slot_order_) {
-    absl::StrAppend(&output, slot->GenerateClassDeclaration(encoding_type));
+    ::absl::StrAppend(&output, slot->GenerateClassDeclaration(encoding_type));
   }
 
   for (auto const* bundle : bundle_order_) {
-    absl::StrAppend(&output, bundle->GenerateClassDeclaration(encoding_type));
+    ::absl::StrAppend(&output, bundle->GenerateClassDeclaration(encoding_type));
   }
   // Generate factory class.
-  absl::StrAppend(&output, "class ", factory_class_name,
+  ::absl::StrAppend(&output, "class ", factory_class_name,
                   "{\n"
                   " public:\n"
                   "  ",
@@ -309,27 +309,27 @@ std::string InstructionSet::GenerateClassDeclarations(
   for (auto const bundle : bundle_order_) {
     if (bundle->is_marked()) {
       std::string bundle_class = bundle->pascal_name() + "Decoder";
-      absl::StrAppend(&output, "  virtual std::unique_ptr<", bundle_class,
+      ::absl::StrAppend(&output, "  virtual std::unique_ptr<", bundle_class,
                       "> Create", bundle_class, "(ArchState *) = 0;\n");
     }
   }
   for (auto const slot : slot_order_) {
     if (slot->is_referenced()) {
       std::string slot_class = slot->pascal_name() + "Slot";
-      absl::StrAppend(&output, "  virtual std::unique_ptr<", slot_class,
+      ::absl::StrAppend(&output, "  virtual std::unique_ptr<", slot_class,
                       "> Create", slot_class, "(ArchState *) = 0;\n");
     }
   }
-  absl::StrAppend(&output,
+  ::absl::StrAppend(&output,
                   "};\n"
                   "\n");
   // Generate InstructionSet class.
-  absl::StrAppend(&output, "class ", pascal_name(),
+  ::absl::StrAppend(&output, "class ", pascal_name(),
                   "InstructionSet {\n"
                   " public:\n"
                   "  ",
                   pascal_name(), "InstructionSet(ArchState *arch_state,\n",
-                  Indent(absl::StrCat("  ", pascal_name(), "InstructionSet(")),
+                  Indent(::absl::StrCat("  ", pascal_name(), "InstructionSet(")),
                   factory_class_name,
                   " *factory);\n"
                   "  virtual ~",
@@ -341,14 +341,14 @@ std::string InstructionSet::GenerateClassDeclarations(
                   "\n"
                   " private:\n");
   for (auto const& bundle_name : bundle_->bundle_names()) {
-    absl::StrAppend(&output, "  std::unique_ptr<", ToPascalCase(bundle_name),
+    ::absl::StrAppend(&output, "  std::unique_ptr<", ToPascalCase(bundle_name),
                     "Decoder> ", bundle_name, "_decoder_;\n");
   }
   for (auto const& [slot_name, unused] : bundle_->slot_uses()) {
-    absl::StrAppend(&output, "  std::unique_ptr<", ToPascalCase(slot_name),
+    ::absl::StrAppend(&output, "  std::unique_ptr<", ToPascalCase(slot_name),
                     "Slot> ", slot_name, "_decoder_;\n");
   }
-  absl::StrAppend(&output,
+  ::absl::StrAppend(&output,
                   "  ArchState *arch_state_;\n"
                   "};\n"
                   "\n");
@@ -357,34 +357,34 @@ std::string InstructionSet::GenerateClassDeclarations(
 
 // Return string containing .cc file for all bundles and slots.
 std::string InstructionSet::GenerateClassDefinitions(
-    absl::string_view include_file, absl::string_view encoding_type) const {
+    ::absl::string_view include_file, ::absl::string_view encoding_type) const {
   std::string output;
 
   std::string class_name = pascal_name() + "InstructionSet";
   std::string factory_class_name = class_name + "Factory";
   for (auto* slot : slot_order_) {
-    absl::StrAppend(&output, slot->GenerateClassDefinition(encoding_type));
+    ::absl::StrAppend(&output, slot->GenerateClassDefinition(encoding_type));
   }
   // Constructor.
-  absl::StrAppend(&output, class_name, "::", class_name,
+  ::absl::StrAppend(&output, class_name, "::", class_name,
                   "(ArchState *arch_state, ", factory_class_name,
                   "*factory) : \n"
                   "  arch_state_(arch_state) {\n");
   for (auto const& bundle_name : bundle_->bundle_names()) {
-    absl::StrAppend(&output, "  ", bundle_name, "_decoder_ = factory->Create",
+    ::absl::StrAppend(&output, "  ", bundle_name, "_decoder_ = factory->Create",
                     ToPascalCase(bundle_name), "Decoder(arch_state_);\n");
   }
   for (auto const& [slot_name, unused] : bundle_->slot_uses()) {
-    absl::StrAppend(&output, "  ", slot_name, "_decoder_ = factory->Create",
+    ::absl::StrAppend(&output, "  ", slot_name, "_decoder_ = factory->Create",
                     ToPascalCase(slot_name), "Slot(arch_state_);\n");
   }
-  absl::StrAppend(&output, "}\n");
+  ::absl::StrAppend(&output, "}\n");
   // Destructor.
-  absl::StrAppend(&output, class_name, "::~", class_name, "() {\n");
-  absl::StrAppend(&output, "  // empty for now.\n");
-  absl::StrAppend(&output, "}\n");
+  ::absl::StrAppend(&output, class_name, "::~", class_name, "() {\n");
+  ::absl::StrAppend(&output, "  // empty for now.\n");
+  ::absl::StrAppend(&output, "}\n");
   // Generate the top level decode function body.
-  absl::StrAppend(&output, "Instruction *", class_name,
+  ::absl::StrAppend(&output, "Instruction *", class_name,
                   "::Decode(uint64_t address, ", encoding_type,
                   " *encoding) {\n"
                   "  Instruction *inst = nullptr;"
@@ -395,11 +395,11 @@ std::string InstructionSet::GenerateClassDefinitions(
     // If there are bundles, then a "parent instruction" is created. Bundles
     // are added as children of this parent instruction. The parent instruction
     // is responsible for controlling issue of the bundles.
-    absl::StrAppend(&output,
+    ::absl::StrAppend(&output,
                     "  inst = new Instruction(address, arch_state_);\n");
     // Generate calls to each of the top level bundle Decode methods.
     for (auto const& bundle_name : bundle_->bundle_names()) {
-      absl::StrAppend(&output, "  tmp_inst = ", bundle_name,
+      ::absl::StrAppend(&output, "  tmp_inst = ", bundle_name,
                       "_decoder_->Decode(address, encoding);\n"
                       "  inst->AppendChild(tmp_inst);\n"
                       "  size += tmp_inst->size();\n"
@@ -410,9 +410,9 @@ std::string InstructionSet::GenerateClassDefinitions(
   // Generate calls to each of the top level slot Decode methods.
   for (auto const& [slot_name, instance_vec] : bundle_->slot_uses()) {
     std::string enum_name =
-        absl::StrCat("SlotEnum::", "k", ToPascalCase(slot_name));
+        ::absl::StrCat("SlotEnum::", "k", ToPascalCase(slot_name));
     if (instance_vec.empty()) {
-      absl::StrAppend(&output, "  tmp_inst = ", slot_name,
+      ::absl::StrAppend(&output, "  tmp_inst = ", slot_name,
                       "_decoder_->Decode(address, encoding, ", enum_name,
                       ", 0);\n"
                       "  if (tmp_inst != nullptr) size += tmp_inst->size();\n"
@@ -425,7 +425,7 @@ std::string InstructionSet::GenerateClassDefinitions(
                       "  success |= (nullptr != tmp_inst);\n");
     } else {
       for (auto const index : instance_vec) {
-        absl::StrAppend(&output, "  tmp_inst = ", slot_name,
+        ::absl::StrAppend(&output, "  tmp_inst = ", slot_name,
                         "_decoder_->Decode(address, encoding, , ", enum_name,
                         ", ", index,
                         ");\n"
@@ -441,7 +441,7 @@ std::string InstructionSet::GenerateClassDefinitions(
     }
   }
   // If the decode failed, DecRef the instruction and return nullptr.
-  absl::StrAppend(&output,
+  ::absl::StrAppend(&output,
                   "  inst->set_size(size);\n"
                   "  if (!success) {\n"
                   "    inst->DecRef();\n"
@@ -453,15 +453,15 @@ std::string InstructionSet::GenerateClassDefinitions(
 }
 
 InstructionSet::StringPair InstructionSet::GenerateEnums(
-    absl::string_view file_name) {
+    ::absl::string_view file_name) {
   std::string h_output;
   std::string cc_output;
 
   // Emit slot enumeration type.
-  absl::StrAppend(&h_output,
+  ::absl::StrAppend(&h_output,
                   "  enum class SlotEnum {\n"
                   "    kNone = 0,\n");
-  absl::btree_map<std::string, const Slot*> slots_by_name;
+  ::absl::btree_map<std::string, const Slot*> slots_by_name;
   for (auto const* slot : slot_order_) {
     if (slot->is_referenced()) {
       std::string name = slot->pascal_name();
@@ -469,25 +469,25 @@ InstructionSet::StringPair InstructionSet::GenerateEnums(
     }
   }
   for (auto const& [name, unused] : slots_by_name) {
-    absl::StrAppend(&h_output, "    k", name, ",\n");
+    ::absl::StrAppend(&h_output, "    k", name, ",\n");
   }
-  absl::StrAppend(&h_output, "  };\n\n");
+  ::absl::StrAppend(&h_output, "  };\n\n");
 
   // Btree sets to sort by name.
-  absl::btree_set<std::string> predicate_operands;
-  absl::btree_set<std::string> source_operands;
-  absl::btree_set<std::string> list_source_operands;
-  absl::btree_set<std::string> dest_operands;
-  absl::btree_set<std::string> list_dest_operands;
-  absl::btree_set<std::string> dest_latency;
+  ::absl::btree_set<std::string> predicate_operands;
+  ::absl::btree_set<std::string> source_operands;
+  ::absl::btree_set<std::string> list_source_operands;
+  ::absl::btree_set<std::string> dest_operands;
+  ::absl::btree_set<std::string> list_dest_operands;
+  ::absl::btree_set<std::string> dest_latency;
   // Insert PascalCase operand names into the sets to select unique names.
   for (auto const& [unused, slot] : slots_by_name) {
     // Slot specific operands.
-    absl::btree_set<std::string> slot_predicate_operands;
-    absl::btree_set<std::string> slot_source_operands;
-    absl::btree_set<std::string> slot_list_source_operands;
-    absl::btree_set<std::string> slot_dest_operands;
-    absl::btree_set<std::string> slot_list_dest_operands;
+    ::absl::btree_set<std::string> slot_predicate_operands;
+    ::absl::btree_set<std::string> slot_source_operands;
+    ::absl::btree_set<std::string> slot_list_source_operands;
+    ::absl::btree_set<std::string> slot_dest_operands;
+    ::absl::btree_set<std::string> slot_list_dest_operands;
     for (auto const& [unused, inst_ptr] : slot->instruction_map()) {
       auto* inst = inst_ptr;
       while (inst != nullptr) {
@@ -522,143 +522,143 @@ InstructionSet::StringPair InstructionSet::GenerateEnums(
       }
     }
     auto slot_name = slot->pascal_name();
-    absl::StrAppend(&h_output, "  // Enums for slot: ", slot_name, ".\n");
+    ::absl::StrAppend(&h_output, "  // Enums for slot: ", slot_name, ".\n");
     // Create Slot specific enum for predicate operands.
-    absl::StrAppend(&h_output, "  enum class ", slot_name, "PredOpEnum {\n");
+    ::absl::StrAppend(&h_output, "  enum class ", slot_name, "PredOpEnum {\n");
     int pred_count = 0;
-    absl::StrAppend(&h_output, "    kNone = ", pred_count++, ",\n");
+    ::absl::StrAppend(&h_output, "    kNone = ", pred_count++, ",\n");
     for (auto const& pred_name : slot_predicate_operands) {
       pred_op_map_.insert({pred_name, pred_count});
-      absl::StrAppend(&h_output, "    k", pred_name, " = ", pred_count++,
+      ::absl::StrAppend(&h_output, "    k", pred_name, " = ", pred_count++,
                       ",\n");
     }
-    absl::StrAppend(&h_output, "    kPastMaxValue = ", pred_count,
+    ::absl::StrAppend(&h_output, "    kPastMaxValue = ", pred_count,
                     ",\n"
                     "  };\n\n");
     // Create Slot specific enum for source operands.
-    absl::StrAppend(&h_output, "  enum class ", slot_name, "SourceOpEnum {\n");
+    ::absl::StrAppend(&h_output, "  enum class ", slot_name, "SourceOpEnum {\n");
     int src_count = 0;
-    absl::StrAppend(&h_output, "    kNone = ", src_count++, ",\n");
+    ::absl::StrAppend(&h_output, "    kNone = ", src_count++, ",\n");
     for (auto const& source_name : slot_source_operands) {
       source_op_map_.insert({source_name, src_count});
-      absl::StrAppend(&h_output, "    k", source_name, " = ", src_count++,
+      ::absl::StrAppend(&h_output, "    k", source_name, " = ", src_count++,
                       ",\n");
     }
-    absl::StrAppend(&h_output, "    kPastMaxValue = ", src_count,
+    ::absl::StrAppend(&h_output, "    kPastMaxValue = ", src_count,
                     ",\n"
                     "  };\n\n");
     // Create Slot specific enum for list source operands.
-    absl::StrAppend(&h_output, "  enum class ", slot_name,
+    ::absl::StrAppend(&h_output, "  enum class ", slot_name,
                     "ListSourceOpEnum {\n");
     int list_src_count = 0;
-    absl::StrAppend(&h_output, "    kNone = ", list_src_count++, ",\n");
+    ::absl::StrAppend(&h_output, "    kNone = ", list_src_count++, ",\n");
     for (auto const& source_name : slot_list_source_operands) {
       list_source_op_map_.insert({source_name, list_src_count});
-      absl::StrAppend(&h_output, "    k", source_name, " = ", list_src_count++,
+      ::absl::StrAppend(&h_output, "    k", source_name, " = ", list_src_count++,
                       ",\n");
     }
-    absl::StrAppend(&h_output, "    kPastMaxValue = ", list_src_count,
+    ::absl::StrAppend(&h_output, "    kPastMaxValue = ", list_src_count,
                     ",\n"
                     "  };\n\n");
     // Create Slot specific enum for destination operands.
-    absl::StrAppend(&h_output, "  enum class ", slot_name, "DestOpEnum {\n");
+    ::absl::StrAppend(&h_output, "  enum class ", slot_name, "DestOpEnum {\n");
     int dst_count = 0;
-    absl::StrAppend(&h_output, "    kNone = ", dst_count++, ",\n");
+    ::absl::StrAppend(&h_output, "    kNone = ", dst_count++, ",\n");
     for (auto const& dest_name : slot_dest_operands) {
       dest_op_map_.insert({dest_name, dst_count});
-      absl::StrAppend(&h_output, "    k", dest_name, " = ", dst_count++, ",\n");
+      ::absl::StrAppend(&h_output, "    k", dest_name, " = ", dst_count++, ",\n");
     }
-    absl::StrAppend(&h_output, "    kPastMaxValue = ", dst_count,
+    ::absl::StrAppend(&h_output, "    kPastMaxValue = ", dst_count,
                     ",\n"
                     "  };\n\n");
     // Create Slot specific enum for list destination operands.
-    absl::StrAppend(&h_output, "  enum class ", slot_name,
+    ::absl::StrAppend(&h_output, "  enum class ", slot_name,
                     "ListDestOpEnum {\n");
     int list_dst_count = 0;
-    absl::StrAppend(&h_output, "    kNone = ", list_dst_count++, ",\n");
+    ::absl::StrAppend(&h_output, "    kNone = ", list_dst_count++, ",\n");
     for (auto const& dest_name : slot_list_dest_operands) {
       list_dest_op_map_.insert({dest_name, list_dst_count});
-      absl::StrAppend(&h_output, "    k", dest_name, " = ", list_dst_count++,
+      ::absl::StrAppend(&h_output, "    k", dest_name, " = ", list_dst_count++,
                       ",\n");
     }
-    absl::StrAppend(&h_output, "    kPastMaxValue = ", list_dst_count,
+    ::absl::StrAppend(&h_output, "    kPastMaxValue = ", list_dst_count,
                     ",\n"
                     "  };\n\n");
   }
   // Create enums for the global view.
 
-  absl::StrAppend(&h_output, "  // Enums for the global view.\n");
+  ::absl::StrAppend(&h_output, "  // Enums for the global view.\n");
   // Create enum for predicate operands.
-  absl::StrAppend(&h_output, "  enum class PredOpEnum {\n");
+  ::absl::StrAppend(&h_output, "  enum class PredOpEnum {\n");
   int pred_count = 0;
-  absl::StrAppend(&h_output, "    kNone = ", pred_count++, ",\n");
+  ::absl::StrAppend(&h_output, "    kNone = ", pred_count++, ",\n");
   for (auto const& pred_name : predicate_operands) {
     pred_op_map_.insert({pred_name, pred_count});
-    absl::StrAppend(&h_output, "    k", pred_name, " = ", pred_count++, ",\n");
+    ::absl::StrAppend(&h_output, "    k", pred_name, " = ", pred_count++, ",\n");
   }
-  absl::StrAppend(&h_output, "    kPastMaxValue = ", pred_count,
+  ::absl::StrAppend(&h_output, "    kPastMaxValue = ", pred_count,
                   ",\n"
                   "  };\n\n");
   // Create enum for source operands.
-  absl::StrAppend(&h_output, "  enum class SourceOpEnum {\n");
+  ::absl::StrAppend(&h_output, "  enum class SourceOpEnum {\n");
   int src_count = 0;
-  absl::StrAppend(&h_output, "    kNone = ", src_count++, ",\n");
+  ::absl::StrAppend(&h_output, "    kNone = ", src_count++, ",\n");
   for (auto const& source_name : source_operands) {
     source_op_map_.insert({source_name, src_count});
-    absl::StrAppend(&h_output, "    k", source_name, " = ", src_count++, ",\n");
+    ::absl::StrAppend(&h_output, "    k", source_name, " = ", src_count++, ",\n");
   }
-  absl::StrAppend(&h_output, "    kPastMaxValue = ", src_count,
+  ::absl::StrAppend(&h_output, "    kPastMaxValue = ", src_count,
                   ",\n"
                   "  };\n\n");
   // Create enum for list source operands.
-  absl::StrAppend(&h_output, "  enum class ListSourceOpEnum {\n");
+  ::absl::StrAppend(&h_output, "  enum class ListSourceOpEnum {\n");
   int list_src_count = 0;
-  absl::StrAppend(&h_output, "    kNone = ", list_src_count++, ",\n");
+  ::absl::StrAppend(&h_output, "    kNone = ", list_src_count++, ",\n");
   for (auto const& source_name : list_source_operands) {
     list_source_op_map_.insert({source_name, list_src_count});
-    absl::StrAppend(&h_output, "    k", source_name, " = ", list_src_count++,
+    ::absl::StrAppend(&h_output, "    k", source_name, " = ", list_src_count++,
                     ",\n");
   }
-  absl::StrAppend(&h_output, "    kPastMaxValue = ", list_src_count,
+  ::absl::StrAppend(&h_output, "    kPastMaxValue = ", list_src_count,
                   ",\n"
                   "  };\n\n");
   // Create enum for destination operands.
-  absl::StrAppend(&h_output, "  enum class DestOpEnum {\n");
+  ::absl::StrAppend(&h_output, "  enum class DestOpEnum {\n");
   int dst_count = 0;
-  absl::StrAppend(&h_output, "    kNone = ", dst_count++, ",\n");
+  ::absl::StrAppend(&h_output, "    kNone = ", dst_count++, ",\n");
   for (auto const& dest_name : dest_operands) {
     dest_op_map_.insert({dest_name, dst_count});
-    absl::StrAppend(&h_output, "    k", dest_name, " = ", dst_count++, ",\n");
+    ::absl::StrAppend(&h_output, "    k", dest_name, " = ", dst_count++, ",\n");
   }
-  absl::StrAppend(&h_output, "    kPastMaxValue = ", dst_count,
+  ::absl::StrAppend(&h_output, "    kPastMaxValue = ", dst_count,
                   ",\n"
                   "  };\n\n");
   // Create enum for list destination operands.
-  absl::StrAppend(&h_output, "  enum class ListDestOpEnum {\n");
+  ::absl::StrAppend(&h_output, "  enum class ListDestOpEnum {\n");
   int list_dst_count = 0;
-  absl::StrAppend(&h_output, "    kNone = ", list_dst_count++, ",\n");
+  ::absl::StrAppend(&h_output, "    kNone = ", list_dst_count++, ",\n");
   for (auto const& dest_name : list_dest_operands) {
     list_dest_op_map_.insert({dest_name, list_dst_count});
-    absl::StrAppend(&h_output, "    k", dest_name, " = ", list_dst_count++,
+    ::absl::StrAppend(&h_output, "    k", dest_name, " = ", list_dst_count++,
                     ",\n");
   }
-  absl::StrAppend(&h_output, "    kPastMaxValue = ", list_dst_count,
+  ::absl::StrAppend(&h_output, "    kPastMaxValue = ", list_dst_count,
                   ",\n"
                   "  };\n\n");
   // Emit opcode enumeration type.
-  absl::StrAppend(&h_output,
+  ::absl::StrAppend(&h_output,
                   "  enum class OpcodeEnum {\n"
                   "    kNone = 0,\n");
-  absl::btree_set<std::string> name_set;
+  ::absl::btree_set<std::string> name_set;
   for (auto const* opcode : opcode_factory_->opcode_vec()) {
     name_set.insert(opcode->pascal_name());
   }
   int opcode_value = 1;
   for (auto const& name : name_set) {
-    absl::StrAppend(&h_output, "    k", name, " = ", opcode_value++, ",\n");
+    ::absl::StrAppend(&h_output, "    k", name, " = ", opcode_value++, ",\n");
   }
-  absl::StrAppend(&h_output, "    kPastMaxValue = ", opcode_value, "\n");
-  absl::StrAppend(&h_output, "  };\n\n");
+  ::absl::StrAppend(&h_output, "    kPastMaxValue = ", opcode_value, "\n");
+  ::absl::StrAppend(&h_output, "  };\n\n");
 
   EmitEnumNames(predicate_operands, "pred_op_names", "PredOp", h_output,
                 cc_output);
@@ -670,22 +670,22 @@ InstructionSet::StringPair InstructionSet::GenerateEnums(
   EmitEnumNames(list_dest_operands, "list_dest_op_names", "ListDestOp",
                 h_output, cc_output);
   // Emit array of opcode names.
-  absl::StrAppend(&cc_output,
+  ::absl::StrAppend(&cc_output,
                   "const char *kOpcodeNames[static_cast<int>("
                   "OpcodeEnum::kPastMaxValue)] = {\n"
                   "  kNoneName,\n");
-  absl::StrAppend(&h_output, "  constexpr char kNoneName[] = \"none\";\n");
+  ::absl::StrAppend(&h_output, "  constexpr char kNoneName[] = \"none\";\n");
   for (auto const& name : name_set) {
-    absl::StrAppend(&h_output, "  constexpr char k", name, "Name[] = \"", name,
+    ::absl::StrAppend(&h_output, "  constexpr char k", name, "Name[] = \"", name,
                     "\";\n");
-    absl::StrAppend(&cc_output, "  k", name, "Name,\n");
+    ::absl::StrAppend(&cc_output, "  k", name, "Name,\n");
   }
-  absl::StrAppend(&cc_output, "};\n\n");
-  absl::StrAppend(&h_output,
+  ::absl::StrAppend(&cc_output, "};\n\n");
+  ::absl::StrAppend(&h_output,
                   "  extern const char *kOpcodeNames[static_cast<int>(\n"
                   "      OpcodeEnum::kPastMaxValue)];\n\n");
   // Emit resource enumeration types.
-  absl::StrAppend(&h_output,
+  ::absl::StrAppend(&h_output,
                   "  enum class SimpleResourceEnum {\n"
                   "    kNone = 0,\n");
   int resource_count = 1;
@@ -696,14 +696,14 @@ InstructionSet::StringPair InstructionSet::GenerateEnums(
     }
   }
   for (auto const& name : name_set) {
-    absl::StrAppend(&h_output, "    k", name, " = ", resource_count++, ",\n");
+    ::absl::StrAppend(&h_output, "    k", name, " = ", resource_count++, ",\n");
   }
-  absl::StrAppend(&h_output, "    kPastMaxValue = ", resource_count,
+  ::absl::StrAppend(&h_output, "    kPastMaxValue = ", resource_count,
                   "\n  };\n\n");
   EmitEnumNames(name_set, "simple_resource_names", "SimpleResource", h_output,
                 cc_output);
   // Complex resource enumeration type.
-  absl::StrAppend(&h_output,
+  ::absl::StrAppend(&h_output,
                   "  enum class ComplexResourceEnum {\n"
                   "    kNone = 0,\n");
   resource_count = 1;
@@ -714,14 +714,14 @@ InstructionSet::StringPair InstructionSet::GenerateEnums(
     }
   }
   for (auto const& name : name_set) {
-    absl::StrAppend(&h_output, "    k", name, " = ", resource_count++, ",\n");
+    ::absl::StrAppend(&h_output, "    k", name, " = ", resource_count++, ",\n");
   }
-  absl::StrAppend(&h_output, "    kPastMaxValue = ", resource_count,
+  ::absl::StrAppend(&h_output, "    kPastMaxValue = ", resource_count,
                   "\n  };\n\n");
   EmitEnumNames(name_set, "complex_resource_names", "ComplexResource", h_output,
                 cc_output);
   // List complex resource enumeration type.
-  absl::StrAppend(&h_output,
+  ::absl::StrAppend(&h_output,
                   "  enum class ListComplexResourceEnum {\n"
                   "    kNone = 0,\n");
   resource_count = 1;
@@ -732,9 +732,9 @@ InstructionSet::StringPair InstructionSet::GenerateEnums(
     }
   }
   for (auto const& name : name_set) {
-    absl::StrAppend(&h_output, "    k", name, " = ", resource_count++, ",\n");
+    ::absl::StrAppend(&h_output, "    k", name, " = ", resource_count++, ",\n");
   }
-  absl::StrAppend(&h_output, "    kPastMaxValue = ", resource_count,
+  ::absl::StrAppend(&h_output, "    kPastMaxValue = ", resource_count,
                   "\n  };\n\n");
   EmitEnumNames(name_set, "list_complex_resource_names", "ListComplexResource",
                 h_output, cc_output);
@@ -742,25 +742,25 @@ InstructionSet::StringPair InstructionSet::GenerateEnums(
 
   for (auto const& [name, slot_ptr] : slots_by_name) {
     if (slot_ptr->attribute_names().empty()) continue;
-    absl::StrAppend(&h_output, "namespace ", ToSnakeCase(name), " {\n\n");
-    absl::StrAppend(&h_output, "  enum class AttributeEnum {\n");
+    ::absl::StrAppend(&h_output, "namespace ", ToSnakeCase(name), " {\n\n");
+    ::absl::StrAppend(&h_output, "  enum class AttributeEnum {\n");
     int attribute_count = 0;
     if (!slot_ptr->attribute_names().empty()) {
       for (auto const& attribute_name : slot_ptr->attribute_names()) {
-        absl::StrAppend(&h_output, "    k", ToPascalCase(attribute_name), " = ",
+        ::absl::StrAppend(&h_output, "    k", ToPascalCase(attribute_name), " = ",
                         attribute_count++, ",\n");
       }
     }
-    absl::StrAppend(&h_output, "    kPastMaxValue = ", attribute_count,
+    ::absl::StrAppend(&h_output, "    kPastMaxValue = ", attribute_count,
                     "\n  };\n\n");
-    absl::StrAppend(&h_output, "}  // namespace ", name, "\n\n");
+    ::absl::StrAppend(&h_output, "}  // namespace ", name, "\n\n");
   }
 
   return {h_output, cc_output};
 }
 
 std::string InstructionSet::GenerateOperandEncoder(
-    int position, absl::string_view op_name, const OperandLocator& locator,
+    int position, ::absl::string_view op_name, const OperandLocator& locator,
     const Opcode* opcode) const {
   std::string output;
   int bit_width = 0;
@@ -786,36 +786,45 @@ std::string InstructionSet::GenerateOperandEncoder(
   if (bit_width > 0 && bit_width < 64) {
     if (is_unsigned) {
       uint64_t max_val = (1ULL << bit_width) - 1;
-      absl::StrAppend(&bounds_check,
+      ::absl::StrAppend(&bounds_check,
                       "  {\n"
                       "    uint64_t raw_val = 0;\n"
                       "    if (operands[", position, "].substr(0, 2) == \"0x\") {\n"
-                      "      if (absl::SimpleHexAtoi(operands[", position, "].substr(2), &raw_val)) {\n"
+                      "      if (::absl::SimpleHexAtoi(operands[", position, "].substr(2), &raw_val)) {\n"
                       "        if (raw_val > ", max_val, "ULL) {\n"
-                      "          return absl::OutOfRangeError(absl::StrCat(\"Operand \", \"", op_name, "\", \" value \", raw_val, \" exceeds bit-width ", bit_width, "\"));\n"
+                      "          return ::absl::OutOfRangeError(::absl::StrCat(\"Operand \", \"", op_name, "\", \" value \", raw_val, \" exceeds bit-width ", bit_width, "\"));\n"
                       "        }\n"
                       "      }\n"
-                      "    } else if (absl::SimpleAtoi(operands[", position, "], &raw_val)) {\n"
+                      "    } else if (operands[", position, "].substr(0, 3) == \"-0x\") {\n"
+                      "      return ::absl::OutOfRangeError(::absl::StrCat(\"Operand \", \"", op_name, "\", \" is unsigned but negative value was provided\"));\n"
+                      "    } else if (::absl::SimpleAtoi(operands[", position, "], &raw_val)) {\n"
                       "      if (raw_val > ", max_val, "ULL) {\n"
-                      "        return absl::OutOfRangeError(absl::StrCat(\"Operand \", \"", op_name, "\", \" value \", raw_val, \" exceeds bit-width ", bit_width, "\"));\n"
+                      "        return ::absl::OutOfRangeError(::absl::StrCat(\"Operand \", \"", op_name, "\", \" value \", raw_val, \" exceeds bit-width ", bit_width, "\"));\n"
                       "      }\n"
                       "    }\n"
                       "  }\n");
     } else {
       int64_t max_val = (1ULL << (bit_width - 1)) - 1;
       int64_t min_val = -(1LL << (bit_width - 1));
-      absl::StrAppend(&bounds_check,
+      ::absl::StrAppend(&bounds_check,
                       "  {\n"
                       "    int64_t raw_val = 0;\n"
                       "    if (operands[", position, "].substr(0, 2) == \"0x\") {\n"
-                      "      if (absl::SimpleHexAtoi(operands[", position, "].substr(2), &raw_val)) {\n"
+                      "      if (::absl::SimpleHexAtoi(operands[", position, "].substr(2), &raw_val)) {\n"
                       "        if (raw_val < ", min_val, "LL || raw_val > ", max_val, "LL) {\n"
-                      "          return absl::OutOfRangeError(absl::StrCat(\"Operand \", \"", op_name, "\", \" value \", raw_val, \" exceeds bit-width ", bit_width, "\"));\n"
+                      "          return ::absl::OutOfRangeError(::absl::StrCat(\"Operand \", \"", op_name, "\", \" value \", raw_val, \" exceeds bit-width ", bit_width, "\"));\n"
                       "        }\n"
                       "      }\n"
-                      "    } else if (absl::SimpleAtoi(operands[", position, "], &raw_val)) {\n"
+                      "    } else if (operands[", position, "].substr(0, 3) == \"-0x\") {\n"
+                      "      if (::absl::SimpleHexAtoi(operands[", position, "].substr(3), &raw_val)) {\n"
+                      "        raw_val = -raw_val;\n"
+                      "        if (raw_val < ", min_val, "LL || raw_val > ", max_val, "LL) {\n"
+                      "          return ::absl::OutOfRangeError(::absl::StrCat(\"Operand \", \"", op_name, "\", \" value \", raw_val, \" exceeds bit-width ", bit_width, "\"));\n"
+                      "        }\n"
+                      "      }\n"
+                      "    } else if (::absl::SimpleAtoi(operands[", position, "], &raw_val)) {\n"
                       "      if (raw_val < ", min_val, "LL || raw_val > ", max_val, "LL) {\n"
-                      "        return absl::OutOfRangeError(absl::StrCat(\"Operand \", \"", op_name, "\", \" value \", raw_val, \" exceeds bit-width ", bit_width, "\"));\n"
+                      "        return ::absl::OutOfRangeError(::absl::StrCat(\"Operand \", \"", op_name, "\", \" value \", raw_val, \" exceeds bit-width ", bit_width, "\"));\n"
                       "      }\n"
                       "    }\n"
                       "  }\n");
@@ -823,14 +832,14 @@ std::string InstructionSet::GenerateOperandEncoder(
   }
 
   if (!bounds_check.empty()) {
-    absl::StrAppend(&output, bounds_check);
+    ::absl::StrAppend(&output, bounds_check);
   }
   switch (locator.type) {
     case OperandLocator::kPredicate: {
       std::string pred_op =
-          absl::StrCat("PredOpEnum::k", ToPascalCase(op_name));
-      absl::StrAppend(&output, "  // Predicate operand ", op_name, "\n");
-      absl::StrAppend(
+          ::absl::StrCat("PredOpEnum::k", ToPascalCase(op_name));
+      ::absl::StrAppend(&output, "  // Predicate operand ", op_name, "\n");
+      ::absl::StrAppend(
           &output, "  result = encoder->GetPredOpEncoding(address, operands[",
           position,
           "], slot, "
@@ -840,10 +849,10 @@ std::string InstructionSet::GenerateOperandEncoder(
     }
     case OperandLocator::kSource: {
       std::string source_op =
-          absl::StrCat("SourceOpEnum::k", ToPascalCase(op_name));
-      absl::StrAppend(&output, "  // Source operand ", op_name, "\n");
+          ::absl::StrCat("SourceOpEnum::k", ToPascalCase(op_name));
+      ::absl::StrAppend(&output, "  // Source operand ", op_name, "\n");
       if (locator.is_reloc) {
-        absl::StrAppend(&output,
+        ::absl::StrAppend(&output,
                         "  auto status = encoder->AppendSrcOpRelocation(\n"
                         "      address, operands[",
                         position, "], slot, entry, opcode, ", source_op, ", ",
@@ -851,7 +860,7 @@ std::string InstructionSet::GenerateOperandEncoder(
                         ", resolver, relocations);\n"
                         "  if (!status.ok()) return status;\n");
       }
-      absl::StrAppend(&output,
+      ::absl::StrAppend(&output,
                       "  result = encoder->GetSrcOpEncoding(address, operands[",
                       position,
                       "], slot, "
@@ -861,9 +870,9 @@ std::string InstructionSet::GenerateOperandEncoder(
     }
     case OperandLocator::kSourceArray: {
       std::string list_source_op =
-          absl::StrCat("ListSourceOpEnum::k", ToPascalCase(op_name));
-      absl::StrAppend(&output, "  // Source array operand ", op_name, "\n");
-      absl::StrAppend(
+          ::absl::StrCat("ListSourceOpEnum::k", ToPascalCase(op_name));
+      ::absl::StrAppend(&output, "  // Source array operand ", op_name, "\n");
+      ::absl::StrAppend(
           &output,
           "  result = encoder->GetListSrcOpEncoding(address, operands[",
           position,
@@ -874,10 +883,10 @@ std::string InstructionSet::GenerateOperandEncoder(
     }
     case OperandLocator::kDestination: {
       std::string dest_op =
-          absl::StrCat("DestOpEnum::k", ToPascalCase(op_name));
-      absl::StrAppend(&output, "  // Destination operand ", op_name, "\n");
+          ::absl::StrCat("DestOpEnum::k", ToPascalCase(op_name));
+      ::absl::StrAppend(&output, "  // Destination operand ", op_name, "\n");
       if (locator.is_reloc) {
-        absl::StrAppend(&output,
+        ::absl::StrAppend(&output,
                         "  auto status = encoder->AppendDestOpRelocation(\n"
                         "      address, operands[",
                         position, "], slot, entry, opcode, ", dest_op, ", ",
@@ -885,7 +894,7 @@ std::string InstructionSet::GenerateOperandEncoder(
                         ", resolver, relocations);\n"
                         "  if (!status.ok()) return status;\n");
       }
-      absl::StrAppend(
+      ::absl::StrAppend(
           &output, "  result = encoder->GetDestOpEncoding(address, operands[",
           position,
           "], slot, "
@@ -895,10 +904,10 @@ std::string InstructionSet::GenerateOperandEncoder(
     }
     case OperandLocator::kDestinationArray: {
       std::string list_dest_op =
-          absl::StrCat("ListDestOpEnum::k", ToPascalCase(op_name));
-      absl::StrAppend(&output, "  // Destination array operand ", op_name,
+          ::absl::StrCat("ListDestOpEnum::k", ToPascalCase(op_name));
+      ::absl::StrAppend(&output, "  // Destination array operand ", op_name,
                       "\n");
-      absl::StrAppend(
+      ::absl::StrAppend(
           &output,
           "  result = encoder->GetListDestOpEncoding(addres, operands[",
           position,
@@ -908,23 +917,23 @@ std::string InstructionSet::GenerateOperandEncoder(
       break;
     }
     default:
-      absl::StrAppend(&output, "  #error Unknown operand type ", op_name, "\n");
+      ::absl::StrAppend(&output, "  #error Unknown operand type ", op_name, "\n");
       break;
   }
-  absl::StrAppend(&output,
+  ::absl::StrAppend(&output,
                   "  if (!result.ok()) return result.status();\n"
                   "  encoding |= result.value();\n");
   return output;
 }
 
 std::tuple<std::string, std::string> InstructionSet::GenerateEncClasses(
-    absl::string_view file_name, absl::string_view opcode_file_name,
-    absl::string_view encoder_type) const {
+    ::absl::string_view file_name, ::absl::string_view opcode_file_name,
+    ::absl::string_view encoder_type) const {
   std::string h_output;
   std::string cc_output;
-  std::string encoder = absl::StrCat(pascal_name(), "EncoderInterfaceBase");
+  std::string encoder = ::absl::StrCat(pascal_name(), "EncoderInterfaceBase");
   // Generate the bin encoder base class.
-  absl::StrAppend(&h_output,
+  ::absl::StrAppend(&h_output,
                   "using ::mpact::sim::util::assembler::RelocationInfo;\n"
                   "using ::mpact::sim::util::assembler::ResolverInterface;\n"
                   "\n"
@@ -937,52 +946,50 @@ std::tuple<std::string, std::string> InstructionSet::GenerateEncClasses(
                   "() = default;\n"
                   R"(
   // Returns the opcode encoding and size (in bits) of the opcode.
-  virtual absl::StatusOr<std::tuple<uint64_t, int>> GetOpcodeEncoding(
+  virtual ::absl::StatusOr<std::tuple<uint64_t, int>> GetOpcodeEncoding(
       SlotEnum slot, int entry, OpcodeEnum opcode, ResolverInterface *resolver) = 0;
-  virtual absl::StatusOr<uint64_t> GetSrcOpEncoding(uint64_t address,
-      absl::string_view text, SlotEnum slot, int entry, OpcodeEnum opcode,
+  virtual ::absl::StatusOr<uint64_t> GetSrcOpEncoding(uint64_t address,
+      ::absl::string_view text, SlotEnum slot, int entry, OpcodeEnum opcode,
       SourceOpEnum source_op, int source_num, ResolverInterface *resolver) = 0;
-  virtual absl::Status AppendSrcOpRelocation(uint64_t address,
-      absl::string_view text, SlotEnum slot, int entry, OpcodeEnum opcode,
+  virtual ::absl::Status AppendSrcOpRelocation(uint64_t address,
+      ::absl::string_view text, SlotEnum slot, int entry, OpcodeEnum opcode,
       SourceOpEnum source_op, int source_num, ResolverInterface *resolver,
       std::vector<RelocationInfo> &relocations) = 0;
-  virtual absl::StatusOr<uint64_t> GetDestOpEncoding(uint64_t address,
-      absl::string_view text, SlotEnum slot, int entry, OpcodeEnum opcode,
+  virtual ::absl::StatusOr<uint64_t> GetDestOpEncoding(uint64_t address,
+      ::absl::string_view text, SlotEnum slot, int entry, OpcodeEnum opcode,
       DestOpEnum dest_op, int dest_num, ResolverInterface *resolver) = 0;
-  virtual absl::Status AppendDestOpRelocation(uint64_t address,
-      absl::string_view text, SlotEnum slot, int entry, OpcodeEnum opcode,
+  virtual ::absl::Status AppendDestOpRelocation(uint64_t address,
+      ::absl::string_view text, SlotEnum slot, int entry, OpcodeEnum opcode,
       DestOpEnum dest_op, int dest_num, ResolverInterface *resolver,
       std::vector<RelocationInfo> &relocations) = 0;
-  virtual absl::StatusOr<uint64_t> GetListSrcOpEncoding( uint64_t address,
-      absl::string_view text,SlotEnum slot, int entry, OpcodeEnum opcode,
+  virtual ::absl::StatusOr<uint64_t> GetListSrcOpEncoding( uint64_t address,
+      ::absl::string_view text,SlotEnum slot, int entry, OpcodeEnum opcode,
       ListSourceOpEnum source_op, int source_num, ResolverInterface *resolver) = 0;
-  virtual absl::StatusOr<uint64_t> GetListDestOpEncoding(uint64_t address,
-      absl::string_view text, SlotEnum slot, int entry, OpcodeEnum opcode,
+  virtual ::absl::StatusOr<uint64_t> GetListDestOpEncoding(uint64_t address,
+      ::absl::string_view text, SlotEnum slot, int entry, OpcodeEnum opcode,
       ListDestOpEnum dest_op, int dest_num, ResolverInterface *resolver) = 0;
-  virtual absl::StatusOr<uint64_t> GetPredOpEncoding(uint64_t address,
-      absl::string_view text, SlotEnum slot, int entry, OpcodeEnum opcode,
+  virtual ::absl::StatusOr<uint64_t> GetPredOpEncoding(uint64_t address,
+      ::absl::string_view text, SlotEnum slot, int entry, OpcodeEnum opcode,
       PredOpEnum pred_op, ResolverInterface *resolver) = 0;
 };
 
 )");
 
-  absl::StrAppend(&cc_output,
-                  "#include <stdexcept>\n"
-                  "#include \"absl/strings/match.h\"\n"
+  ::absl::StrAppend(&cc_output,
                   "using ::mpact::sim::util::assembler::ResolverInterface;\n"
                   "\n"
                   "namespace {\n\n"
-                  "absl::StatusOr<std::tuple<uint64_t, int>> EncodeNone(",
+                  "::absl::StatusOr<std::tuple<uint64_t, int>> EncodeNone(",
                   encoder,
                   "*, SlotEnum, int, OpcodeEnum, uint64_t, const "
                   "std::vector<std::string> &, ResolverInterface *, "
                   "std::vector<RelocationInfo> &) {\n"
-                  "  return absl::NotFoundError(\"No such opcode\");\n"
+                  "  return ::absl::NotFoundError(\"No such opcode\");\n"
                   "}\n\n");
   std::string array;
-  absl::StrAppend(
+  ::absl::StrAppend(
       &array,
-      "using EncodeFcn = absl::StatusOr<std::tuple<uint64_t, int>> (*)(",
+      "using EncodeFcn = ::absl::StatusOr<std::tuple<uint64_t, int>> (*)(",
       encoder,
       "*, SlotEnum, int, OpcodeEnum, uint64_t, const "
       "std::vector<std::string> "
@@ -993,8 +1000,8 @@ std::tuple<std::string, std::string> InstructionSet::GenerateEncClasses(
     std::string prefix;
     std::string suffix;
     auto* opcode = inst_ptr->opcode();
-    absl::StrAppend(&array, "  Encode", opcode->pascal_name(), ",\n");
-    absl::StrAppend(&prefix, "absl::StatusOr<std::tuple<uint64_t, int>> Encode",
+    ::absl::StrAppend(&array, "  Encode", opcode->pascal_name(), ",\n");
+    ::absl::StrAppend(&prefix, "::absl::StatusOr<std::tuple<uint64_t, int>> Encode",
                     opcode->pascal_name(), "(\n     ", encoder,
                     " *encoder, SlotEnum slot, int entry, OpcodeEnum opcode,\n"
                     "     uint64_t address, const "
@@ -1002,41 +1009,41 @@ std::tuple<std::string, std::string> InstructionSet::GenerateEncClasses(
                     "     ResolverInterface *resolver, "
                     "std::vector<RelocationInfo> &relocations) "
                     "{\n");
-    absl::StrAppend(&suffix,
+    ::absl::StrAppend(&suffix,
                     "  auto res_opcode = encoder->GetOpcodeEncoding(slot, "
                     "entry, opcode, resolver);\n"
                     "  if (!res_opcode.ok()) return res_opcode.status();\n"
                     "  auto [encoding, bit_size] = res_opcode.value();\n"
-                    "  absl::StatusOr<uint64_t> result;\n");
+                    "  ::absl::StatusOr<uint64_t> result;\n");
     int position = 0;
     for (auto const* disasm_format : inst_ptr->disasm_format_vec()) {
       for (auto const* format_info : disasm_format->format_info_vec) {
         if (format_info->op_name.empty()) continue;
         auto iter = opcode->op_locator_map().find(format_info->op_name);
         if (iter == opcode->op_locator_map().end()) {
-          absl::StrAppend(&suffix, "  #error ", format_info->op_name,
+          ::absl::StrAppend(&suffix, "  #error ", format_info->op_name,
                           " not found in instruction opcodes\n");
           continue;
         }
         auto locator = iter->second;
-        absl::StrAppend(&suffix,
+        ::absl::StrAppend(&suffix,
                         GenerateOperandEncoder(position++, format_info->op_name,
                                                locator, opcode));
       }
     }
-    absl::StrAppend(&suffix,
+    ::absl::StrAppend(&suffix,
                     "  return std::make_tuple(encoding, bit_size);\n"
                     "  } catch (const std::out_of_range& e) {\n"
-                    "    return absl::OutOfRangeError(e.what());\n"
+                    "    return ::absl::OutOfRangeError(e.what());\n"
                     "  }\n"
                     "}\n\n");
-    absl::StrAppend(&cc_output, prefix,
+    ::absl::StrAppend(&cc_output, prefix,
                     "  auto num_args = operands.size();\n"
                     "  if (num_args != ",
                     position,
                     ") {\n"
-                    "    return absl::NotFoundError(\n"
-                    "        absl::StrCat(\"",
+                    "    return ::absl::NotFoundError(\n"
+                    "        ::absl::StrCat(\"",
                     opcode->pascal_name(),
                     ": Invalid number of operands (\", "
                     "num_args, \") - expected ",
@@ -1046,22 +1053,22 @@ std::tuple<std::string, std::string> InstructionSet::GenerateEncClasses(
                     "  try {\n",
                     suffix);
   }
-  absl::StrAppend(&array, "};\n\n");
-  absl::StrAppend(&cc_output, array, "\n}  // namespace\n\n");
+  ::absl::StrAppend(&array, "};\n\n");
+  ::absl::StrAppend(&cc_output, array, "\n}  // namespace\n\n");
 
   // Generate the regex matcher base class.
-  absl::StrAppend(
+  ::absl::StrAppend(
       &h_output,
       "// Assembly matcher.\n"
       "class SlotMatcherInterface {\n"
       " public:\n"
       "  virtual ~SlotMatcherInterface() = default;\n"
-      "  virtual absl::StatusOr<uint32_t> Encode(const ::coralnpu::sim::InstructionAST& node) const = 0;\n"
-      "  virtual absl::StatusOr<std::tuple<uint64_t, int>> Encode(\n"
-      "      uint64_t address, absl::string_view text, int entry,\n"
+      "  virtual ::absl::StatusOr<uint32_t> Encode(const ::coralnpu::sim::InstructionAST& node) const = 0;\n"
+      "  virtual ::absl::StatusOr<std::tuple<uint64_t, int>> Encode(\n"
+      "      uint64_t address, ::absl::string_view text, int entry,\n"
       "      ResolverInterface *resolver,\n"
       "      std::vector<RelocationInfo> &relocations) = 0;\n"
-      "  virtual absl::StatusOr<std::tuple<uint64_t, int>> Encode(\n"
+      "  virtual ::absl::StatusOr<std::tuple<uint64_t, int>> Encode(\n"
       "      uint64_t address, int opcode_index,\n"
       "      const std::vector<std::string> &operands, int entry,\n"
       "      ResolverInterface *resolver,\n"
@@ -1073,8 +1080,8 @@ std::tuple<std::string, std::string> InstructionSet::GenerateEncClasses(
       "                  ResolverInterface *resolver,\n"
       "                  std::vector<RelocationInfo> &relocations,\n"
       "                  std::tuple<uint64_t, int>* out_payload,\n"
-      "                  absl::Status* out_status = nullptr) {\n"
-      "      absl::StatusOr<std::tuple<uint64_t, int>> result = Encode(\n"
+      "                  ::absl::Status* out_status = nullptr) {\n"
+      "      ::absl::StatusOr<std::tuple<uint64_t, int>> result = Encode(\n"
       "          address, opcode_index, operands, entry, resolver, relocations);\n"
       "      if (result.ok()) {\n"
       "          if (out_payload) *out_payload = result.value();\n"
@@ -1089,8 +1096,8 @@ std::tuple<std::string, std::string> InstructionSet::GenerateEncClasses(
   for (auto* slot : slot_order_) {
     if (!slot->is_referenced()) continue;
     auto [h_slot, cc_slot] = slot->GenerateAsmRegexMatcher();
-    absl::StrAppend(&h_output, h_slot);
-    absl::StrAppend(&cc_output, cc_slot);
+    ::absl::StrAppend(&h_output, h_slot);
+    ::absl::StrAppend(&cc_output, cc_slot);
   }
   return {h_output, cc_output};
 }

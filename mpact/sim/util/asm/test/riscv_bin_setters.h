@@ -59,11 +59,12 @@ template <typename T>
 absl::StatusOr<T> SimpleTextToInt(absl::string_view op_text,
                                   ResolverInterface* resolver) {
   T value;
-  static RE2 hex_re("^\\s*0x([0-9a-fA-F]+)\\s*$");
+  static RE2 hex_re("^\\s*(-?)0x([0-9a-fA-F]+)\\s*$");
   static RE2 dec_re("^\\s*(-?[0-9]+)\\s*$");
   static RE2 relo_re("^\\s*\\%[a-zA-Z0-9_]+\\s*\\(([a-zA-Z0-9_]+)\\s*\\)\\s*$");
   static RE2 symbol_re("^\\s*([a-zA-Z0-9_]+)\\s*$");
   std::string str;
+  std::string sign;
   std::string text(op_text);
   // First see if the operand is a relocation function, and extract the text
   // argument. A relocation function is on the form of %name(arg).
@@ -71,8 +72,11 @@ absl::StatusOr<T> SimpleTextToInt(absl::string_view op_text,
     text = str;
   }
   // Extract the hex immediate.
-  if (RE2::FullMatch(text, hex_re, &str)) {
-    if (absl::SimpleHexAtoi(str, &value)) return value;
+  if (RE2::FullMatch(text, hex_re, &sign, &str)) {
+    if (absl::SimpleHexAtoi(str, &value)) {
+      if (sign == "-") value = -value;
+      return value;
+    }
     return absl::InvalidArgumentError(
         absl::StrCat("Invalid hexadecimal immediate: ", text));
   }

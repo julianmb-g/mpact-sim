@@ -62,7 +62,7 @@ TEST_F(FormatTest, Constructor) {
   EXPECT_EQ(format->declared_width(), 16);
   EXPECT_EQ(format->computed_width(), 0);
   EXPECT_EQ(format->ComputeAndCheckFormatWidth().code(),
-            absl::StatusCode::kInternal);
+            ::absl::StatusCode::kInternal);
   EXPECT_EQ(format->encoding_info(), encoding_info_);
   delete format;
 
@@ -71,7 +71,7 @@ TEST_F(FormatTest, Constructor) {
   EXPECT_EQ(format->declared_width(), 16);
   EXPECT_EQ(format->computed_width(), 0);
   EXPECT_EQ(format->ComputeAndCheckFormatWidth().code(),
-            absl::StatusCode::kInternal);
+            ::absl::StatusCode::kInternal);
   EXPECT_EQ(format->encoding_info(), encoding_info_);
   delete format;
 }

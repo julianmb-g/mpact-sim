@@ -25,7 +25,7 @@ namespace machine_description {
 namespace instruction_set {
 
 // Converts to PascalCase.
-std::string ToPascalCase(absl::string_view name) {
+std::string ToPascalCase(::absl::string_view name) {
   std::string formatted;
   bool capitalize = true;
   for (auto c : name) {
@@ -41,7 +41,7 @@ std::string ToPascalCase(absl::string_view name) {
 }
 
 // Converts to SnakeCase.
-std::string ToSnakeCase(absl::string_view name) {
+std::string ToSnakeCase(::absl::string_view name) {
   std::string formatted;
   for (auto c : name) {
     if (!formatted.empty() && isupper(c)) {
@@ -53,7 +53,7 @@ std::string ToSnakeCase(absl::string_view name) {
 }
 
 // convert to guard name.
-std::string ToHeaderGuard(absl::string_view name) {
+std::string ToHeaderGuard(::absl::string_view name) {
   std::string formatted;
   for (auto c : name) {
     if ((c == '/') || (c == '.')) {
@@ -66,13 +66,13 @@ std::string ToHeaderGuard(absl::string_view name) {
 }
 
 // Convert to lower case.
-std::string ToLowerCase(absl::string_view name) {
+std::string ToLowerCase(::absl::string_view name) {
   std::string formatted;
   for (auto c : name) formatted.append(1, tolower(c));
   return formatted;
 }
 
-std::string Indent(absl::string_view str) {
+std::string Indent(::absl::string_view str) {
   return std::string(str.size(), ' ');
 }
 

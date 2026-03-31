@@ -71,7 +71,7 @@ InstructionEncoding* InstructionGroup::AddInstructionEncoding(
   if ((format != nullptr) &&
       ((format_ == nullptr) || (!format->IsDerivedFrom(format_)))) {
     encoding_info_->error_listener()->semanticError(
-        token, absl::StrCat("Format '", format->name(),
+        token, ::absl::StrCat("Format '", format->name(),
                             "' used by instruction encoding '", name,
                             "' is not derived from '", format_name_, "'"));
     return nullptr;
@@ -85,7 +85,7 @@ InstructionEncoding* InstructionGroup::AddInstructionEncoding(
   // case it is an error.
   if (encoding_name_map_.contains(name) && !is_duplicate) {
     encoding_info_->error_listener()->semanticWarning(
-        token, absl::StrCat("Duplicate instruction opcode name '", name,
+        token, ::absl::StrCat("Duplicate instruction opcode name '", name,
                             "' in group '", this->name(), "'."));
   }
   auto* encoding = new InstructionEncoding(name, format, is_duplicate);
@@ -98,7 +98,7 @@ void InstructionGroup::AddInstructionEncoding(InstructionEncoding* encoding) {
   if (encoding_name_map_.contains(encoding->name()) &&
       !encoding->is_duplicate()) {
     encoding_info_->error_listener()->semanticWarning(
-        nullptr, absl::StrCat("Duplicate instruction opcode name '",
+        nullptr, ::absl::StrCat("Duplicate instruction opcode name '",
                               encoding->name(), "' in group '", name(), "'."));
   }
   encoding_name_map_.insert(std::make_pair(encoding->name(), encoding));
@@ -109,7 +109,7 @@ void InstructionGroup::ProcessEncodings() {
   if (encoding_vec_.empty()) {
     encoding_info_->error_listener()->semanticWarning(
         nullptr,
-        absl::StrCat("No encodings in instruction group: '", name(), "'"));
+        ::absl::StrCat("No encodings in instruction group: '", name(), "'"));
     return;
   }
   // Insert the encodings into a map based on the mask value - grouping
@@ -145,16 +145,16 @@ void InstructionGroup::CheckEncodings() {
   }
 }
 
-absl::Status InstructionGroup::AddSpecialization(
+::absl::Status InstructionGroup::AddSpecialization(
     const std::string& name, const std::string& parent_name,
     InstructionEncoding* encoding) {
   if (encoding_name_map_.contains(name)) {
     encoding_info_->error_listener()->semanticError(
         nullptr,
-        absl::StrCat("Duplicate instruction specialization opcode name '", name,
+        ::absl::StrCat("Duplicate instruction specialization opcode name '", name,
                      "' in group '", this->name(), "'."));
-    return absl::AlreadyExistsError(
-        absl::StrCat("Duplicate instruction specialization opcode name '", name,
+    return ::absl::AlreadyExistsError(
+        ::absl::StrCat("Duplicate instruction specialization opcode name '", name,
                      "' in group '", this->name(), "'."));
   }
   encoding_name_map_.insert(std::make_pair(name, encoding));
@@ -194,56 +194,56 @@ std::tuple<std::string, std::string> InstructionGroup::EmitDecoderCode() {
   // The signature for the top level decode function for this instruction
   // group.
   std::string signature =
-      absl::StrCat(opcode_enum_, " Decode", this->name(), "(",
+      ::absl::StrCat(opcode_enum_, " Decode", this->name(), "(",
                    format_->uint_type_name(), " inst_word)");
-  std::string w_format_signature = absl::StrCat(
+  std::string w_format_signature = ::absl::StrCat(
       "std::pair<", opcode_enum_, ", FormatEnum> Decode", this->name(),
       "WithFormat(", format_->uint_type_name(), " inst_word)");
   // First part of the definition of the top level decoder function.
-  std::string top_level_decoder = absl::StrCat(signature, " {\n");
+  std::string top_level_decoder = ::absl::StrCat(signature, " {\n");
   std::string w_format_top_level_decoder =
-      absl::StrCat(w_format_signature, " {\n");
+      ::absl::StrCat(w_format_signature, " {\n");
   std::string declarations =
-      absl::StrCat("std::pair<", opcode_enum_, ", FormatEnum> Decode",
+      ::absl::StrCat("std::pair<", opcode_enum_, ", FormatEnum> Decode",
                    this->name(), "None(", format_->uint_type_name(), ");\n");
-  std::string definitions = absl::StrCat(
+  std::string definitions = ::absl::StrCat(
       "std::pair<", opcode_enum_, ", FormatEnum> Decode", this->name(), "None(",
       format_->uint_type_name(), ") {\n  return std::make_pair(", opcode_enum_,
       "::kNone, FormatEnum::kNone);\n}\n\n");
   for (size_t i = 0; i < encoding_group_vec_.size(); i++) {
     auto* grp = encoding_group_vec_[i];
-    std::string name = absl::StrCat(this->name(), "_", absl::Hex(i));
+    std::string name = ::absl::StrCat(this->name(), "_", ::absl::Hex(i));
     grp->EmitInitializers(name, &initializers, opcode_enum_);
     grp->EmitDecoders(name, &declarations, &definitions, opcode_enum_);
-    absl::StrAppend(&top_level_decoder, "  auto opcode = Decode", name,
+    ::absl::StrAppend(&top_level_decoder, "  auto opcode = Decode", name,
                     "(inst_word).first;\n");
-    absl::StrAppend(&w_format_top_level_decoder,
+    ::absl::StrAppend(&w_format_top_level_decoder,
                     "  auto opcode_format = Decode", name, "(inst_word);\n");
     if (encoding_group_vec_.size() > 1) {
-      absl::StrAppend(&top_level_decoder, "  if (opcode != ", opcode_enum_,
+      ::absl::StrAppend(&top_level_decoder, "  if (opcode != ", opcode_enum_,
                       "::kNone) return opcode;\n");
-      absl::StrAppend(&w_format_top_level_decoder,
+      ::absl::StrAppend(&w_format_top_level_decoder,
                       "  if (opcode_format.first != ", opcode_enum_,
                       "::kNone) return opcode_format;\n");
     }
   }
   // Last part of the definition of the top level decoder function.
-  absl::StrAppend(&top_level_decoder,
+  ::absl::StrAppend(&top_level_decoder,
                   "  return opcode;\n"
                   "}\n");
-  absl::StrAppend(&w_format_top_level_decoder,
+  ::absl::StrAppend(&w_format_top_level_decoder,
                   "  return opcode_format;\n"
                   "}\n");
   // String the different strings together in order and return.
-  absl::StrAppend(&cc_string, declarations, initializers, definitions,
+  ::absl::StrAppend(&cc_string, declarations, initializers, definitions,
                   top_level_decoder, w_format_top_level_decoder);
-  absl::StrAppend(&h_string, signature, ";\n", w_format_signature, ";\n");
+  ::absl::StrAppend(&h_string, signature, ";\n", w_format_signature, ";\n");
   return std::make_tuple(h_string, cc_string);
 }
 
 // Emit code to encode the instructions in the group.
 void InstructionGroup::GetInstructionEncodings(
-    absl::btree_map<std::string, std::tuple<uint64_t, int>>& encodings) {
+    ::absl::btree_map<std::string, std::tuple<uint64_t, int>>& encodings) {
   for (auto* enc : encoding_vec_) {
     encodings.insert(std::make_pair(ToPascalCase(enc->name()),
                                     std::make_tuple(enc->GetValue(), width())));
@@ -253,33 +253,33 @@ void InstructionGroup::GetInstructionEncodings(
 // Write out instruction group information.
 std::string InstructionGroup::WriteGroup() {
   std::string output;
-  absl::StrAppend(&output, "\n\n// Instruction group: ", name_, "\n");
-  absl::PadSpec pad;
+  ::absl::StrAppend(&output, "\n\n// Instruction group: ", name_, "\n");
+  ::absl::PadSpec pad;
   switch (width_ / 8) {
     case 1:
-      pad = absl::PadSpec::kZeroPad2;
+      pad = ::absl::PadSpec::kZeroPad2;
       break;
     case 2:
-      pad = absl::PadSpec::kZeroPad4;
+      pad = ::absl::PadSpec::kZeroPad4;
       break;
     case 4:
-      pad = absl::PadSpec::kZeroPad8;
+      pad = ::absl::PadSpec::kZeroPad8;
       break;
     case 8:
-      pad = absl::PadSpec::kZeroPad16;
+      pad = ::absl::PadSpec::kZeroPad16;
       break;
     default:
-      pad = absl::PadSpec::kNoPad;
+      pad = ::absl::PadSpec::kNoPad;
       break;
   }
   uint64_t common_mask = 0xffff'ffff'ffff'ffff;
   for (auto& [key, unused] : encoding_map_) {
     common_mask &= key;
   }
-  absl::StrAppend(&output, "//   common bits: ", absl::Hex(common_mask, pad),
+  ::absl::StrAppend(&output, "//   common bits: ", ::absl::Hex(common_mask, pad),
                   "\n");
   for (auto* grp : encoding_group_vec_) {
-    absl::StrAppend(&output, grp->DumpGroup("", "  "));
+    ::absl::StrAppend(&output, grp->DumpGroup("", "  "));
   }
   return output;
 }

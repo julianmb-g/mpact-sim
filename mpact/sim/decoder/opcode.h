@@ -86,17 +86,17 @@ class DestinationOperand {
   bool is_array() const { return is_array_; }
   bool is_reloc() const { return is_reloc_; }
   bool HasLatency() const { return expression_ != nullptr; }
-  absl::StatusOr<int> GetLatency() const {
+  ::absl::StatusOr<int> GetLatency() const {
     if (expression_ == nullptr) return -1;
-    absl::StatusOr<TemplateValue> result = expression_->GetValue();
+    ::absl::StatusOr<TemplateValue> result = expression_->GetValue();
     if (!result.ok()) {
-      return absl::InternalError(absl::StrCat(
+      return ::absl::InternalError(::absl::StrCat(
           "Template expression evaluation error", result.status().message()));
     }
     auto variant_value = result.value();
     auto* value_ptr = std::get_if<int>(&variant_value);
     if (value_ptr == nullptr) {
-      return absl::InternalError("Template expression type error");
+      return ::absl::InternalError("Template expression type error");
     }
     return *value_ptr;
   }
@@ -212,7 +212,7 @@ struct ResourceReference {
   }
 };
 
-using OpLocatorMap = absl::flat_hash_map<std::string, OperandLocator>;
+using OpLocatorMap = ::absl::flat_hash_map<std::string, OperandLocator>;
 
 class Opcode {
   friend class OpcodeFactory;
@@ -228,11 +228,11 @@ class Opcode {
   // to get the Predicate, Source and Destination operand interfaces (defined
   // in .../sim/generic/operand_interfaces.h. The implementation of these
   // methods will be left to the user of this generator tool.
-  void AppendSourceOp(absl::string_view op_name, bool is_array, bool is_reloc);
-  void AppendDestOp(absl::string_view op_name, bool is_array, bool is_reloc,
+  void AppendSourceOp(::absl::string_view op_name, bool is_array, bool is_reloc);
+  void AppendDestOp(::absl::string_view op_name, bool is_array, bool is_reloc,
                     TemplateExpression* expression);
-  void AppendDestOp(absl::string_view op_name, bool is_array, bool is_reloc);
-  DestinationOperand* GetDestOp(absl::string_view op_name);
+  void AppendDestOp(::absl::string_view op_name, bool is_array, bool is_reloc);
+  DestinationOperand* GetDestOp(::absl::string_view op_name);
   // Append child opcode specification.
   void AppendChild(Opcode* op) { child_ = op; }
   // Checks destination latencies with the given function. Returns true if all
@@ -249,7 +249,7 @@ class Opcode {
   int value() const { return value_; }
   // Predicate, source and destination operand names.
   const std::string& predicate_op_name() const { return predicate_op_name_; }
-  void set_predicate_op_name(absl::string_view op_name) {
+  void set_predicate_op_name(::absl::string_view op_name) {
     predicate_op_name_ = op_name;
   }
   const std::vector<SourceOperand>& source_op_vec() const {
@@ -263,14 +263,14 @@ class Opcode {
   const OpLocatorMap& op_locator_map() const { return op_locator_map_; }
 
  private:
-  Opcode(absl::string_view name, int value);
+  Opcode(::absl::string_view name, int value);
   int instruction_size_;
   Opcode* child_ = nullptr;
   Opcode* parent_ = nullptr;
   std::string predicate_op_name_;
   std::vector<SourceOperand> source_op_vec_;
   std::vector<DestinationOperand*> dest_op_vec_;
-  absl::flat_hash_map<std::string, DestinationOperand*> dest_op_map_;
+  ::absl::flat_hash_map<std::string, DestinationOperand*> dest_op_map_;
   std::string name_;
   std::string pascal_name_;
   std::string semfunc_code_string_;
@@ -285,17 +285,17 @@ class OpcodeFactory {
 
   // If the opcode doesn't yet exist, create a new opcode and return the
   // pointer, otherwise return an error code.
-  absl::StatusOr<Opcode*> CreateOpcode(absl::string_view name);
+  ::absl::StatusOr<Opcode*> CreateOpcode(::absl::string_view name);
   Opcode* CreateDefaultOpcode();
   Opcode* CreateChildOpcode(Opcode* opcode) const;
   // Duplicate the opcode, but evaluate the destination latency expressions
   // with the template argument expression vector.
-  absl::StatusOr<Opcode*> CreateDerivedOpcode(const Opcode* opcode,
+  ::absl::StatusOr<Opcode*> CreateDerivedOpcode(const Opcode* opcode,
                                               TemplateInstantiationArgs* args);
   const std::vector<Opcode*>& opcode_vec() const { return opcode_vec_; }
 
  private:
-  absl::btree_set<std::string> opcode_names_;
+  ::absl::btree_set<std::string> opcode_names_;
   std::vector<Opcode*> opcode_vec_;
   int opcode_value_ = 1;
 };

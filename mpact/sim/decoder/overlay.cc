@@ -66,75 +66,75 @@ void Overlay::AddBitConstant(BinaryNum bin_num) {
 }
 
 // Adds a reference to an entire field.
-absl::Status Overlay::AddFieldReference(std::string field_name) {
+::absl::Status Overlay::AddFieldReference(std::string field_name) {
   // Check that it names a field in the format.
   auto field = format_->GetField(field_name);
   if (field == nullptr) {
-    return absl::InternalError(
-        absl::StrCat("'", field_name, "' does not name a field in format '",
+    return ::absl::InternalError(
+        ::absl::StrCat("'", field_name, "' does not name a field in format '",
                      format_->name(), "'"));
   }
   // Translate the field relative bit ranges to format relative bit ranges.
   int width = field->width;
   component_vec_.push_back(new BitsOrField(field, width - 1, 0, field->width));
   computed_width_ += width;
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
 // Adds a series of bit references to a field.
-absl::Status Overlay::AddFieldReference(std::string field_name,
+::absl::Status Overlay::AddFieldReference(std::string field_name,
                                         const std::vector<BitRange>& ranges) {
   // Verify that the fields is valid.
   auto field = format_->GetField(field_name);
   if (field == nullptr) {
-    return absl::InternalError(
-        absl::StrCat("Overlay '", name(), "' reference to '", field_name,
+    return ::absl::InternalError(
+        ::absl::StrCat("Overlay '", name(), "' reference to '", field_name,
                      "' does not name a field in '", format_->name(), "'"));
   }
   // Scan the ranges.
   for (auto& range : ranges) {
     // Verify that the ranges don't refer to bits that don't exist.
     if (range.first < 0 || range.first >= field->width) {
-      return absl::InternalError(absl::StrCat("bit index '", range.first,
+      return ::absl::InternalError(::absl::StrCat("bit index '", range.first,
                                               "' out of range for field '",
                                               field->name, "'"));
     }
     if (range.last < 0 || range.last >= field->width) {
-      return absl::InternalError(absl::StrCat("bit index '", range.last,
+      return ::absl::InternalError(::absl::StrCat("bit index '", range.last,
                                               "' out of range for field '",
                                               field->name, "'"));
     }
     int width = range.first - range.last + 1;
     // Verify that width is positive.
     if (width <= 0) {
-      return absl::InternalError(absl::StrCat(
+      return ::absl::InternalError(::absl::StrCat(
           "bitrange has non-positive width for field '", field->name, ","));
     }
     component_vec_.push_back(
         new BitsOrField(field, range.first, range.last, width));
     computed_width_ += width;
   }
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
-absl::Status Overlay::AddFormatReference(const std::vector<BitRange>& ranges) {
+::absl::Status Overlay::AddFormatReference(const std::vector<BitRange>& ranges) {
   for (auto& range : ranges) {
     // Check that the range is legal for the format.
     if (range.first < 0 || range.first >= format_->declared_width()) {
-      return absl::InternalError(absl::StrCat("bit index '", range.first,
+      return ::absl::InternalError(::absl::StrCat("bit index '", range.first,
                                               "' out of range for format '",
                                               format_->name(), "'"));
     }
     if (range.last < 0 || range.last >= format_->declared_width()) {
-      return absl::InternalError(absl::StrCat("bit index '", range.last,
+      return ::absl::InternalError(::absl::StrCat("bit index '", range.last,
                                               "' out of range for format '",
                                               format_->name(), "'"));
     }
     int width = range.first - range.last + 1;
     // Verify that width is positive.
     if (width <= 0) {
-      return absl::InternalError(
-          absl::StrCat("bitrange has non-positive width for format '",
+      return ::absl::InternalError(
+          ::absl::StrCat("bitrange has non-positive width for format '",
                        format_->name(), "',"));
     }
     // Translate into bit positions relative to the bit format that contains
@@ -143,11 +143,11 @@ absl::Status Overlay::AddFormatReference(const std::vector<BitRange>& ranges) {
         new BitsOrField(nullptr, range.first, range.last, width));
     computed_width_ += width;
   }
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
-absl::Status Overlay::ComputeHighLow() {
-  if (high_low_computed_) return absl::OkStatus();
+::absl::Status Overlay::ComputeHighLow() {
+  if (high_low_computed_) return ::absl::OkStatus();
 
   high_low_computed_ = true;
   int position = declared_width_ - 1;
@@ -163,14 +163,14 @@ absl::Status Overlay::ComputeHighLow() {
     }
     position -= component->width();
   }
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
 // Extract the bits from the input value according to the component
 // specification of the overlay.
-absl::StatusOr<uint64_t> Overlay::GetValue(uint64_t input) const {
+::absl::StatusOr<uint64_t> Overlay::GetValue(uint64_t input) const {
   if (declared_width_ != computed_width_)
-    return absl::InternalError(
+    return ::absl::InternalError(
         "Overlay definition incomplete: declared width != computed width");
 
   uint64_t value = 0;
@@ -192,7 +192,7 @@ absl::StatusOr<uint64_t> Overlay::GetValue(uint64_t input) const {
   return value;
 }
 
-absl::StatusOr<uint64_t> Overlay::GetBitField(uint64_t input) {
+::absl::StatusOr<uint64_t> Overlay::GetBitField(uint64_t input) {
   uint64_t bitfield = 0;
   for (auto* component : component_vec_) {
     // Constant bits do not map to the instruction word.
@@ -221,8 +221,8 @@ bool Overlay::operator!=(const Overlay& rhs) const { return !(*this == rhs); }
 // definition or return statement) for extracting the value of the overlay from
 // a variable 'value' and storing it into the variable 'result'. This extractor
 // works when the format is <= 64 bits wide.
-std::string Overlay::WriteSimpleValueExtractor(absl::string_view value,
-                                               absl::string_view result) const {
+std::string Overlay::WriteSimpleValueExtractor(::absl::string_view value,
+                                               ::absl::string_view result) const {
   std::string output;
   std::string assign = " = ";
   for (auto* component : component_vec_) {
@@ -233,23 +233,23 @@ std::string Overlay::WriteSimpleValueExtractor(absl::string_view value,
       if (bin_num.value == 0) continue;
 
       int shift = component->position() - bin_num.width + 1;
-      absl::StrAppend(&output, "  ", result, assign, bin_num.value);
+      ::absl::StrAppend(&output, "  ", result, assign, bin_num.value);
       if (shift > 0) {
-        absl::StrAppend(&output, " << ", shift);
+        ::absl::StrAppend(&output, " << ", shift);
       }
-      absl::StrAppend(&output, ";\n");
+      ::absl::StrAppend(&output, ";\n");
     } else {
       // Field or format references are added.
       uint64_t mask = ((1ULL << component->width()) - 1) << component->low();
-      absl::StrAppend(&output, "  ", result, assign, "(", value, " & 0x",
-                      absl::Hex(mask), ")");
+      ::absl::StrAppend(&output, "  ", result, assign, "(", value, " & 0x",
+                      ::absl::Hex(mask), ")");
       int diff = component->high() - component->position();
       if (diff < 0) {
-        absl::StrAppend(&output, " << ", -diff);
+        ::absl::StrAppend(&output, " << ", -diff);
       } else if (diff > 0) {
-        absl::StrAppend(&output, " >> ", diff);
+        ::absl::StrAppend(&output, " >> ", diff);
       }
-      absl::StrAppend(&output, ";\n");
+      ::absl::StrAppend(&output, ";\n");
     }
     assign = " |= ";
   }
@@ -261,8 +261,8 @@ namespace {
 // Return the int type byte width (1, 2, 4, 8, 16) or (-1 if it's bigger), of
 // the integer type that would fit this format.
 int GetIntTypeBitWidth(int bitwidth) {
-  auto shift = absl::bit_width(static_cast<unsigned>(bitwidth)) - 1;
-  if (absl::popcount(static_cast<unsigned>(bitwidth)) > 1) shift++;
+  auto shift = ::absl::bit_width(static_cast<unsigned>(bitwidth)) - 1;
+  if (::absl::popcount(static_cast<unsigned>(bitwidth)) > 1) shift++;
   shift = std::max(shift, 3);
   if (shift > 7) return -1;
   return 1 << shift;
@@ -270,20 +270,20 @@ int GetIntTypeBitWidth(int bitwidth) {
 
 std::string GetUIntType(int bitwidth) {
   if (bitwidth > 128) return "uint8_t *";
-  if (bitwidth > 64) return "absl::uint128";
-  return absl::StrCat("uint", GetIntTypeBitWidth(bitwidth), "_t");
+  if (bitwidth > 64) return "::absl::uint128";
+  return ::absl::StrCat("uint", GetIntTypeBitWidth(bitwidth), "_t");
 }
 
 }  // namespace
 
 std::string Overlay::WritePackedStructValueExtractor(
-    absl::string_view value, absl::string_view result) const {
+    ::absl::string_view value, ::absl::string_view result) const {
   std::string output;
   std::string assign = " = ";
   std::string union_type =
-      absl::StrCat("const ", ToSnakeCase(format_->name()), "::Union",
+      ::absl::StrCat("const ", ToSnakeCase(format_->name()), "::Union",
                    ToPascalCase(format_->name()));
-  absl::StrAppend(&output, "  ", union_type,
+  ::absl::StrAppend(&output, "  ", union_type,
                   " *packed_union;\n"
                   "  packed_union = reinterpret_cast<",
                   union_type, "*>(",
@@ -297,14 +297,14 @@ std::string Overlay::WritePackedStructValueExtractor(
       if (bin_num.value == 0) continue;
 
       int shift = component->position() - bin_num.width + 1;
-      absl::StrAppend(&output, "  ", result, assign, bin_num.value);
+      ::absl::StrAppend(&output, "  ", result, assign, bin_num.value);
       if (shift > 0) {
-        absl::StrAppend(&output, " << ", shift);
+        ::absl::StrAppend(&output, " << ", shift);
       }
-      absl::StrAppend(&output, ";\n");
+      ::absl::StrAppend(&output, ";\n");
     } else {
       // Field or format references are added.
-      absl::StrAppend(
+      ::absl::StrAppend(
           &output, "  ", result, assign, "static_cast<", result_type,
           ">(packed_union->", ToSnakeCase(format_->name()), ".",
           component->field()->name, ") << ", component->position(), ";\n");
@@ -319,8 +319,8 @@ std::string Overlay::WritePackedStructValueExtractor(
 // a variable 'value' and storing it into the variable 'result'. This extractor
 // works when the source format is => 64 bits wide.
 std::string Overlay::WriteComplexValueExtractor(
-    absl::string_view value, absl::string_view result,
-    absl::string_view return_type) const {
+    ::absl::string_view value, ::absl::string_view result,
+    ::absl::string_view return_type) const {
   std::string output;
   std::string assign = " = ";
   for (auto* component : component_vec_) {
@@ -330,23 +330,23 @@ std::string Overlay::WriteComplexValueExtractor(
       if (bin_num.value == 0) continue;
 
       int shift = component->position() - bin_num.width + 1;
-      absl::StrAppend(&output, "  ", result, assign, bin_num.value);
+      ::absl::StrAppend(&output, "  ", result, assign, bin_num.value);
       if (shift > 0) {
-        absl::StrAppend(&output, " << ", shift);
+        ::absl::StrAppend(&output, " << ", shift);
       }
-      absl::StrAppend(&output, ";\n");
+      ::absl::StrAppend(&output, ";\n");
     } else {
-      absl::StrAppend(&output, "  ", result, assign, "ExtractBits<",
+      ::absl::StrAppend(&output, "  ", result, assign, "ExtractBits<",
                       return_type, ">(", value, ", ", component->high(), ", ",
                       component->width(), ")");
       if (component->low() > 0) {
         int shift = component->position() - component->width() + 1;
         if (shift > 0) {
-          absl::StrAppend(&output, " << ",
+          ::absl::StrAppend(&output, " << ",
                           component->position() - component->width() + 1);
         }
       }
-      absl::StrAppend(&output, ";\n");
+      ::absl::StrAppend(&output, ";\n");
     }
     assign = " |= ";
   }

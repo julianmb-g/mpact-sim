@@ -61,9 +61,9 @@ class EncodingGroup {
   // Verify that there are no collisions of opcodes in the simple decoders.
   void CheckEncodings() const;
   // Emit code for the initializers (decode tables) and the decoder functions.
-  void EmitInitializers(absl::string_view name, std::string* initializers_ptr,
+  void EmitInitializers(::absl::string_view name, std::string* initializers_ptr,
                         const std::string& opcode_enum) const;
-  void EmitDecoders(absl::string_view name, std::string* declarations_ptr,
+  void EmitDecoders(::absl::string_view name, std::string* declarations_ptr,
                     std::string* definitions_ptr,
                     const std::string& opcode_enum) const;
   // Return a string containing information about the current group. This will
@@ -109,29 +109,29 @@ class EncodingGroup {
   // Methods that factors out some of the complexities of the public code
   // emitting methods.
   void EmitComplexDecoderBody(std::string* definitions_ptr,
-                              absl::string_view index_extraction,
-                              absl::string_view opcode_enum) const;
+                              ::absl::string_view index_extraction,
+                              ::absl::string_view opcode_enum) const;
   void EmitComplexDecoderBodyIfSequence(std::string* definitions_ptr,
-                                        absl::string_view opcode_enum) const;
+                                        ::absl::string_view opcode_enum) const;
   int EmitEncodingIfStatement(int indent, const InstructionEncoding* encoding,
-                              absl::string_view opcode_enum,
-                              absl::flat_hash_set<std::string>& extracted,
+                              ::absl::string_view opcode_enum,
+                              ::absl::flat_hash_set<std::string>& extracted,
                               std::string* definitions_ptr) const;
-  void ProcessConstraint(const absl::flat_hash_set<std::string>& extracted,
+  void ProcessConstraint(const ::absl::flat_hash_set<std::string>& extracted,
                          Constraint* constraint,
                          std::string* definitions_ptr) const;
   void EmitFieldExtraction(const Field* field, const std::string& indent_str,
-                           absl::flat_hash_set<std::string>& extracted,
+                           ::absl::flat_hash_set<std::string>& extracted,
                            std::string* definitions_ptr) const;
   void EmitOverlayExtraction(const Overlay* overlay,
                              const std::string& indent_str,
-                             absl::flat_hash_set<std::string>& extracted,
+                             ::absl::flat_hash_set<std::string>& extracted,
                              std::string* definitions_ptr) const;
   void EmitExtractions(int indent, const std::vector<Constraint*>& constraints,
-                       absl::flat_hash_set<std::string>& extracted,
+                       ::absl::flat_hash_set<std::string>& extracted,
                        std::string* definitions_ptr) const;
   int EmitConstraintConditions(const std::vector<Constraint*>& constraints,
-                               absl::string_view comparison,
+                               ::absl::string_view comparison,
                                std::string& connector,
                                std::string* condition) const;
   int EmitOtherConstraintConditions(const std::vector<Constraint*>& constraints,

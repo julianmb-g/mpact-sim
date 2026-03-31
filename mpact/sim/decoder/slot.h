@@ -62,43 +62,43 @@ class Slot {
       generated::InstructionSetParser::Resource_detailsContext;
 
   // Constructor and destructor.
-  Slot(absl::string_view name, InstructionSet* instruction_set,
+  Slot(::absl::string_view name, InstructionSet* instruction_set,
        bool is_templated, SlotDeclCtx* ctx, unsigned generator_version);
-  Slot(absl::string_view name, InstructionSet* instruction_set,
+  Slot(::absl::string_view name, InstructionSet* instruction_set,
        bool is_templated, SlotDeclCtx* ctx)
       : Slot(name, instruction_set, is_templated, ctx, 1) {}
   ~Slot();
 
   // Add declared opcode to the current slot.
-  absl::Status AppendInstruction(Instruction* inst);
+  ::absl::Status AppendInstruction(Instruction* inst);
   // Add an opcode inherited from a base slot to the current slot.
-  absl::Status AppendInheritedInstruction(Instruction* inst,
+  ::absl::Status AppendInheritedInstruction(Instruction* inst,
                                           TemplateInstantiationArgs* args);
   // Add default instruction attribute.
   void AddInstructionAttribute(const std::string& name,
                                TemplateExpression* expr);
   bool HasInstruction(const std::string& opcode_name) const;
   // Return string for the header file declarations for this class.
-  std::string GenerateClassDeclaration(absl::string_view encoding_type) const;
+  std::string GenerateClassDeclaration(::absl::string_view encoding_type) const;
   // Return string for the .cc file definitions for this class.
-  std::string GenerateClassDefinition(absl::string_view encoding_type);
+  std::string GenerateClassDefinition(::absl::string_view encoding_type);
 
   // Add a non-templated slot as a base.
-  absl::Status AddBase(const Slot* base);
+  ::absl::Status AddBase(const Slot* base);
   // Add a templated slot as a base with the vector of expressions as the
   // template parameter values.
-  absl::Status AddBase(const Slot* base, TemplateInstantiationArgs* arguments);
+  ::absl::Status AddBase(const Slot* base, TemplateInstantiationArgs* arguments);
   // Add a declared constant (scoped to the slot).
-  absl::Status AddConstant(const std::string& ident, const std::string& type,
+  ::absl::Status AddConstant(const std::string& ident, const std::string& type,
                            TemplateExpression* expression);
   TemplateExpression* GetConstExpression(const std::string& ident) const;
   // When the current slot is templated, adds an identifier as a template
   // formal parameter.
-  absl::Status AddTemplateFormal(const std::string& name);
+  ::absl::Status AddTemplateFormal(const std::string& name);
   TemplateFormal* GetTemplateFormal(const std::string& name) const;
 
   // Generate the calls to encode the given operand.
-  std::string GenerateOperandEncoder(int position, absl::string_view op_name,
+  std::string GenerateOperandEncoder(int position, ::absl::string_view op_name,
                                      const OperandLocator& locator,
                                      const Opcode* opcode) const;
   // Generate regex for a given instruction.
@@ -108,7 +108,7 @@ class Slot {
   std::tuple<std::string, std::string> GenerateAsmRegexMatcher() const;
   // Generate assembler function for the given instruction.
   std::string GenerateAssemblerFcn(const Instruction* inst,
-                                   absl::string_view encoder_type) const;
+                                   ::absl::string_view encoder_type) const;
 
   // Resources
   Resource* GetOrInsertResource(const std::string& name);
@@ -144,26 +144,26 @@ class Slot {
   const std::string& name() const { return name_; }
   const std::string& pascal_name() const { return pascal_name_; }
   const std::vector<BaseSlot>& base_slots() const { return base_slots_; }
-  const absl::btree_map<std::string, Instruction*>& instruction_map() const {
+  const ::absl::btree_map<std::string, Instruction*>& instruction_map() const {
     return instruction_map_;
   }
   const std::vector<TemplateFormal*>& template_parameters() const {
     return template_parameters_;
   }
-  const absl::flat_hash_map<std::string, int>& template_parameter_map() const {
+  const ::absl::flat_hash_map<std::string, int>& template_parameter_map() const {
     return template_parameter_map_;
   }
-  absl::btree_map<std::string, ResourceDetailsCtx*>& resource_spec_map() {
+  ::absl::btree_map<std::string, ResourceDetailsCtx*>& resource_spec_map() {
     return resource_spec_map_;
   }
-  absl::btree_map<std::string, IdentListCtx*>& resource_array_ref_map() {
+  ::absl::btree_map<std::string, IdentListCtx*>& resource_array_ref_map() {
     return resource_array_ref_map_;
   }
-  const absl::btree_map<std::string, TemplateExpression*>& attribute_map() {
+  const ::absl::btree_map<std::string, TemplateExpression*>& attribute_map() {
     return attribute_map_;
   }
 
-  const absl::btree_set<std::string>& attribute_names() const {
+  const ::absl::btree_set<std::string>& attribute_names() const {
     return attribute_names_;
   }
 
@@ -176,38 +176,38 @@ class Slot {
   // These functions generate the functions that are called by the decoder to
   // set the instruction operands.
   std::string CreateOperandLookupKey(const Opcode* opcode) const;
-  std::string GenerateOperandSetterFcn(absl::string_view getter_name,
-                                       absl::string_view encoding_type,
+  std::string GenerateOperandSetterFcn(::absl::string_view getter_name,
+                                       ::absl::string_view encoding_type,
                                        const Opcode* opcode) const;
   // These functions generate the functions that are called by the decoder to
   // set the instruction resources.
   std::string CreateResourceKey(
       const std::vector<const ResourceReference*>& refs) const;
   std::string GenerateResourceSetter(const Instruction* inst,
-                                     absl::string_view encoding_type);
-  std::string GenerateResourceSetterFcn(absl::string_view name,
+                                     ::absl::string_view encoding_type);
+  std::string GenerateResourceSetterFcn(::absl::string_view name,
                                         const Instruction* inst,
-                                        absl::string_view encoding_type) const;
+                                        ::absl::string_view encoding_type) const;
   // These functions generate the functions that are called by the decoder to
   // set the instruction disassembly string.
   std::string GenerateDisassemblySetter(const Instruction* inst);
-  std::string GenerateDisasmSetterFcn(absl::string_view name,
+  std::string GenerateDisasmSetterFcn(::absl::string_view name,
                                       const Instruction* inst) const;
   // These functions generate the functions that are called by the decoder to
   // set the instruction attributes.
   std::string GenerateAttributeSetter(const Instruction* inst);
-  std::string GenerateAttributeSetterFcn(absl::string_view name,
+  std::string GenerateAttributeSetterFcn(::absl::string_view name,
                                          const Instruction* inst) const;
   std::string CreateAttributeLookupKey(const Instruction* inst) const;
   // Generates a string that defines a global constexpr array of instruction
   // opcodes and instruction info structs. Also populates the setter function
   // string 'setter_functions_' with the setters.
-  std::string CreateFuncGetterGlobalArray(absl::string_view encoding_type);
+  std::string CreateFuncGetterGlobalArray(::absl::string_view encoding_type);
   // Transitively check if base slot is in the predecessor set of the current
   // slot or any of its inheritance predecessors. Returns AlreadyExistsError
   // if the current slot or its predecessors already inherit from base or its
   // predecessors.
-  absl::Status CheckPredecessors(const Slot* base) const;
+  ::absl::Status CheckPredecessors(const Slot* base) const;
   // Parent instruction_set class.
   InstructionSet* instruction_set_;
   // Parser context.
@@ -233,16 +233,16 @@ class Slot {
   std::string pascal_name_;
   // Pointer to slot it inherits from.
   std::vector<BaseSlot> base_slots_;
-  absl::flat_hash_set<const Slot*> predecessor_set_;
+  ::absl::flat_hash_set<const Slot*> predecessor_set_;
   // Map from operand getter key to operand getter function name. These are
   // static so that they can be shared across different slots.
-  static absl::NoDestructor<absl::flat_hash_map<std::string, std::string>>
+  static ::absl::NoDestructor<::absl::flat_hash_map<std::string, std::string>>
       operand_setter_name_map_;
-  static absl::NoDestructor<absl::flat_hash_map<std::string, std::string>>
+  static ::absl::NoDestructor<::absl::flat_hash_map<std::string, std::string>>
       disasm_setter_name_map_;
-  static absl::NoDestructor<absl::flat_hash_map<std::string, std::string>>
+  static ::absl::NoDestructor<::absl::flat_hash_map<std::string, std::string>>
       resource_setter_name_map_;
-  static absl::NoDestructor<absl::flat_hash_map<std::string, std::string>>
+  static ::absl::NoDestructor<::absl::flat_hash_map<std::string, std::string>>
       attribute_setter_name_map_;
 
   // Stores a string representation of the instruction array for this slot. This
@@ -250,22 +250,22 @@ class Slot {
   std::string instruction_array_str_;
   std::string setter_functions_;
   // Used to list the unique getters for the operands.
-  absl::flat_hash_set<std::string> pred_operand_getters_;
-  absl::flat_hash_set<std::string> src_operand_getters_;
-  absl::flat_hash_set<std::string> dst_operand_getters_;
+  ::absl::flat_hash_set<std::string> pred_operand_getters_;
+  ::absl::flat_hash_set<std::string> src_operand_getters_;
+  ::absl::flat_hash_set<std::string> dst_operand_getters_;
   // Map of instructions defined in this slot or inherited.
-  absl::btree_map<std::string, Instruction*> instruction_map_;
-  absl::flat_hash_set<std::string> operand_setters_;
+  ::absl::btree_map<std::string, Instruction*> instruction_map_;
+  ::absl::flat_hash_set<std::string> operand_setters_;
   // Template parameter names.
   std::vector<TemplateFormal*> template_parameters_;
-  absl::flat_hash_map<std::string, int> template_parameter_map_;
-  absl::flat_hash_map<std::string, TemplateExpression*> constant_map_;
+  ::absl::flat_hash_map<std::string, int> template_parameter_map_;
+  ::absl::flat_hash_map<std::string, TemplateExpression*> constant_map_;
   // Named resource specifiers.
-  absl::btree_map<std::string, ResourceDetailsCtx*> resource_spec_map_;
-  absl::btree_map<std::string, IdentListCtx*> resource_array_ref_map_;
+  ::absl::btree_map<std::string, ResourceDetailsCtx*> resource_spec_map_;
+  ::absl::btree_map<std::string, IdentListCtx*> resource_array_ref_map_;
   // Default instruction attributes.
-  absl::btree_map<std::string, TemplateExpression*> attribute_map_;
-  absl::btree_set<std::string> attribute_names_;
+  ::absl::btree_map<std::string, TemplateExpression*> attribute_map_;
+  ::absl::btree_set<std::string> attribute_names_;
 };
 
 }  // namespace instruction_set

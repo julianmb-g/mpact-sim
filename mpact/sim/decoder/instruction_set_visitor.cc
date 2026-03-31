@@ -58,10 +58,10 @@ namespace sim {
 namespace machine_description {
 namespace instruction_set {
 
-static absl::StatusOr<TemplateValue> AbsoluteValueTemplateFunc(
+static ::absl::StatusOr<TemplateValue> AbsoluteValueTemplateFunc(
     TemplateInstantiationArgs* args) {
   if (args->size() != 1) {
-    return absl::InternalError(absl::StrCat(
+    return ::absl::InternalError(::absl::StrCat(
         "Wrong number of arguments, expected 1, was given ", args->size()));
   }
   auto result = (*args)[0]->GetValue();
@@ -69,7 +69,7 @@ static absl::StatusOr<TemplateValue> AbsoluteValueTemplateFunc(
 
   auto* value_ptr = std::get_if<int>(&result.value());
   if (value_ptr == nullptr) {
-    return absl::InternalError("Type mismatch - int expected");
+    return ::absl::InternalError("Type mismatch - int expected");
   }
   int return_value = (*value_ptr < 0) ? -(*value_ptr) : *value_ptr;
   return TemplateValue(return_value);
@@ -94,16 +94,16 @@ InstructionSetVisitor::~InstructionSetVisitor() {
 }
 
 // Main entry point for processing the file.
-absl::Status InstructionSetVisitor::Process(
+::absl::Status InstructionSetVisitor::Process(
     const std::vector<std::string>& file_names, const std::string& prefix,
     const std::string& isa_name, const std::vector<std::string>& include_roots,
-    absl::string_view directory) {
-  generator_version_ = absl::GetFlag(FLAGS_generator);
+    ::absl::string_view directory) {
+  generator_version_ = ::absl::GetFlag(FLAGS_generator);
   // Create and add the error listener.
   set_error_listener(std::make_unique<decoder::DecoderErrorListener>());
   if (isa_name.empty()) {
     error_listener()->semanticError(nullptr, "Isa name cannot be empty");
-    return absl::InvalidArgumentError("Isa name cannot be empty");
+    return ::absl::InvalidArgumentError("Isa name cannot be empty");
   }
 
   for (auto& include_root : include_roots) {
@@ -142,7 +142,7 @@ absl::Status InstructionSetVisitor::Process(
   }
 
   if (error_listener()->HasError() > 0) {
-    return absl::InternalError("Errors encountered - terminating.");
+    return ::absl::InternalError("Errors encountered - terminating.");
   }
 
   // Visit the parse tree starting at the namespaces declaration.
@@ -163,13 +163,13 @@ absl::Status InstructionSetVisitor::Process(
   auto instruction_set = ProcessTopLevel(isa_name);
   // Include files may generate additional syntax errors.
   if (instruction_set == nullptr) {
-    return absl::InternalError("Errors encountered - terminating.");
+    return ::absl::InternalError("Errors encountered - terminating.");
   }
   // Verify that all referenced bundles and slots were defined.
   PerformBundleReferenceChecks(instruction_set.get(),
                                instruction_set->bundle());
   if (error_listener()->HasError() > 0) {
-    return absl::InternalError("Errors encountered - terminating.");
+    return ::absl::InternalError("Errors encountered - terminating.");
   }
   // Analyze resource use and partition resources into simple and complex
   // resources.
@@ -188,24 +188,24 @@ absl::Status InstructionSetVisitor::Process(
   }
   // Check for additional errors.
   if (error_listener()->HasError() > 0) {
-    return absl::InternalError("Errors encountered - terminating.");
+    return ::absl::InternalError("Errors encountered - terminating.");
   }
   std::string encoding_type_name =
-      absl::StrCat(ToPascalCase(isa_name), "EncodingBase");
+      ::absl::StrCat(ToPascalCase(isa_name), "EncodingBase");
 
   // Create output streams for .h and .cc files.
-  std::string dec_dot_h_name = absl::StrCat(isa_prefix, "_decoder.h");
-  std::string dec_dot_cc_name = absl::StrCat(isa_prefix, "_decoder.cc");
-  std::string enc_dot_h_name = absl::StrCat(isa_prefix, "_encoder.h");
-  std::string enc_dot_cc_name = absl::StrCat(isa_prefix, "_encoder.cc");
-  std::string enum_h_name = absl::StrCat(isa_prefix, "_enums.h");
-  std::string enum_cc_name = absl::StrCat(isa_prefix, "_enums.cc");
-  std::ofstream dec_dot_h_file(absl::StrCat(directory, "/", dec_dot_h_name));
-  std::ofstream dec_dot_cc_file(absl::StrCat(directory, "/", dec_dot_cc_name));
-  std::ofstream enc_dot_h_file(absl::StrCat(directory, "/", enc_dot_h_name));
-  std::ofstream enc_dot_cc_file(absl::StrCat(directory, "/", enc_dot_cc_name));
-  std::ofstream enum_h_file(absl::StrCat(directory, "/", enum_h_name));
-  std::ofstream enum_cc_file(absl::StrCat(directory, "/", enum_cc_name));
+  std::string dec_dot_h_name = ::absl::StrCat(isa_prefix, "_decoder.h");
+  std::string dec_dot_cc_name = ::absl::StrCat(isa_prefix, "_decoder.cc");
+  std::string enc_dot_h_name = ::absl::StrCat(isa_prefix, "_encoder.h");
+  std::string enc_dot_cc_name = ::absl::StrCat(isa_prefix, "_encoder.cc");
+  std::string enum_h_name = ::absl::StrCat(isa_prefix, "_enums.h");
+  std::string enum_cc_name = ::absl::StrCat(isa_prefix, "_enums.cc");
+  std::ofstream dec_dot_h_file(::absl::StrCat(directory, "/", dec_dot_h_name));
+  std::ofstream dec_dot_cc_file(::absl::StrCat(directory, "/", dec_dot_cc_name));
+  std::ofstream enc_dot_h_file(::absl::StrCat(directory, "/", enc_dot_h_name));
+  std::ofstream enc_dot_cc_file(::absl::StrCat(directory, "/", enc_dot_cc_name));
+  std::ofstream enum_h_file(::absl::StrCat(directory, "/", enum_h_name));
+  std::ofstream enum_cc_file(::absl::StrCat(directory, "/", enum_cc_name));
   // Generate the code, close the files and return.
   std::string guard_name = ToHeaderGuard(dec_dot_h_name);
   // Decoder .h file.
@@ -257,7 +257,7 @@ absl::Status InstructionSetVisitor::Process(
   enc_dot_h_file.close();
   enc_dot_cc_file.close();
 
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
 void InstructionSetVisitor::PerformBundleReferenceChecks(
@@ -277,7 +277,7 @@ void InstructionSetVisitor::PerformBundleReferenceChecks(
         auto* token = bundle->ctx() == nullptr ? nullptr : bundle->ctx()->start;
         error_listener()->semanticError(
             token,
-            absl::StrCat("Index ", instance_number, " out of range for slot ",
+            ::absl::StrCat("Index ", instance_number, " out of range for slot ",
                          slot_name, "' referenced in bundle '", bundle->name(),
                          "'"));
         continue;
@@ -288,7 +288,7 @@ void InstructionSetVisitor::PerformBundleReferenceChecks(
         slot->default_instruction()->semfunc_code_string().empty()) {
       error_listener()->semanticError(
           slot->ctx()->start,
-          absl::StrCat("Slot '", slot->name(),
+          ::absl::StrCat("Slot '", slot->name(),
                        "' lacks a default semantic action"));
     }
     slot->set_is_referenced(true);
@@ -309,7 +309,7 @@ void InstructionSetVisitor::VisitTopLevel(TopLevelCtx* ctx) {
     if (count > 0) {
       error_listener()->semanticError(
           decl->disasm_widths()->start,
-          absl::StrCat("Only one `disasm width` declaration allowed - "
+          ::absl::StrCat("Only one `disasm width` declaration allowed - "
                        "previous declaration on line: ",
                        disasm_ctx->start->getLine()));
     }
@@ -324,13 +324,13 @@ void InstructionSetVisitor::VisitTopLevel(TopLevelCtx* ctx) {
 }
 
 std::unique_ptr<InstructionSet> InstructionSetVisitor::ProcessTopLevel(
-    absl::string_view isa_name) {
+    ::absl::string_view isa_name) {
   // At this point we have the contexts for all isas, bundles, and slots.
   // First make sure that the named isa has been defined.
   auto isa_ptr = isa_decl_map_.find(isa_name);
   if (isa_ptr == isa_decl_map_.end()) {
     error_listener()->semanticError(
-        nullptr, absl::StrCat("No isa '", isa_name, "' declared"));
+        nullptr, ::absl::StrCat("No isa '", isa_name, "' declared"));
     return nullptr;
   }
   // Visit the Isa.
@@ -353,7 +353,7 @@ void InstructionSetVisitor::PreProcessDeclarations(
       if (ptr != slot_decl_map_.end()) {
         error_listener()->semanticError(
             slot_ctx->start,
-            absl::StrCat("Slot '", name,
+            ::absl::StrCat("Slot '", name,
                          "' already declared - previous declaration on line: ",
                          slot_ctx->start->getLine()));
       }
@@ -368,7 +368,7 @@ void InstructionSetVisitor::PreProcessDeclarations(
       if (ptr != bundle_decl_map_.end()) {
         error_listener()->semanticError(
             bundle_ctx->start,
-            absl::StrCat("Bundle '", name,
+            ::absl::StrCat("Bundle '", name,
                          "' already declared - previous declaration on line: ",
                          bundle_ctx->start->getLine()));
         continue;
@@ -384,7 +384,7 @@ void InstructionSetVisitor::PreProcessDeclarations(
       if (ptr != isa_decl_map_.end()) {
         error_listener()->semanticError(
             isa_ctx->start,
-            absl::StrCat("Isa '", name,
+            ::absl::StrCat("Isa '", name,
                          "' already declared - previous declaration on line: ",
                          isa_ctx->start->getLine()));
         continue;
@@ -458,7 +458,7 @@ void InstructionSetVisitor::VisitBundleList(BundleListCtx* ctx,
     if (iter == bundle_decl_map_.end()) {
       error_listener()->semanticError(
           file_names_[context_file_map_.at(ctx)], bundle_spec->start,
-          absl::StrCat("Reference to undefined bundle: '", bundle_name, "'"));
+          ::absl::StrCat("Reference to undefined bundle: '", bundle_name, "'"));
       continue;
     }
     // If the bundle hasn't been processed yet, visit its declaration.
@@ -480,7 +480,7 @@ void InstructionSetVisitor::VisitSlotList(SlotListCtx* ctx, Bundle* bundle) {
     if (iter == slot_decl_map_.end()) {
       error_listener()->semanticError(
           file_names_[context_file_map_.at(ctx)], slot_spec->start,
-          absl::StrCat("Reference to undefined slot: '", slot_name, "'"));
+          ::absl::StrCat("Reference to undefined slot: '", slot_name, "'"));
       continue;
     }
     // If the slot hasn't been processed yet, visit its declaration.
@@ -540,7 +540,7 @@ void InstructionSetVisitor::VisitIncludeFile(IncludeFileCtx* ctx) {
     if (name == file_name) {
       error_listener()->semanticError(
           ctx->start,
-          absl::StrCat(": ", "Recursive include of '", file_name, "'"));
+          ::absl::StrCat(": ", "Recursive include of '", file_name, "'"));
       return;
     }
   }
@@ -564,7 +564,7 @@ void InstructionSetVisitor::ParseIncludeFile(
     if (!include_file.is_open()) {
       error_listener()->semanticError(
           ctx == nullptr ? nullptr : ctx->start,
-          absl::StrCat("Failed to open '", file_name, "'", " ", dirs.size()));
+          ::absl::StrCat("Failed to open '", file_name, "'", " ", dirs.size()));
       return;
     }
   }
@@ -701,7 +701,7 @@ void InstructionSetVisitor::VisitSlotDeclaration(
       if (slot_iter == slot_decl_map_.end()) {
         error_listener()->semanticError(
             file_names_[context_file_map_.at(ctx)], base_item->start,
-            absl::StrCat("Undefined base slot: ", base_name));
+            ::absl::StrCat("Undefined base slot: ", base_name));
         continue;
       }
       // If the slot hasn't been visited, visit it.
@@ -717,14 +717,14 @@ void InstructionSetVisitor::VisitSlotDeclaration(
         // Template arguments are present but the slot isn't templated.
         error_listener()->semanticError(
             file_names_[context_file_map_.at(ctx)], base_item->start,
-            absl::StrCat("'", base_name, "' is not a templated slot"));
+            ::absl::StrCat("'", base_name, "' is not a templated slot"));
         continue;
       }
       if ((template_spec == nullptr) && base->is_templated()) {
         // The slot is templated, but no template arguments.
         error_listener()->semanticError(
             file_names_[context_file_map_.at(ctx)], base_item->start,
-            absl::StrCat("Missing template arguments for slot '", base_name,
+            ::absl::StrCat("Missing template arguments for slot '", base_name,
                          "'"));
         continue;
       }
@@ -735,7 +735,7 @@ void InstructionSetVisitor::VisitSlotDeclaration(
         if (arg_count != param_count) {
           error_listener()->semanticError(
               file_names_[context_file_map_.at(ctx)], template_spec->start,
-              absl::StrCat("Wrong number of arguments: ", param_count,
+              ::absl::StrCat("Wrong number of arguments: ", param_count,
                            " were expected, ", arg_count, " were provided"));
           continue;
         }
@@ -940,7 +940,7 @@ void InstructionSetVisitor::VisitConstAndDefaultDecls(ConstAndDefaultCtx* ctx,
     if (slot->resource_spec_map().contains(ident)) {
       error_listener()->semanticError(
           file_names_[context_file_map_.at(ctx)], ctx->ident()->start,
-          absl::StrCat("Resources '", ident, "': duplicate definition"));
+          ::absl::StrCat("Resources '", ident, "': duplicate definition"));
       return;
     }
     // Save the context. It will be re-visited at each point of use.
@@ -999,14 +999,14 @@ TemplateExpression* InstructionSetVisitor::VisitExpression(ExpressionCtx* ctx,
     if (iter == template_function_evaluators_.end()) {
       error_listener()->semanticError(
           file_names_[context_file_map_.at(ctx)], ctx->start,
-          absl::StrCat("No function '", function, "' supported"));
+          ::absl::StrCat("No function '", function, "' supported"));
       return nullptr;
     }
     auto evaluator = iter->second;
     if (ctx->expression().size() != evaluator.arity) {
       error_listener()->semanticError(
           file_names_[context_file_map_.at(ctx)], ctx->start,
-          absl::StrCat("Function '", function, "' takes ", evaluator.arity,
+          ::absl::StrCat("Function '", function, "' takes ", evaluator.arity,
                        " parameters, but ", ctx->expression().size(),
                        " were given"));
     }
@@ -1063,7 +1063,7 @@ TemplateExpression* InstructionSetVisitor::VisitExpression(ExpressionCtx* ctx,
       if (op == nullptr) {
         error_listener()->semanticError(
             file_names_[context_file_map_.at(ctx)], ctx->start,
-            absl::StrCat("'", ident,
+            ::absl::StrCat("'", ident,
                          "' is not a valid destination operand for opcode '",
                          inst->opcode()->name(), "'"));
         return nullptr;
@@ -1087,7 +1087,7 @@ TemplateExpression* InstructionSetVisitor::VisitExpression(ExpressionCtx* ctx,
 
     error_listener()->semanticError(
         file_names_[context_file_map_.at(ctx)], ctx->start,
-        absl::StrCat("Unable to evaluate expression: ", "'", ctx->getText(),
+        ::absl::StrCat("Unable to evaluate expression: ", "'", ctx->getText(),
                      "'"));
   }
 
@@ -1157,8 +1157,8 @@ DestinationOperand* InstructionSetVisitor::FindDestinationOpInExpression(
 }
 
 void InstructionSetVisitor::VisitOpcodeList(OpcodeListCtx* ctx, Slot* slot) {
-  absl::flat_hash_set<std::string> deleted_ops_set;
-  absl::flat_hash_set<OpcodeSpecCtx*> overridden_ops_set;
+  ::absl::flat_hash_set<std::string> deleted_ops_set;
+  ::absl::flat_hash_set<OpcodeSpecCtx*> overridden_ops_set;
   std::vector<Instruction*> instruction_vec;
   if (ctx != nullptr) {
     ProcessOpcodeList(ctx, slot, instruction_vec, deleted_ops_set,
@@ -1175,7 +1175,7 @@ void InstructionSetVisitor::VisitOpcodeList(OpcodeListCtx* ctx, Slot* slot) {
     // Copy over the instructions that were not deleted.
     for (auto& [unused, inst_ptr] : base_slot.base->instruction_map()) {
       if (!deleted_ops_set.contains(inst_ptr->opcode()->name())) {
-        absl::Status status =
+        ::absl::Status status =
             slot->AppendInheritedInstruction(inst_ptr, base_slot.arguments);
         if (!status.ok()) {
           error_listener()->semanticError(
@@ -1189,7 +1189,7 @@ void InstructionSetVisitor::VisitOpcodeList(OpcodeListCtx* ctx, Slot* slot) {
   }
   // Add the declared opcodes.
   for (auto* inst : instruction_vec) {
-    absl::Status status = slot->AppendInstruction(inst);
+    ::absl::Status status = slot->AppendInstruction(inst);
     if (!status.ok()) {
       error_listener()->semanticError(file_names_[context_file_map_.at(ctx)],
                                       ctx->start, status.message());
@@ -1198,7 +1198,7 @@ void InstructionSetVisitor::VisitOpcodeList(OpcodeListCtx* ctx, Slot* slot) {
 }
 
 void InstructionSetVisitor::PerformOpcodeOverrides(
-    absl::flat_hash_set<OpcodeSpecCtx*> overridden_ops_set, Slot* slot) {
+    ::absl::flat_hash_set<OpcodeSpecCtx*> overridden_ops_set, Slot* slot) {
   for (auto* override_ctx : overridden_ops_set) {
     std::string name = override_ctx->name->getText();
     auto* inst = slot->instruction_map().at(name);
@@ -1306,13 +1306,13 @@ void InstructionSetVisitor::VisitOpcodeAttributes(OpcodeAttributeListCtx* ctx,
 
 void InstructionSetVisitor::VisitInstructionAttributeList(
     InstructionAttributeListCtx* ctx, Slot* slot, Instruction* inst) {
-  absl::flat_hash_map<std::string, TemplateExpression*> attributes;
+  ::absl::flat_hash_map<std::string, TemplateExpression*> attributes;
   for (auto* attribute : ctx->instruction_attribute()) {
     std::string name = attribute->IDENT()->getText();
     if (attributes.find(name) != attributes.end()) {
       error_listener()->semanticError(
           file_names_[context_file_map_.at(slot->ctx())], attribute->start,
-          absl::StrCat("Duplicate attribute name '", name, "' in list"));
+          ::absl::StrCat("Duplicate attribute name '", name, "' in list"));
       continue;
     }
     slot->AddAttributeName(name);
@@ -1365,7 +1365,7 @@ void InstructionSetVisitor::VisitSemfuncSpec(SemfuncSpecCtx* semfunc_spec,
     error_listener()->semanticError(
         file_names_[context_file_map_.at(inst->slot()->ctx())],
         semfunc_spec->start,
-        absl::StrCat("Fewer semfunc specifiers than expected for opcode '",
+        ::absl::StrCat("Fewer semfunc specifiers than expected for opcode '",
                      inst->opcode()->name(), "'"));
   }
 }
@@ -1381,7 +1381,7 @@ void InstructionSetVisitor::VisitResourceDetails(ResourceDetailsCtx* ctx,
       // This should never happen.
       error_listener()->semanticError(
           file_names_[context_file_map_.at(slot->ctx())], ctx->start,
-          absl::StrCat("Internal error: Undefined resources name: '", name,
+          ::absl::StrCat("Internal error: Undefined resources name: '", name,
                        "'"));
       return;
     }
@@ -1545,8 +1545,8 @@ void InstructionSetVisitor::VisitResourceDetailsLists(ResourceDetailsCtx* ctx,
 
 void InstructionSetVisitor::ProcessOpcodeList(
     OpcodeListCtx* ctx, Slot* slot, std::vector<Instruction*>& instruction_vec,
-    absl::flat_hash_set<std::string>& deleted_ops_set,
-    absl::flat_hash_set<OpcodeSpecCtx*>& overridden_ops_set) {
+    ::absl::flat_hash_set<std::string>& deleted_ops_set,
+    ::absl::flat_hash_set<OpcodeSpecCtx*>& overridden_ops_set) {
   // Obtain the list of opcodes specifications.
   auto opcode_spec = ctx->opcode_spec();
   for (auto* opcode_ctx : opcode_spec) {
@@ -1558,8 +1558,8 @@ void InstructionSetVisitor::ProcessOpcodeList(
 void InstructionSetVisitor::ProcessOpcodeSpec(
     OpcodeSpecCtx* opcode_ctx, Slot* slot,
     std::vector<Instruction*>& instruction_vec,
-    absl::flat_hash_set<std::string>& deleted_ops_set,
-    absl::flat_hash_set<OpcodeSpecCtx*>& overridden_ops_set) {
+    ::absl::flat_hash_set<std::string>& deleted_ops_set,
+    ::absl::flat_hash_set<OpcodeSpecCtx*>& overridden_ops_set) {
   auto* opcode_factory = slot->instruction_set()->opcode_factory();
   if (opcode_ctx->generate != nullptr) {
     auto status = ProcessOpcodeGenerator(opcode_ctx, slot, instruction_vec,
@@ -1578,7 +1578,7 @@ void InstructionSetVisitor::ProcessOpcodeSpec(
     if (slot->base_slots().empty()) {
       error_listener()->semanticError(
           file_names_[context_file_map_.at(slot->ctx())], opcode_ctx->deleted,
-          absl::StrCat("Invalid deleted opcode '", opcode_name, "', slot '",
+          ::absl::StrCat("Invalid deleted opcode '", opcode_name, "', slot '",
                        slot->name(), "' does not inherit from a base slot"));
       return;
     }
@@ -1592,7 +1592,7 @@ void InstructionSetVisitor::ProcessOpcodeSpec(
     if (!found) {
       error_listener()->semanticError(
           file_names_[context_file_map_.at(slot->ctx())], opcode_ctx->deleted,
-          absl::StrCat("Base slot does not define or inherit opcode '",
+          ::absl::StrCat("Base slot does not define or inherit opcode '",
                        opcode_name, "'"));
       return;
     }
@@ -1612,13 +1612,13 @@ void InstructionSetVisitor::ProcessOpcodeSpec(
     if (found == 0) {
       error_listener()->semanticError(
           file_names_[context_file_map_.at(slot->ctx())], opcode_ctx->deleted,
-          absl::StrCat("Base slot does not define or inherit opcode '",
+          ::absl::StrCat("Base slot does not define or inherit opcode '",
                        opcode_name, "'"));
       return;
     } else if (found > 1) {
       error_listener()->semanticError(
           file_names_[context_file_map_.at(slot->ctx())], opcode_ctx->deleted,
-          absl::StrCat("Multiple inheritance of opcodes is not supported: ",
+          ::absl::StrCat("Multiple inheritance of opcodes is not supported: ",
                        opcode_name));
       return;
     }
@@ -1627,7 +1627,7 @@ void InstructionSetVisitor::ProcessOpcodeSpec(
   }
 
   // This is a new opcode, so let's create it. Signal failure if error.
-  absl::StatusOr<Opcode*> result = opcode_factory->CreateOpcode(opcode_name);
+  ::absl::StatusOr<Opcode*> result = opcode_factory->CreateOpcode(opcode_name);
   if (!result.ok()) {
     error_listener()->semanticError(
         file_names_[context_file_map_.at(slot->ctx())], opcode_ctx->name,
@@ -1723,7 +1723,7 @@ void InstructionSetVisitor::VisitOpcodeOperands(OpcodeOperandsCtx* ctx,
             error_listener()->semanticError(
                 file_names_[context_file_map_.at(slot->ctx())],
                 source_op->operand()->op_attribute,
-                absl::StrCat("Invalid operand attribute '", attr, "'"));
+                ::absl::StrCat("Invalid operand attribute '", attr, "'"));
           }
         }
       } else {
@@ -1753,7 +1753,7 @@ void InstructionSetVisitor::VisitOpcodeOperands(OpcodeOperandsCtx* ctx,
             error_listener()->semanticError(
                 file_names_[context_file_map_.at(slot->ctx())],
                 dest_op->operand()->op_attribute,
-                absl::StrCat("Invalid operand attribute '", attr, "'"));
+                ::absl::StrCat("Invalid operand attribute '", attr, "'"));
           }
         }
       } else {
@@ -1786,12 +1786,12 @@ void InstructionSetVisitor::VisitOpcodeOperands(OpcodeOperandsCtx* ctx,
   }
 }
 
-absl::Status InstructionSetVisitor::ProcessOpcodeGenerator(
+::absl::Status InstructionSetVisitor::ProcessOpcodeGenerator(
     OpcodeSpecCtx* ctx, Slot* slot, std::vector<Instruction*>& instruction_vec,
-    absl::flat_hash_set<std::string>& deleted_ops_set,
-    absl::flat_hash_set<OpcodeSpecCtx*>& overridden_ops_set) {
-  if (ctx == nullptr) return absl::InternalError("OpcodeSpecCtx is null");
-  absl::flat_hash_set<std::string> range_variable_names;
+    ::absl::flat_hash_set<std::string>& deleted_ops_set,
+    ::absl::flat_hash_set<OpcodeSpecCtx*>& overridden_ops_set) {
+  if (ctx == nullptr) return ::absl::InternalError("OpcodeSpecCtx is null");
+  ::absl::flat_hash_set<std::string> range_variable_names;
   std::vector<RangeAssignmentInfo*> range_info_vec;
   // Process range assignment lists. The range assignment is either a single
   // value or a structured binding assignment. If it's a binding assignment we
@@ -1805,20 +1805,20 @@ absl::Status InstructionSetVisitor::ProcessOpcodeGenerator(
       if (range_variable_names.contains(name)) {
         error_listener()->semanticError(
             file_names_[context_file_map_.at(slot->ctx())], assign_ctx->start,
-            absl::StrCat("Duplicate binding variable name '", name, "'"));
+            ::absl::StrCat("Duplicate binding variable name '", name, "'"));
         continue;
       }
       range_variable_names.insert(name);
       range_info->range_names.push_back(ident_ctx->getText());
       range_info->range_values.push_back({});
       range_info->range_regexes.emplace_back(
-          absl::StrCat("\\$\\(", name, "\\)"));
+          ::absl::StrCat("\\$\\(", name, "\\)"));
       // Verify that the range variable is used in the string.
       if (!RE2::PartialMatch(ctx->generator_opcode_spec_list()->getText(),
                              range_info->range_regexes.back())) {
         error_listener()->semanticWarning(
             file_names_[context_file_map_.at(slot->ctx())], assign_ctx->start,
-            absl::StrCat("Unreferenced binding variable '", name, "'"));
+            ::absl::StrCat("Unreferenced binding variable '", name, "'"));
       }
     }
     // See if it's a list of simple values.
@@ -1840,7 +1840,7 @@ absl::Status InstructionSetVisitor::ProcessOpcodeGenerator(
     for (auto* tuple_ctx : assign_ctx->value_list()) {
       if (tuple_ctx->gen_value().size() != range_info->range_names.size()) {
         for (auto* info : range_info_vec) delete info;
-        return absl::InternalError(
+        return ::absl::InternalError(
             "Number of values differs from number of identifiers");
       }
       for (int i = 0; i < tuple_ctx->gen_value().size(); ++i) {
@@ -1870,14 +1870,14 @@ absl::Status InstructionSetVisitor::ProcessOpcodeGenerator(
       error_listener()->semanticError(
           file_names_[context_file_map_.at(slot->ctx())],
           ctx->generator_opcode_spec_list()->start,
-          absl::StrCat("Undefined binding variable '", ident, "'"));
+          ::absl::StrCat("Undefined binding variable '", ident, "'"));
     }
     start_pos = end_pos;
     pos = input_text.find_first_of('$', start_pos);
   }
   if (error_listener()->HasError()) {
     for (auto* info : range_info_vec) delete info;
-    return absl::InternalError("Found undefined binding variable name(s)");
+    return ::absl::InternalError("Found undefined binding variable name(s)");
   }
   // Now we need to iterate over the range_info instances and substitution
   // ranges. This will produce new text that will be parsed and processed.
@@ -1895,7 +1895,7 @@ absl::Status InstructionSetVisitor::ProcessOpcodeGenerator(
   }
   // Clean up.
   for (auto* info : range_info_vec) delete info;
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
 // Helper function to recursively generate the text for the GENERATE opcode
@@ -1921,10 +1921,10 @@ std::string InstructionSetVisitor::GenerateOpcodeSpec(
     // generate the cartesian product with the values of the next value range
     // substitutions.
     if (range_info_vec.size() > index + 1) {
-      absl::StrAppend(&generated, GenerateOpcodeSpec(range_info_vec, index + 1,
+      ::absl::StrAppend(&generated, GenerateOpcodeSpec(range_info_vec, index + 1,
                                                      template_str));
     } else {
-      absl::StrAppend(&generated, template_str);
+      ::absl::StrAppend(&generated, template_str);
     }
     // If there were no replacements, then the range variables weren't used,
     // and the template string won't change for any other values in the range.
@@ -1935,12 +1935,12 @@ std::string InstructionSetVisitor::GenerateOpcodeSpec(
   return generated;
 }
 
-static absl::StatusOr<std::pair<std::string, std::string::size_type>> get_ident(
+static ::absl::StatusOr<std::pair<std::string, std::string::size_type>> get_ident(
     std::string str, std::string::size_type pos) {
   // If the next character is not an alpha or '_' it's an error.
   if (!std::isalpha(str[pos]) && (str[pos] != '_')) {
-    return absl::InternalError(
-        absl::StrCat("Invalid character in operand name at position ", pos,
+    return ::absl::InternalError(
+        ::absl::StrCat("Invalid character in operand name at position ", pos,
                      " in '", str, "'"));
   }
   std::string op_name;
@@ -1955,7 +1955,7 @@ static absl::StatusOr<std::pair<std::string, std::string::size_type>> get_ident(
   return std::make_pair(op_name, pos);
 }
 // This method parses the disasm format string.
-absl::Status InstructionSetVisitor::ParseDisasmFormat(std::string format,
+::absl::Status InstructionSetVisitor::ParseDisasmFormat(std::string format,
                                                       Instruction* inst) {
   std::string::size_type pos = 0;
   std::string::size_type prev = 0;
@@ -1996,7 +1996,7 @@ absl::Status InstructionSetVisitor::ParseDisasmFormat(std::string format,
 
       if (end_pos >= length) break;
 
-      absl::StatusOr<FormatInfo*> result = ParseFormatExpression(format.substr(pos, end_pos - pos),
+      ::absl::StatusOr<FormatInfo*> result = ParseFormatExpression(format.substr(pos, end_pos - pos),
                                        inst->opcode());
       if (!result.ok()) {
         delete disasm_fmt;
@@ -2015,7 +2015,7 @@ absl::Status InstructionSetVisitor::ParseDisasmFormat(std::string format,
 
         end_pos = format.find_first_of(')', pos);
         if (end_pos == std::string::npos) break;
-        absl::StatusOr<std::string> result = ParseNumberFormat(format.substr(pos, end_pos - pos));
+        ::absl::StatusOr<std::string> result = ParseNumberFormat(format.substr(pos, end_pos - pos));
         if (!result.ok()) {
           delete format_info;
           delete disasm_fmt;
@@ -2038,7 +2038,7 @@ absl::Status InstructionSetVisitor::ParseDisasmFormat(std::string format,
       disasm_fmt->format_info_vec.push_back(format_info);
 
     } else {  // Simple %opname specifier.
-      absl::StatusOr<std::pair<std::string, std::string::size_type>> result = get_ident(format, pos);
+      ::absl::StatusOr<std::pair<std::string, std::string::size_type>> result = get_ident(format, pos);
       if (!result.ok()) {
         delete disasm_fmt;
         return result.status();
@@ -2047,7 +2047,7 @@ absl::Status InstructionSetVisitor::ParseDisasmFormat(std::string format,
       pos = end_pos;
       if (!inst->opcode()->op_locator_map().contains(op_name)) {
         delete disasm_fmt;
-        return absl::InternalError(absl::StrCat(
+        return ::absl::InternalError(::absl::StrCat(
             "Invalid operand '", op_name, "' used in format '", format, "'"));
       }
       auto* format_info = new FormatInfo();
@@ -2069,8 +2069,8 @@ absl::Status InstructionSetVisitor::ParseDisasmFormat(std::string format,
   if (pos != std::string::npos) {
     delete format_info;
     delete disasm_fmt;
-    return absl::InternalError(
-        absl::StrCat("Unexpected end of format string in '", format, "'"));
+    return ::absl::InternalError(
+        ::absl::StrCat("Unexpected end of format string in '", format, "'"));
   }
   if (prev != std::string::npos) {
     std::string text = format.substr(prev);
@@ -2083,7 +2083,7 @@ absl::Status InstructionSetVisitor::ParseDisasmFormat(std::string format,
   }
   std::string str;
   for (auto& s : disasm_fmt->format_fragment_vec) {
-    absl::StrAppend(&str, s, ":");
+    ::absl::StrAppend(&str, s, ":");
   }
   int width = 0;
   auto count = inst->disasm_format_vec().size();
@@ -2096,7 +2096,7 @@ absl::Status InstructionSetVisitor::ParseDisasmFormat(std::string format,
   }
   disasm_fmt->width = width;
   inst->AppendDisasmFormat(disasm_fmt);
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
 static std::string::size_type skip_space(const std::string& str,
@@ -2112,7 +2112,7 @@ static std::string::size_type skip_space(const std::string& str,
   return pos;
 }
 
-absl::StatusOr<FormatInfo*> InstructionSetVisitor::ParseFormatExpression(
+::absl::StatusOr<FormatInfo*> InstructionSetVisitor::ParseFormatExpression(
     std::string expr, Opcode* op) {
   // The format expression is very simple. It is of the form:
   // [@+/-] ident | '(' ident <</>> number ')'
@@ -2126,7 +2126,7 @@ absl::StatusOr<FormatInfo*> InstructionSetVisitor::ParseFormatExpression(
   pos = skip_space(expr, pos);
   if (pos == std::string::npos) {
     delete format_info;
-    return absl::InternalError("Empty format expression");
+    return ::absl::InternalError("Empty format expression");
   }
 
   if (expr[pos] == '@') {
@@ -2143,8 +2143,8 @@ absl::StatusOr<FormatInfo*> InstructionSetVisitor::ParseFormatExpression(
       format_info->operation = "+";
     } else {
       delete format_info;
-      return absl::InternalError(
-          absl::StrCat("@ must be followed by a '+' or a '-' in '", expr, "'"));
+      return ::absl::InternalError(
+          ::absl::StrCat("@ must be followed by a '+' or a '-' in '", expr, "'"));
     }
     pos++;
   }
@@ -2152,13 +2152,13 @@ absl::StatusOr<FormatInfo*> InstructionSetVisitor::ParseFormatExpression(
   pos = skip_space(expr, pos);
   if (pos == std::string::npos) {
     delete format_info;
-    return absl::InternalError(
-        absl::StrCat("Malformed expression '", expr, "'"));
+    return ::absl::InternalError(
+        ::absl::StrCat("Malformed expression '", expr, "'"));
   }
 
   if (expr[pos] != '(') {  // No shift expression.
     // Get the field identifier.
-    absl::StatusOr<std::pair<std::string, std::string::size_type>> result = get_ident(expr, pos);
+    ::absl::StatusOr<std::pair<std::string, std::string::size_type>> result = get_ident(expr, pos);
     if (!result.ok()) {
       delete format_info;
       return result.status();
@@ -2166,7 +2166,7 @@ absl::StatusOr<FormatInfo*> InstructionSetVisitor::ParseFormatExpression(
     auto [ident, new_pos] = result.value();
     if (!op->op_locator_map().contains(ident)) {
       delete format_info;
-      return absl::InternalError(absl::StrCat("Invalid operand '", ident,
+      return ::absl::InternalError(::absl::StrCat("Invalid operand '", ident,
                                               "' used in format for opcode'",
                                               op->name(), "'"));
     }
@@ -2175,8 +2175,8 @@ absl::StatusOr<FormatInfo*> InstructionSetVisitor::ParseFormatExpression(
     pos = skip_space(expr, new_pos);
     if (pos != std::string::npos) {
       delete format_info;
-      return absl::InternalError(
-          absl::StrCat("Malformed expression '", expr, "'"));
+      return ::absl::InternalError(
+          ::absl::StrCat("Malformed expression '", expr, "'"));
     }
   } else {  // expr[pos] == '('
     pos++;
@@ -2185,7 +2185,7 @@ absl::StatusOr<FormatInfo*> InstructionSetVisitor::ParseFormatExpression(
     // end of string.
 
     // Get the field identifier.
-    absl::StatusOr<std::pair<std::string, std::string::size_type>> result = get_ident(expr, pos);
+    ::absl::StatusOr<std::pair<std::string, std::string::size_type>> result = get_ident(expr, pos);
     if (!result.ok()) {
       delete format_info;
       return result.status();
@@ -2200,8 +2200,8 @@ absl::StatusOr<FormatInfo*> InstructionSetVisitor::ParseFormatExpression(
       format_info->do_left_shift = true;
     } else if (expr.substr(pos, 2) != ">>") {
       delete format_info;
-      return absl::InternalError(
-          absl::StrCat("Missing shift in expression '", expr, "'"));
+      return ::absl::InternalError(
+          ::absl::StrCat("Missing shift in expression '", expr, "'"));
     }
     pos += 2;
 
@@ -2215,8 +2215,8 @@ absl::StatusOr<FormatInfo*> InstructionSetVisitor::ParseFormatExpression(
     }
     if (num.empty()) {
       delete format_info;
-      return absl::InternalError(
-          absl::StrCat("Malformed expression - no shift amount '", expr, "'"));
+      return ::absl::InternalError(
+          ::absl::StrCat("Malformed expression - no shift amount '", expr, "'"));
     }
     format_info->shift_amount = std::stoi(num);
 
@@ -2225,21 +2225,21 @@ absl::StatusOr<FormatInfo*> InstructionSetVisitor::ParseFormatExpression(
     pos = skip_space(expr, pos);
     if (expr[pos] != ')') {
       delete format_info;
-      return absl::InternalError(
-          absl::StrCat("Malformed expression - expected ')' '", expr, "'"));
+      return ::absl::InternalError(
+          ::absl::StrCat("Malformed expression - expected ')' '", expr, "'"));
     }
     pos++;
     pos = skip_space(expr, pos);
     if (pos != std::string::npos) {
       delete format_info;
-      return absl::InternalError(absl::StrCat(
+      return ::absl::InternalError(::absl::StrCat(
           "Malformed expression - extra characters after ')' '", expr, "'"));
     }
   }
   return format_info;
 }
 
-absl::StatusOr<std::string> InstructionSetVisitor::ParseNumberFormat(
+::absl::StatusOr<std::string> InstructionSetVisitor::ParseNumberFormat(
     std::string format) {
   std::string::size_type pos = 0;
   std::string format_string = "%";
@@ -2252,8 +2252,8 @@ absl::StatusOr<std::string> InstructionSetVisitor::ParseNumberFormat(
   // If there's a leading zero, there has to be a width. Signal error
   // otherwise.
   if (leading_zero && !std::isdigit(format[pos])) {
-    return absl::InternalError(
-        absl::StrCat("Format width required when a leading 0 is specified - '",
+    return ::absl::InternalError(
+        ::absl::StrCat("Format width required when a leading 0 is specified - '",
                      format.substr(0, pos + 1), "'"));
   }
   // Read the format width. It's an error if it's three digits, otherwise,
@@ -2263,8 +2263,8 @@ absl::StatusOr<std::string> InstructionSetVisitor::ParseNumberFormat(
     if (std::isdigit(format[pos])) {
       number.push_back(format[pos++]);
       if (std::isdigit(format[pos])) {
-        return absl::InternalError(
-            absl::StrCat("Format width > than 3 digits not allowed '",
+        return ::absl::InternalError(
+            ::absl::StrCat("Format width > than 3 digits not allowed '",
                          format.substr(0, pos + 1), "'"));
       }
     }
@@ -2273,14 +2273,14 @@ absl::StatusOr<std::string> InstructionSetVisitor::ParseNumberFormat(
   // Read the number base.
   if ((format[pos] != 'o') && (format[pos] != 'd') && (format[pos] != 'x') &&
       (format[pos] != 'X')) {
-    return absl::InternalError(
-        absl::StrCat("Illegal format specifier '", std::string(1, format[pos]),
+    return ::absl::InternalError(
+        ::absl::StrCat("Illegal format specifier '", std::string(1, format[pos]),
                      "' in '", format.substr(0, pos + 1), "'"));
   }
   format_string.push_back(format[pos++]);
   if (pos < format.size()) {
-    return absl::InternalError(
-        absl::StrCat("Too many characters in format specifier '", format, "'"));
+    return ::absl::InternalError(
+        ::absl::StrCat("Too many characters in format specifier '", format, "'"));
   }
   return format_string;
 }
@@ -2288,11 +2288,11 @@ absl::StatusOr<std::string> InstructionSetVisitor::ParseNumberFormat(
 // The following methods are used to generate the prologs and epilogs in the
 // emitted files.
 std::string InstructionSetVisitor::GenerateHdrFileProlog(
-    absl::string_view file_name, absl::string_view opcode_file_name,
-    absl::string_view guard_name, absl::string_view encoding_base_name,
+    ::absl::string_view file_name, ::absl::string_view opcode_file_name,
+    ::absl::string_view guard_name, ::absl::string_view encoding_base_name,
     const std::vector<std::string>& namespaces) {
   std::string output;
-  absl::StrAppend(&output, "#ifndef ", guard_name,
+  ::absl::StrAppend(&output, "#ifndef ", guard_name,
                   "\n"
                   "#define ",
                   guard_name,
@@ -2311,9 +2311,9 @@ std::string InstructionSetVisitor::GenerateHdrFileProlog(
                   "\n");
 
   for (const auto& namespace_name : namespaces) {
-    absl::StrAppend(&output, "namespace ", namespace_name, " {\n");
+    ::absl::StrAppend(&output, "namespace ", namespace_name, " {\n");
   }
-  absl::StrAppend(
+  ::absl::StrAppend(
       &output,
       "\n"
       "using ::mpact::sim::generic::Instruction;\n"
@@ -2327,11 +2327,11 @@ std::string InstructionSetVisitor::GenerateHdrFileProlog(
       "using SimpleResourceVector = std::vector<SimpleResourceEnum>;\n"
       "\n");
   // Emit encoding base class.
-  absl::StrAppend(&output, "class ", encoding_base_name, " {\n public:\n");
-  absl::StrAppend(&output, "  virtual ~", encoding_base_name,
+  ::absl::StrAppend(&output, "class ", encoding_base_name, " {\n public:\n");
+  ::absl::StrAppend(&output, "  virtual ~", encoding_base_name,
                   "() = default;\n\n");
   // Get opcode method.
-  absl::StrAppend(
+  ::absl::StrAppend(
       &output,
       "  virtual OpcodeEnum GetOpcode(SlotEnum slot, int entry) = 0;\n");
   std::string optional_instruction;
@@ -2339,19 +2339,19 @@ std::string InstructionSetVisitor::GenerateHdrFileProlog(
     optional_instruction = "Instruction *inst, ";
   }
   // Get resource methods.
-  absl::StrAppend(
+  ::absl::StrAppend(
       &output, "  virtual ResourceOperandInterface *GetSimpleResourceOperand",
       "(", optional_instruction,
       "SlotEnum slot, int entry, OpcodeEnum opcode, SimpleResourceVector "
       "&resource_vec, int end) { return nullptr;}\n");
-  absl::StrAppend(
+  ::absl::StrAppend(
       &output,
       "  virtual ResourceOperandInterface * "
       "GetComplexResourceOperand",
       "(", optional_instruction,
       "SlotEnum slot, int entry, OpcodeEnum opcode, ComplexResourceEnum "
       "resource_op, int begin, int end) { return nullptr; }\n");
-  absl::StrAppend(
+  ::absl::StrAppend(
       &output,
       "  virtual std::vector<ResourceOperandInterface *> "
       "GetComplexResourceOperands",
@@ -2360,33 +2360,33 @@ std::string InstructionSetVisitor::GenerateHdrFileProlog(
       "resource_op, int begin, int end) { return {}; }\n");
   // For each operand type, declare the pure virtual method that returns the
   // given operand.
-  absl::StrAppend(&output,
+  ::absl::StrAppend(&output,
                   "  virtual PredicateOperandInterface *GetPredicate"
                   "(",
                   optional_instruction,
                   "SlotEnum slot, int entry, OpcodeEnum opcode, PredOpEnum "
                   "pred_op) { return nullptr; }\n");
-  absl::StrAppend(&output,
+  ::absl::StrAppend(&output,
                   "  virtual SourceOperandInterface *GetSource"
                   "(",
                   optional_instruction,
                   "SlotEnum slot, int entry, OpcodeEnum opcode, SourceOpEnum "
                   "source_op, int source_no) { return nullptr;}\n");
-  absl::StrAppend(
+  ::absl::StrAppend(
       &output,
       "  virtual std::vector<SourceOperandInterface *> GetSources"
       "(",
       optional_instruction,
       "SlotEnum slot, int entry, OpcodeEnum opcode, ListSourceOpEnum "
       "list_source_op, int source_no) { return {};}\n");
-  absl::StrAppend(&output,
+  ::absl::StrAppend(&output,
                   "  virtual DestinationOperandInterface *GetDestination"
                   "(",
                   optional_instruction,
                   "SlotEnum slot, int entry, OpcodeEnum opcode, "
                   "DestOpEnum list_dest_op, int dest_no, int latency)"
                   " { return nullptr; }\n");
-  absl::StrAppend(
+  ::absl::StrAppend(
       &output,
       "  virtual std::vector<DestinationOperandInterface *> GetDestinations"
       "(",
@@ -2396,7 +2396,7 @@ std::string InstructionSetVisitor::GenerateHdrFileProlog(
       " { return {}; };\n");
   // Destination operand latency getter for destination operands with '*'
   // as latency.
-  absl::StrAppend(
+  ::absl::StrAppend(
       &output, "  virtual int GetLatency(", optional_instruction,
       "SlotEnum slot, int entry, OpcodeEnum "
       "opcode, DestOpEnum dest_op, int dest_no) { return 0; };\n",
@@ -2404,8 +2404,8 @@ std::string InstructionSetVisitor::GenerateHdrFileProlog(
       "OpcodeEnum "
       "opcode, ListDestOpEnum dest_op, int dest_no) { return {0}; }\n");
 
-  absl::StrAppend(&output, "};\n\n");
-  absl::StrAppend(&output,
+  ::absl::StrAppend(&output, "};\n\n");
+  ::absl::StrAppend(&output,
                   "using OperandSetter = "
                   "std::vector<void (*)(Instruction *, ",
                   encoding_base_name,
@@ -2430,12 +2430,12 @@ std::string InstructionSetVisitor::GenerateHdrFileProlog(
 
 std::tuple<std::string, std::string>
 InstructionSetVisitor::GenerateEncFilePrologs(
-    absl::string_view file_name, absl::string_view guard_name,
-    absl::string_view opcode_file_name, absl::string_view encoding_type_name,
+    ::absl::string_view file_name, ::absl::string_view guard_name,
+    ::absl::string_view opcode_file_name, ::absl::string_view encoding_type_name,
     const std::vector<std::string>& namespaces) {
   std::string h_output;
   std::string cc_output;
-  absl::StrAppend(&h_output, "#ifndef ", guard_name,
+  ::absl::StrAppend(&h_output, "#ifndef ", guard_name,
                   "\n"
                   "#define ",
                   guard_name,
@@ -2458,7 +2458,7 @@ InstructionSetVisitor::GenerateEncFilePrologs(
                   opcode_file_name,
                   "\"\n"
                   "\n");
-  absl::StrAppend(&cc_output, "#include \"", file_name,
+  ::absl::StrAppend(&cc_output, "#include \"", file_name,
                   "\"\n"
                   "\n"
                   "#include <array>\n"
@@ -2469,6 +2469,8 @@ InstructionSetVisitor::GenerateEncFilePrologs(
                   "#include \"absl/status/statusor.h\"\n"
                   "#include \"absl/strings/str_cat.h\"\n"
                   "#include \"absl/strings/string_view.h\"\n"
+                  "#include <stdexcept>\n"
+                  "#include \"absl/strings/match.h\"\n"
                   "#include "
                   "\"mpact/sim/util/asm/opcode_assembler_interface.h\"\n"
                   "#include \"mpact/sim/util/asm/resolver_interface.h\"\n"
@@ -2479,7 +2481,7 @@ InstructionSetVisitor::GenerateEncFilePrologs(
                   "\"\n"
                   "\n");
 
-  absl::StrAppend(&h_output,
+  ::absl::StrAppend(&h_output,
       "#ifndef CORALNPU_SIM_INSTRUCTION_AST_DEFINED\n"
       "#define CORALNPU_SIM_INSTRUCTION_AST_DEFINED\n"
       "namespace coralnpu::sim {\n"
@@ -2499,55 +2501,55 @@ InstructionSetVisitor::GenerateEncFilePrologs(
       "#endif\n"
       "\n");
   for (const auto& namespace_name : namespaces) {
-    absl::StrAppend(&h_output, "namespace ", namespace_name, " {\n");
-    absl::StrAppend(&cc_output, "namespace ", namespace_name, " {\n");
+    ::absl::StrAppend(&h_output, "namespace ", namespace_name, " {\n");
+    ::absl::StrAppend(&cc_output, "namespace ", namespace_name, " {\n");
   }
-  absl::StrAppend(&h_output, "\n");
-  absl::StrAppend(&cc_output, "\n");
+  ::absl::StrAppend(&h_output, "\n");
+  ::absl::StrAppend(&cc_output, "\n");
   return {h_output, cc_output};
 }
 
 std::string InstructionSetVisitor::GenerateHdrFileEpilog(
-    absl::string_view guard_name, const std::vector<std::string>& namespaces) {
+    ::absl::string_view guard_name, const std::vector<std::string>& namespaces) {
   std::string output;
-  absl::StrAppend(&output, GenerateNamespaceEpilog(namespaces));
-  absl::StrAppend(&output, "\n#endif  // ", guard_name, "\n");
+  ::absl::StrAppend(&output, GenerateNamespaceEpilog(namespaces));
+  ::absl::StrAppend(&output, "\n#endif  // ", guard_name, "\n");
   return output;
 }
 
 std::string InstructionSetVisitor::GenerateCcFileProlog(
-    absl::string_view hdr_file_name, bool use_includes,
+    ::absl::string_view hdr_file_name, bool use_includes,
     const std::vector<std::string>& namespaces) {
   std::string output;
   // Include files.
-  absl::StrAppend(&output, "#include \"", hdr_file_name, "\"\n");
-  absl::StrAppend(&output,
+  ::absl::StrAppend(&output, "#include \"", hdr_file_name, "\"\n");
+  ::absl::StrAppend(&output,
                   "\n#include <array>\n\n"
                   "#include \"absl/strings/str_format.h\"\n\n");
   if (use_includes) {
     for (auto& include_file : include_files_) {
-      absl::StrAppend(&output, "#include ", include_file, "\n");
+      ::absl::StrAppend(&output, "#include ", include_file, "\n");
     }
   }
-  absl::StrAppend(&output, "\n");
+  ::absl::StrAppend(&output, "\n");
   // Namespaces.
   for (const auto& namespace_name : namespaces) {
-    absl::StrAppend(&output, "namespace ", namespace_name, " {\n");
+    ::absl::StrAppend(&output, "namespace ", namespace_name, " {\n");
   }
-  absl::StrAppend(&output, "\n");
+  ::absl::StrAppend(&output, "\n");
   return output;
 }
 
 std::string InstructionSetVisitor::GenerateSimpleHdrProlog(
-    absl::string_view guard_name, const std::vector<std::string>& namespaces) {
+    ::absl::string_view guard_name, const std::vector<std::string>& namespaces) {
   std::string output;
-  absl::StrAppend(&output, "#ifndef ", guard_name, "\n#define ", guard_name,
+  ::absl::StrAppend(&output, "#ifndef ", guard_name, "\n#define ", guard_name,
                   "\n\n");
 
   for (const auto& namespace_name : namespaces) {
-    absl::StrAppend(&output, "namespace ", namespace_name, " {\n");
+    ::absl::StrAppend(&output, "namespace ", namespace_name, " {\n");
   }
-  absl::StrAppend(&output, "\n");
+  ::absl::StrAppend(&output, "\n");
   return output;
 }
 
@@ -2555,27 +2557,27 @@ std::string InstructionSetVisitor::GenerateNamespaceEpilog(
     const std::vector<std::string>& namespaces) {
   std::string output;
   // Close up namespaces.
-  absl::StrAppend(&output, "\n");
+  ::absl::StrAppend(&output, "\n");
   for (auto namespace_name = namespaces.crbegin();
        namespace_name != namespaces.crend(); ++namespace_name) {
-    absl::StrAppend(&output, "}  // namespace ", *namespace_name, "\n");
+    ::absl::StrAppend(&output, "}  // namespace ", *namespace_name, "\n");
   }
   return output;
 }
 
-absl::Status InstructionSetVisitor::AddConstant(absl::string_view name,
-                                                absl::string_view,
+::absl::Status InstructionSetVisitor::AddConstant(::absl::string_view name,
+                                                ::absl::string_view,
                                                 TemplateExpression* expr) {
   if (constant_map_.contains(name)) {
-    return absl::AlreadyExistsError(
-        absl::StrCat("Constant redefinition of '", name, "'"));
+    return ::absl::AlreadyExistsError(
+        ::absl::StrCat("Constant redefinition of '", name, "'"));
   }
   constant_map_.emplace(name, expr);
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
 TemplateExpression* InstructionSetVisitor::GetConstExpression(
-    absl::string_view name) const {
+    ::absl::string_view name) const {
   auto iter = constant_map_.find(name);
   if (iter == constant_map_.end()) return nullptr;
   return iter->second;

@@ -141,10 +141,10 @@ BinFormatVisitor::~BinFormatVisitor() {
 
 using ::mpact::sim::machine_description::instruction_set::ToHeaderGuard;
 
-absl::Status BinFormatVisitor::Process(
+::absl::Status BinFormatVisitor::Process(
     const std::vector<std::string>& file_names, const std::string& decoder_name,
-    absl::string_view prefix, const std::vector<std::string>& include_roots,
-    absl::string_view directory) {
+    ::absl::string_view prefix, const std::vector<std::string>& include_roots,
+    ::absl::string_view directory) {
   decoder_name_ = decoder_name;
 
   include_dir_vec_.push_back(".");
@@ -188,7 +188,7 @@ absl::Status BinFormatVisitor::Process(
   }
 
   if (error_listener_->HasError() > 0) {
-    return absl::InternalError("Errors encountered - terminating.");
+    return ::absl::InternalError("Errors encountered - terminating.");
   }
   // Visit the parse tree starting at the namespaces declaration.
   PreProcessDeclarations(top_level->declaration_list());
@@ -210,29 +210,29 @@ absl::Status BinFormatVisitor::Process(
   // Include files may generate additional syntax errors.
   if (encoding_info == nullptr) {
     LOG(ERROR) << "No encoding specified";
-    return absl::InternalError("No encoding specified");
+    return ::absl::InternalError("No encoding specified");
   }
   PerformEncodingChecks(encoding_info.get());
   // Fail if there are errors.
   if (error_listener_->HasError() > 0) {
-    return absl::InternalError("Errors encountered - terminating.");
+    return ::absl::InternalError("Errors encountered - terminating.");
   }
   // Process specializations.
   ProcessSpecializations(encoding_info.get());
 
   // Create output streams for .h and .cc files.
-  std::string dec_dot_h_name = absl::StrCat(prefix, "_bin_decoder.h");
-  std::string dec_dot_cc_name = absl::StrCat(prefix, "_bin_decoder.cc");
-  std::string enc_dot_h_name = absl::StrCat(prefix, "_bin_encoder.h");
-  std::string enc_dot_cc_name = absl::StrCat(prefix, "_bin_encoder.cc");
-  std::string enum_dot_h_name = absl::StrCat(prefix, "_enums.h");
-  std::string types_dot_h_name = absl::StrCat(prefix, "_bin_types.h");
-  std::ofstream dec_dot_h_file(absl::StrCat(directory, "/", dec_dot_h_name));
-  std::ofstream dec_dot_cc_file(absl::StrCat(directory, "/", dec_dot_cc_name));
-  std::ofstream enc_dot_h_file(absl::StrCat(directory, "/", enc_dot_h_name));
-  std::ofstream enc_dot_cc_file(absl::StrCat(directory, "/", enc_dot_cc_name));
+  std::string dec_dot_h_name = ::absl::StrCat(prefix, "_bin_decoder.h");
+  std::string dec_dot_cc_name = ::absl::StrCat(prefix, "_bin_decoder.cc");
+  std::string enc_dot_h_name = ::absl::StrCat(prefix, "_bin_encoder.h");
+  std::string enc_dot_cc_name = ::absl::StrCat(prefix, "_bin_encoder.cc");
+  std::string enum_dot_h_name = ::absl::StrCat(prefix, "_enums.h");
+  std::string types_dot_h_name = ::absl::StrCat(prefix, "_bin_types.h");
+  std::ofstream dec_dot_h_file(::absl::StrCat(directory, "/", dec_dot_h_name));
+  std::ofstream dec_dot_cc_file(::absl::StrCat(directory, "/", dec_dot_cc_name));
+  std::ofstream enc_dot_h_file(::absl::StrCat(directory, "/", enc_dot_h_name));
+  std::ofstream enc_dot_cc_file(::absl::StrCat(directory, "/", enc_dot_cc_name));
   std::ofstream types_dot_h_file(
-      absl::StrCat(directory, "/", types_dot_h_name));
+      ::absl::StrCat(directory, "/", types_dot_h_name));
 
   auto [dec_h_output, dec_cc_output, types_h_output] = EmitDecoderFilePrefix(
       dec_dot_h_name, types_dot_h_name, encoding_info.get());
@@ -267,7 +267,7 @@ absl::Status BinFormatVisitor::Process(
   dec_dot_cc_file.close();
   enc_dot_h_file.close();
   enc_dot_cc_file.close();
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
 void BinFormatVisitor::PerformEncodingChecks(BinEncodingInfo* encoding) {
@@ -282,7 +282,7 @@ BinFormatVisitor::StringTriple BinFormatVisitor::EmitDecoderFilePrefix(
   std::string types_string;
 
   std::string guard_name = ToHeaderGuard(dot_h_name);
-  absl::StrAppend(&h_string, "#ifndef ", guard_name,
+  ::absl::StrAppend(&h_string, "#ifndef ", guard_name,
                   "\n"
                   "#define ",
                   guard_name,
@@ -298,7 +298,7 @@ BinFormatVisitor::StringTriple BinFormatVisitor::EmitDecoderFilePrefix(
                   "\"\n"
                   "\n\n");
   std::string types_guard_name = ToHeaderGuard(types_dot_h_name);
-  absl::StrAppend(&types_string, "#ifndef ", types_guard_name,
+  ::absl::StrAppend(&types_string, "#ifndef ", types_guard_name,
                   "\n"
                   "#define ",
                   types_guard_name,
@@ -308,33 +308,33 @@ BinFormatVisitor::StringTriple BinFormatVisitor::EmitDecoderFilePrefix(
                   "#include <cstdint>\n"
                   "\n");
   for (auto const& include_file : encoding_info->include_files()) {
-    absl::StrAppend(&h_string, "#include ", include_file, "\n");
+    ::absl::StrAppend(&h_string, "#include ", include_file, "\n");
   }
-  absl::StrAppend(&h_string, "\n");
-  absl::StrAppend(&cc_string, "#include \"", dot_h_name,
+  ::absl::StrAppend(&h_string, "\n");
+  ::absl::StrAppend(&cc_string, "#include \"", dot_h_name,
                   "\"\n"
                   "#include \"",
                   types_dot_h_name, "\"\n\n");
   for (auto& name_space : encoding_info->decoder()->namespaces()) {
-    auto name_space_str = absl::StrCat("namespace ", name_space, " {\n");
-    absl::StrAppend(&h_string, name_space_str);
-    absl::StrAppend(&cc_string, name_space_str);
-    absl::StrAppend(&types_string, name_space_str);
+    auto name_space_str = ::absl::StrCat("namespace ", name_space, " {\n");
+    ::absl::StrAppend(&h_string, name_space_str);
+    ::absl::StrAppend(&cc_string, name_space_str);
+    ::absl::StrAppend(&types_string, name_space_str);
   }
-  absl::StrAppend(&h_string, "\n");
-  absl::StrAppend(&cc_string, "\n");
+  ::absl::StrAppend(&h_string, "\n");
+  ::absl::StrAppend(&cc_string, "\n");
   // Write out the templated extractor function used by the other methods.
-  absl::StrAppend(&h_string, kTemplatedExtractBits);
+  ::absl::StrAppend(&h_string, kTemplatedExtractBits);
   // Write out the instruction format enum.
-  absl::StrAppend(&h_string,
+  ::absl::StrAppend(&h_string,
                   "\n"
                   "enum class FormatEnum {\n"
                   "  kNone = 0,\n");
   int i = 1;
   for (auto& [name, unused] : encoding_info->format_map()) {
-    absl::StrAppend(&h_string, "  k", ToPascalCase(name), " = ", i++, ",\n");
+    ::absl::StrAppend(&h_string, "  k", ToPascalCase(name), " = ", i++, ",\n");
   }
-  absl::StrAppend(&h_string, "};\n\n");
+  ::absl::StrAppend(&h_string, "};\n\n");
   return {h_string, cc_string, types_string};
 }
 
@@ -345,21 +345,21 @@ BinFormatVisitor::StringTriple BinFormatVisitor::EmitFileSuffix(
   std::string cc_string;
   std::string types_string;
 
-  absl::StrAppend(&h_string, "\n");
-  absl::StrAppend(&cc_string, "\n");
-  if (!types_dot_h_name.empty()) absl::StrAppend(&types_string, "\n");
+  ::absl::StrAppend(&h_string, "\n");
+  ::absl::StrAppend(&cc_string, "\n");
+  if (!types_dot_h_name.empty()) ::absl::StrAppend(&types_string, "\n");
   auto& namespaces = encoding_info->decoder()->namespaces();
   for (auto rptr = namespaces.rbegin(); rptr != namespaces.rend(); rptr++) {
-    std::string name_space = absl::StrCat("}  // namespace ", *rptr, "\n");
-    absl::StrAppend(&h_string, name_space);
-    absl::StrAppend(&cc_string, name_space);
-    if (!types_dot_h_name.empty()) absl::StrAppend(&types_string, name_space);
+    std::string name_space = ::absl::StrCat("}  // namespace ", *rptr, "\n");
+    ::absl::StrAppend(&h_string, name_space);
+    ::absl::StrAppend(&cc_string, name_space);
+    if (!types_dot_h_name.empty()) ::absl::StrAppend(&types_string, name_space);
   }
   std::string guard_name = ToHeaderGuard(dot_h_name);
-  absl::StrAppend(&h_string, "\n#endif // ", guard_name);
+  ::absl::StrAppend(&h_string, "\n#endif // ", guard_name);
   if (!types_dot_h_name.empty()) {
     std::string types_guard_name = ToHeaderGuard(types_dot_h_name);
-    absl::StrAppend(&types_string, "\n#endif // ", types_guard_name);
+    ::absl::StrAppend(&types_string, "\n#endif // ", types_guard_name);
   }
   return {h_string, cc_string, types_string};
 }
@@ -371,26 +371,26 @@ BinFormatVisitor::StringTriple BinFormatVisitor::EmitDecoderCode(
   std::string group_string;
   std::string extractor_types;
   std::string extractor_class =
-      absl::StrCat("class Extractors {\n", "public: \n");
+      ::absl::StrCat("class Extractors {\n", "public: \n");
   // Write out the inline functions for bitfield and overlay extractions.
   for (auto& [unused, format_ptr] : encoding->format_map()) {
     auto extractors = format_ptr->GenerateExtractors();
-    absl::StrAppend(&h_string, extractors.h_output);
-    absl::StrAppend(&extractor_class, extractors.class_output);
-    absl::StrAppend(&extractor_types, extractors.types_output);
+    ::absl::StrAppend(&h_string, extractors.h_output);
+    ::absl::StrAppend(&extractor_class, extractors.class_output);
+    ::absl::StrAppend(&extractor_types, extractors.types_output);
   }
-  absl::StrAppend(&h_string, extractor_class, "};\n\n");
+  ::absl::StrAppend(&h_string, extractor_class, "};\n\n");
   auto* decoder = encoding->decoder();
   // Generate the code for decoders.
   for (auto* group : decoder->instruction_group_vec()) {
     auto [h_decoder, cc_decoder] = group->EmitDecoderCode();
-    absl::StrAppend(&h_string, h_decoder);
-    absl::StrAppend(&cc_string, cc_decoder);
+    ::absl::StrAppend(&h_string, h_decoder);
+    ::absl::StrAppend(&cc_string, cc_decoder);
     // Write out some summary information about the instruction encodings.
     // Useful for now to ensure that the info is correct.
-    absl::StrAppend(&group_string, group->WriteGroup());
+    ::absl::StrAppend(&group_string, group->WriteGroup());
   }
-  absl::StrAppend(&h_string, group_string);
+  ::absl::StrAppend(&h_string, group_string);
   return {h_string, cc_string, extractor_types};
 }
 
@@ -401,7 +401,7 @@ std::tuple<std::string, std::string> BinFormatVisitor::EmitEncoderFilePrefix(
   std::string cc_string;
 
   std::string guard_name = ToHeaderGuard(dot_h_name);
-  absl::StrAppend(&h_string, "#ifndef ", guard_name,
+  ::absl::StrAppend(&h_string, "#ifndef ", guard_name,
                   "\n"
                   "#define ",
                   guard_name,
@@ -417,7 +417,7 @@ std::tuple<std::string, std::string> BinFormatVisitor::EmitEncoderFilePrefix(
                   "\"\n"
                   "#include \"",
                   types_dot_h_name, "\"\n\n");
-  absl::StrAppend(&cc_string, "#include \"", dot_h_name,
+  ::absl::StrAppend(&cc_string, "#include \"", dot_h_name,
                   "\"\n\n"
                   "#include <cstdint>\n\n"
                   "#include \"absl/base/no_destructor.h\"\n"
@@ -428,13 +428,13 @@ std::tuple<std::string, std::string> BinFormatVisitor::EmitEncoderFilePrefix(
                   "#include \"",
                   types_dot_h_name, "\"\n\n");
   for (auto& name_space : encoding_info->decoder()->namespaces()) {
-    auto name_space_str = absl::StrCat("namespace ", name_space, " {\n");
-    absl::StrAppend(&cc_string, name_space_str);
-    absl::StrAppend(&h_string, name_space_str);
+    auto name_space_str = ::absl::StrCat("namespace ", name_space, " {\n");
+    ::absl::StrAppend(&cc_string, name_space_str);
+    ::absl::StrAppend(&h_string, name_space_str);
   }
   // Write out the templated extractor function used by the other methods.
-  absl::StrAppend(&h_string, "\n", kTemplatedInsertBits, "\n");
-  absl::StrAppend(&cc_string, "\n");
+  ::absl::StrAppend(&h_string, "\n", kTemplatedInsertBits, "\n");
+  ::absl::StrAppend(&cc_string, "\n");
   return std::tie(h_string, cc_string);
 }
 
@@ -443,34 +443,34 @@ std::tuple<std::string, std::string> BinFormatVisitor::EmitEncoderCode(
   std::string h_string;
   std::string cc_string;
   // Write out the inline functions for bitfield and overlay encoding.
-  absl::StrAppend(&h_string, "struct Encoder {\n\n");
+  ::absl::StrAppend(&h_string, "struct Encoder {\n\n");
   for (auto& [unused, format_ptr] : encoding->format_map()) {
     auto functions = format_ptr->GenerateInserters();
-    absl::StrAppend(&h_string, functions);
+    ::absl::StrAppend(&h_string, functions);
   }
-  absl::StrAppend(&h_string, "};  // struct Encoder\n\n");
+  ::absl::StrAppend(&h_string, "};  // struct Encoder\n\n");
   auto* decoder = encoding->decoder();
   // Generate the code for decoders.
-  absl::btree_map<std::string, std::tuple<uint64_t, int>> encodings;
+  ::absl::btree_map<std::string, std::tuple<uint64_t, int>> encodings;
   for (auto* group : decoder->instruction_group_vec()) {
     group->GetInstructionEncodings(encodings);
   }
   std::string opcode_enum = encoding->opcode_enum();
-  absl::StrAppend(&h_string, "extern absl::NoDestructor<absl::flat_hash_map<",
+  ::absl::StrAppend(&h_string, "extern ::absl::NoDestructor<::absl::flat_hash_map<",
                   opcode_enum,
                   ", std::tuple<uint64_t, int>>> kOpcodeEncodings;\n");
-  absl::StrAppend(&cc_string, "absl::NoDestructor<absl::flat_hash_map<",
+  ::absl::StrAppend(&cc_string, "::absl::NoDestructor<::absl::flat_hash_map<",
                   opcode_enum,
                   ", std::tuple<uint64_t, int>>> kOpcodeEncodings({\n");
-  absl::StrAppend(&cc_string, "  {", opcode_enum, "::kNone, {0x0ULL, 0}},\n");
+  ::absl::StrAppend(&cc_string, "  {", opcode_enum, "::kNone, {0x0ULL, 0}},\n");
   for (auto& [name, pair] : encodings) {
     auto [value, width] = pair;
     std::string enum_name =
-        absl::StrCat(opcode_enum, "::k", ToPascalCase(name));
-    absl::StrAppend(&cc_string, "  {", enum_name, ", {0x", absl::Hex(value),
+        ::absl::StrCat(opcode_enum, "::k", ToPascalCase(name));
+    ::absl::StrAppend(&cc_string, "  {", enum_name, ", {0x", ::absl::Hex(value),
                     "ULL, ", width, "}},\n");
   }
-  absl::StrAppend(&cc_string, "});\n");
+  ::absl::StrAppend(&cc_string, "});\n");
   return std::tie(h_string, cc_string);
 }
 
@@ -529,7 +529,7 @@ std::unique_ptr<BinEncodingInfo> BinFormatVisitor::ProcessTopLevel(
   auto decoder_iter = decoder_decl_map_.find(decoder_name);
   if (decoder_iter == decoder_decl_map_.end()) {
     error_listener()->semanticError(
-        nullptr, absl::StrCat("No decoder '", decoder_name, "' declared"));
+        nullptr, ::absl::StrCat("No decoder '", decoder_name, "' declared"));
     return nullptr;
   }
   // Visit the decoder.
@@ -538,7 +538,7 @@ std::unique_ptr<BinEncodingInfo> BinFormatVisitor::ProcessTopLevel(
   // Formats are visited lazily, so only those "reachable" from the decoder
   // will have been visited. Build a multi-map from referenced format to parent
   // format.
-  absl::btree_multimap<std::string, std::string> reference_map;
+  ::absl::btree_multimap<std::string, std::string> reference_map;
   for (auto& [format_name, ctx_ptr] : format_decl_map_) {
     // Skip those that have already been visited.
     if (bin_encoding_info->GetFormat(format_name) != nullptr) continue;
@@ -582,7 +582,7 @@ void BinFormatVisitor::PreProcessDeclarations(DeclarationListCtx* ctx) {
       auto iter = format_decl_map_.find(name);
       if (iter != format_decl_map_.end()) {
         error_listener()->semanticError(
-            format_def->start, absl::StrCat("Multiple definitions of format '",
+            format_def->start, ::absl::StrCat("Multiple definitions of format '",
                                             name, "' first defined at line: ",
                                             iter->second->start->getLine()));
         continue;
@@ -599,7 +599,7 @@ void BinFormatVisitor::PreProcessDeclarations(DeclarationListCtx* ctx) {
       if (iter != group_decl_map_.end()) {
         error_listener()->semanticError(
             group_def->start,
-            absl::StrCat(
+            ::absl::StrCat(
                 "Multiple definitions of instruction group '", name,
                 "' first defined at line: ", iter->second->start->getLine()));
         continue;
@@ -617,7 +617,7 @@ void BinFormatVisitor::PreProcessDeclarations(DeclarationListCtx* ctx) {
     auto iter = decoder_decl_map_.find(name);
     if (iter != decoder_decl_map_.end()) {
       error_listener()->semanticError(
-          decoder_def->start, absl::StrCat("Multiple definitions of decoder '",
+          decoder_def->start, ::absl::StrCat("Multiple definitions of decoder '",
                                            name, "' first defined at line: ",
                                            iter->second->start->getLine()));
       continue;
@@ -638,7 +638,7 @@ void BinFormatVisitor::VisitIncludeFile(IncludeFileCtx* ctx) {
   for (auto const& name : include_file_stack_) {
     if (name == file_name) {
       error_listener()->semanticError(
-          ctx->start, absl::StrCat("Recursive include of '", file_name, "'"));
+          ctx->start, ::absl::StrCat("Recursive include of '", file_name, "'"));
       return;
     }
   }
@@ -653,7 +653,7 @@ void BinFormatVisitor::ParseIncludeFile(antlr4::ParserRuleContext* ctx,
   // Try each of the include file directories.
   std::string include_name;
   for (auto const& dir : dirs) {
-    include_name = absl::StrCat(dir, "/", file_name);
+    include_name = ::absl::StrCat(dir, "/", file_name);
     include_file.open(include_name, std::fstream::in);
     if (include_file.is_open()) break;
   }
@@ -663,7 +663,7 @@ void BinFormatVisitor::ParseIncludeFile(antlr4::ParserRuleContext* ctx,
     include_file.open(include_name, std::fstream::in);
     if (!include_file.is_open()) {
       error_listener()->semanticError(
-          ctx->start, absl::StrCat("Failed to open '", file_name, "'"));
+          ctx->start, ::absl::StrCat("Failed to open '", file_name, "'"));
       return;
     }
   }
@@ -728,11 +728,11 @@ void BinFormatVisitor::VisitFormatDef(FormatDefCtx* ctx,
     // a width.
     error_listener_->semanticError(
         file_names_[context_file_map_.at(ctx)], ctx->start,
-        absl::StrCat("Format '", format_name,
+        ::absl::StrCat("Format '", format_name,
                      "': must specify a width or inherited format"));
     return;
   }
-  absl::StatusOr<Format*> format_res;
+  ::absl::StatusOr<Format*> format_res;
   if (ctx->inherits_from() != nullptr) {
     std::string parent_name = ctx->inherits_from()->IDENT()->getText();
     auto* parent_format = encoding_info->GetFormat(parent_name);
@@ -746,7 +746,7 @@ void BinFormatVisitor::VisitFormatDef(FormatDefCtx* ctx,
     if (parent_format == nullptr) {
       error_listener_->semanticError(
           file_names_[context_file_map_.at(ctx)], ctx->inherits_from()->start,
-          absl::StrCat("Parent format '", parent_name, "' not defined"));
+          ::absl::StrCat("Parent format '", parent_name, "' not defined"));
       return;
     } else {
       int parent_width = parent_format->declared_width();
@@ -754,7 +754,7 @@ void BinFormatVisitor::VisitFormatDef(FormatDefCtx* ctx,
         error_listener_->semanticError(
             file_names_[context_file_map_.at(format_decl_map_.at(parent_name))],
             ctx->inherits_from()->start,
-            absl::StrCat("Format '", format_name, "' declared width (",
+            ::absl::StrCat("Format '", format_name, "' declared width (",
                          format_width, ") differs from width inherited from '",
                          parent_name, "' (", parent_width, ")"));
         return;
@@ -881,7 +881,7 @@ void BinFormatVisitor::VisitOverlayDef(OverlayDefCtx* ctx, Format* format) {
   if (overlay->computed_width() != overlay->declared_width()) {
     error_listener_->semanticError(
         file_names_[context_file_map_.at(ctx)], ctx->start,
-        absl::StrCat("Declared width (", overlay->declared_width(),
+        ::absl::StrCat("Declared width (", overlay->declared_width(),
                      ") differs from computed width (",
                      overlay->computed_width(), ")"));
   }
@@ -942,7 +942,7 @@ InstructionGroup* BinFormatVisitor::VisitInstructionGroupDef(
   if (format_iter != format_decl_map_.end()) {
     error_listener_->semanticError(
         file_names_[context_file_map_.at(ctx)], ctx->start,
-        absl::StrCat(group_name, ": illegal use of format name"));
+        ::absl::StrCat(group_name, ": illegal use of format name"));
   }
   // If the width is specified, this is a single instruction group with
   // format definitions.
@@ -953,7 +953,7 @@ InstructionGroup* BinFormatVisitor::VisitInstructionGroupDef(
     if (iter == format_decl_map_.end()) {
       error_listener_->semanticError(
           file_names_[context_file_map_.at(ctx)], ctx->start,
-          absl::StrCat("Undefined format '", format_name,
+          ::absl::StrCat("Undefined format '", format_name,
                        "' used by instruction group '", group_name, "'"));
       return nullptr;
     } else {
@@ -964,7 +964,7 @@ InstructionGroup* BinFormatVisitor::VisitInstructionGroupDef(
         error_listener_->semanticError(
             file_names_[context_file_map_.at(format_decl_map_.at(format_name))],
             ctx->start,
-            absl::StrCat("Width of format '", format_name, "' (",
+            ::absl::StrCat("Width of format '", format_name, "' (",
                          format->declared_width(),
                          ") differs from the declared width of instruction "
                          "group '",
@@ -974,7 +974,7 @@ InstructionGroup* BinFormatVisitor::VisitInstructionGroupDef(
         error_listener_->semanticError(
             file_names_[context_file_map_.at(format_decl_map_.at(format_name))],
             ctx->start,
-            absl::StrCat("Instruction group '", group_name,
+            ::absl::StrCat("Instruction group '", group_name,
                          "': width must be <= 64 bits"));
       }
     }
@@ -996,7 +996,7 @@ InstructionGroup* BinFormatVisitor::VisitInstructionGroupDef(
     return inst_group_res.value();
   }
   // This is a group that combines multiple other instruction groups.
-  absl::flat_hash_set<std::string> group_name_set;
+  ::absl::flat_hash_set<std::string> group_name_set;
   auto file_index = context_file_map_.at(ctx);
   context_file_map_.insert({ctx->group_name_list(), file_index});
   return VisitInstructionGroupNameList(group_name, ctx->group_name_list(),
@@ -1028,7 +1028,7 @@ void BinFormatVisitor::VisitInstructionDef(InstructionDefCtx* ctx,
     if (iter == format_decl_map_.end()) {
       error_listener_->semanticError(
           file_names_[context_file_map_.at(ctx)], ctx->start,
-          absl::StrCat("Format '", format_name, "' referenced by instruction '",
+          ::absl::StrCat("Format '", format_name, "' referenced by instruction '",
                        name, "' not defined"));
     } else {
       VisitFormatDef(iter->second, inst_group->encoding_info());
@@ -1039,7 +1039,7 @@ void BinFormatVisitor::VisitInstructionDef(InstructionDefCtx* ctx,
       (format->declared_width() != inst_group->width())) {
     error_listener_->semanticError(
         file_names_[context_file_map_.at(ctx)], ctx->start,
-        absl::StrCat(
+        ::absl::StrCat(
             "Length of format '", format_name, "' (", format->declared_width(),
             ") differs from the declared width of the instruction group (",
             inst_group->width(), ")"));
@@ -1058,7 +1058,7 @@ void BinFormatVisitor::VisitInstructionDef(InstructionDefCtx* ctx,
 void BinFormatVisitor::ProcessInstructionDefGenerator(
     InstructionDefCtx* ctx, InstructionGroup* inst_group) {
   if (ctx == nullptr) return;
-  absl::flat_hash_set<std::string> range_variable_names;
+  ::absl::flat_hash_set<std::string> range_variable_names;
   std::vector<RangeAssignmentInfo*> range_info_vec;
   // Process range assignment lists. The range assignment is either a single
   // value or a structured binding assignment. If it's a binding assignment we
@@ -1073,20 +1073,20 @@ void BinFormatVisitor::ProcessInstructionDefGenerator(
       if (range_variable_names.contains(name)) {
         error_listener()->semanticError(
             file_names_[file_index], assign_ctx->start,
-            absl::StrCat("Duplicate binding variable name '", name, "'"));
+            ::absl::StrCat("Duplicate binding variable name '", name, "'"));
         continue;
       }
       range_variable_names.insert(name);
       range_info->range_names.push_back(ident_ctx->getText());
       range_info->range_values.push_back({});
       range_info->range_regexes.emplace_back(
-          absl::StrCat("\\$\\(", name, "\\)"));
+          ::absl::StrCat("\\$\\(", name, "\\)"));
       // Verify that the range variable is used in the string.
       if (!RE2::PartialMatch(ctx->generator_instruction_def_list()->getText(),
                              range_info->range_regexes.back())) {
         error_listener()->semanticWarning(
             file_names_[file_index], assign_ctx->start,
-            absl::StrCat("Unreferenced binding variable '", name, "'."));
+            ::absl::StrCat("Unreferenced binding variable '", name, "'."));
       }
     }
     // See if it's a list of simple values.
@@ -1146,7 +1146,7 @@ void BinFormatVisitor::ProcessInstructionDefGenerator(
     if (!range_variable_names.contains(ident)) {
       error_listener()->semanticError(
           file_names_[file_index], ctx->generator_instruction_def_list()->start,
-          absl::StrCat("Undefined binding variable '", ident, "'"));
+          ::absl::StrCat("Undefined binding variable '", ident, "'"));
     }
     start_pos = end_pos;
     pos = input_text.find_first_of('$', start_pos);
@@ -1197,10 +1197,10 @@ std::string BinFormatVisitor::GenerateInstructionDefList(
     // generate the cartesian product with the values of the next value range
     // substitutions.
     if (range_info_vec.size() > index + 1) {
-      absl::StrAppend(&generated, GenerateInstructionDefList(
+      ::absl::StrAppend(&generated, GenerateInstructionDefList(
                                       range_info_vec, index + 1, template_str));
     } else {
-      absl::StrAppend(&generated, template_str);
+      ::absl::StrAppend(&generated, template_str);
     }
     // If there were no replacements, then the range variables weren't used,
     // and the template string won't change for any other values in the range.
@@ -1219,7 +1219,7 @@ void BinFormatVisitor::VisitConstraint(Format* format, FieldConstraintCtx* ctx,
   // Constraints are based on field names ==/!=/>/>=/</<= to a value.
   std::string field_name = ctx->field_name->getText();
   std::string op = ctx->constraint_op()->getText();
-  absl::Status status;
+  ::absl::Status status;
   ConstraintType constraint_type = constraint_string_to_type_.at(op);
   if (ctx->rhs_field_name != nullptr) {
     std::string rhs_name = ctx->rhs_field_name->getText();
@@ -1236,14 +1236,14 @@ void BinFormatVisitor::VisitConstraint(Format* format, FieldConstraintCtx* ctx,
         if (field->width != length) {
           error_listener_->semanticWarning(
               file_names_[context_file_map_.at(ctx)], ctx->start,
-              absl::StrCat("Field '", field_name, "' has width ", field->width,
+              ::absl::StrCat("Field '", field_name, "' has width ", field->width,
                            " but constraint value is ", length, " bits"));
         }
       } else if (overlay != nullptr) {
         if (overlay->computed_width() != length) {
           error_listener_->semanticWarning(
               file_names_[context_file_map_.at(ctx)], ctx->start,
-              absl::StrCat("Overlay '", field_name, "' has width ",
+              ::absl::StrCat("Overlay '", field_name, "' has width ",
                            overlay->computed_width(),
                            " but constraint value is ", length, " bits"));
         }
@@ -1294,7 +1294,7 @@ std::unique_ptr<BinEncodingInfo> BinFormatVisitor::VisitDecoderDef(
       std::make_unique<BinEncodingInfo>(opcode_enum, error_listener_.get());
   auto* decoder = encoding_info->AddBinDecoder(name);
   if (decoder == nullptr) return nullptr;
-  absl::flat_hash_set<std::string> group_name_set;
+  ::absl::flat_hash_set<std::string> group_name_set;
   int namespace_count = 0;
   for (auto* attr_ctx : ctx->decoder_attribute()) {
     // Include files.
@@ -1329,7 +1329,7 @@ std::unique_ptr<BinEncodingInfo> BinFormatVisitor::VisitDecoderDef(
       if (group_name_set.contains(group_name)) {
         error_listener_->semanticError(
             file_names_[context_file_map_.at(ctx)], attr_ctx->start,
-            absl::StrCat("Instruction group '", group_name, "' listed twice"));
+            ::absl::StrCat("Instruction group '", group_name, "' listed twice"));
         continue;
       }
 
@@ -1347,7 +1347,7 @@ std::unique_ptr<BinEncodingInfo> BinFormatVisitor::VisitDecoderDef(
         if (inst_group == nullptr) {
           error_listener_->semanticError(
               file_names_[context_file_map_.at(ctx)], attr_ctx->start,
-              absl::StrCat("No such instruction group: '", group_name, "'"));
+              ::absl::StrCat("No such instruction group: '", group_name, "'"));
           continue;
         }
       }
@@ -1362,7 +1362,7 @@ std::unique_ptr<BinEncodingInfo> BinFormatVisitor::VisitDecoderDef(
       if (group_name_set.contains(group_name)) {
         error_listener_->semanticError(
             file_names_[context_file_map_.at(ctx)], attr_ctx->start,
-            absl::StrCat("Instruction group '", group_name, "' listed twice"));
+            ::absl::StrCat("Instruction group '", group_name, "' listed twice"));
         continue;
       }
       auto file_index = context_file_map_.at(ctx);
@@ -1388,7 +1388,7 @@ std::unique_ptr<BinEncodingInfo> BinFormatVisitor::VisitDecoderDef(
 
 InstructionGroup* BinFormatVisitor::VisitInstructionGroupNameList(
     const std::string& group_name, GroupNameListCtx* ctx,
-    absl::flat_hash_set<std::string>& group_name_set,
+    ::absl::flat_hash_set<std::string>& group_name_set,
     BinEncodingInfo* encoding_info) {
   std::vector<InstructionGroup*> child_groups;
   std::string group_format_name;
@@ -1398,7 +1398,7 @@ InstructionGroup* BinFormatVisitor::VisitInstructionGroupNameList(
     if (group_name_set.contains(child_name)) {
       error_listener_->semanticError(
           file_names_[context_file_map_.at(ctx)], ctx->start,
-          absl::StrCat("Instruction group added twice: '", child_name,
+          ::absl::StrCat("Instruction group added twice: '", child_name,
                        "' - ignored"));
       continue;
     }
@@ -1416,7 +1416,7 @@ InstructionGroup* BinFormatVisitor::VisitInstructionGroupNameList(
       if (child_group == nullptr) {
         error_listener_->semanticError(
             file_names_[context_file_map_.at(ctx)], ctx->start,
-            absl::StrCat("Instruction group '", child_name, "' not found"));
+            ::absl::StrCat("Instruction group '", child_name, "' not found"));
         continue;
       }
     }
@@ -1427,7 +1427,7 @@ InstructionGroup* BinFormatVisitor::VisitInstructionGroupNameList(
       // Check that the child groups all use the same instruction format.
       error_listener_->semanticError(
           file_names_[context_file_map_.at(ctx)], ctx->start,
-          absl::StrCat("Instruction group '", child_name, "' must use format '",
+          ::absl::StrCat("Instruction group '", child_name, "' must use format '",
                        group_format_name, ", to be merged into group '",
                        group_name, "'"));
       continue;
@@ -1443,7 +1443,7 @@ InstructionGroup* BinFormatVisitor::VisitInstructionGroupNameList(
   // Create the "parent" group and add all of the instructions from the
   // child groups to it.
   auto width = child_groups.front()->width();
-  absl::StatusOr<InstructionGroup*> result =
+  ::absl::StatusOr<InstructionGroup*> result =
       encoding_info->AddInstructionGroup(group_name, width, group_format_name);
   if (!result.ok()) {
     error_listener_->semanticError(ctx->start, result.status().message());

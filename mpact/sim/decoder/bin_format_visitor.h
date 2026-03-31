@@ -88,11 +88,11 @@ class BinFormatVisitor {
 
   // Entry point for processing a source_stream input, generating any output
   // files in the given directory. Returns OK if no errors were encountered.
-  absl::Status Process(const std::vector<std::string>& file_names,
+  ::absl::Status Process(const std::vector<std::string>& file_names,
                        const std::string& decoder_name,
-                       absl::string_view prefix,
+                       ::absl::string_view prefix,
                        const std::vector<std::string>& include_roots,
-                       absl::string_view directory);
+                       ::absl::string_view directory);
 
  private:
   // Check the encodings to make sure there aren't any obvious errors.
@@ -148,7 +148,7 @@ class BinFormatVisitor {
                        InstructionEncoding* inst_encoding);
   InstructionGroup* VisitInstructionGroupNameList(
       const std::string& group_name, GroupNameListCtx* ctx,
-      absl::flat_hash_set<std::string>& group_name_set,
+      ::absl::flat_hash_set<std::string>& group_name_set,
       BinEncodingInfo* encoding_info);
   void ProcessSpecializations(BinEncodingInfo* encoding_info);
 
@@ -165,7 +165,7 @@ class BinFormatVisitor {
   // Vector of file names.
   std::vector<std::string> file_names_;
   // Map from context pointer to file index.
-  absl::flat_hash_map<const antlr4::ParserRuleContext*, int> context_file_map_;
+  ::absl::flat_hash_map<const antlr4::ParserRuleContext*, int> context_file_map_;
   // This stores a vector of include file root directories.
   std::vector<std::string> include_dir_vec_;
   // Keep track of files that are included in case there is recursive includes.
@@ -174,15 +174,15 @@ class BinFormatVisitor {
   std::unique_ptr<decoder::DecoderErrorListener> error_listener_ = nullptr;
   std::string decoder_name_;
   // Maps from identifiers to declaration contexts.
-  absl::flat_hash_map<std::string, FormatDefCtx*> format_decl_map_;
-  absl::flat_hash_map<std::string, InstructionGroupDefCtx*> group_decl_map_;
-  absl::flat_hash_map<std::string, DecoderDefCtx*> decoder_decl_map_;
+  ::absl::flat_hash_map<std::string, FormatDefCtx*> format_decl_map_;
+  ::absl::flat_hash_map<std::string, InstructionGroupDefCtx*> group_decl_map_;
+  ::absl::flat_hash_map<std::string, DecoderDefCtx*> decoder_decl_map_;
   // AntlrParserWrapper vector.
   std::vector<BinFmtAntlrParserWrapper*> antlr_parser_wrappers_;
   // Map from comparator string to constraint type.
-  absl::flat_hash_map<std::string, ConstraintType> constraint_string_to_type_;
+  ::absl::flat_hash_map<std::string, ConstraintType> constraint_string_to_type_;
   // Set of include files marked as once.
-  absl::flat_hash_set<std::string> once_include_files_;
+  ::absl::flat_hash_set<std::string> once_include_files_;
   // Specializations to process after all instructions have been processed.
   std::vector<InstructionDefCtx*> specializations_;
 };

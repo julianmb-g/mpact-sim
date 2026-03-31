@@ -44,7 +44,7 @@ class OpcodeTest : public testing::Test {
   OpcodeTest() {
     instruction_set_ = std::make_unique<InstructionSet>(kInstructionSetName);
 
-    absl::StatusOr<Opcode*> result =
+    ::absl::StatusOr<Opcode*> result =
         instruction_set_->opcode_factory()->CreateOpcode(kOpcodeName0);
     opcode_ = result.ok() ? result.value() : nullptr;
   }
@@ -66,9 +66,9 @@ TEST_F(OpcodeTest, Basic) {
 // Verify that values of opcodes increment as you create new ones.
 TEST_F(OpcodeTest, Multiple) {
   // Creating a duplicate opcode should fail.
-  absl::StatusOr<Opcode*> result =
+  ::absl::StatusOr<Opcode*> result =
       instruction_set_->opcode_factory()->CreateOpcode(kOpcodeNames[0]);
-  EXPECT_TRUE(absl::IsInternal(result.status()));
+  EXPECT_TRUE(::absl::IsInternal(result.status()));
   for (int indx = 1; indx < 3; indx++) {
     result =
         instruction_set_->opcode_factory()->CreateOpcode(kOpcodeNames[indx]);
@@ -89,7 +89,7 @@ TEST_F(OpcodeTest, PredicateOperandName) {
 // Verify source operand name vector.
 TEST_F(OpcodeTest, SourceOperandNames) {
   for (int indx = 0; indx < 3; indx++) {
-    std::string source_op_name = absl::StrCat("SourceOp", indx);
+    std::string source_op_name = ::absl::StrCat("SourceOp", indx);
     opcode_->AppendSourceOp(source_op_name, /*is_array=*/false,
                             /*is_reloc=*/false);
     EXPECT_EQ(opcode_->source_op_vec().size(), indx + 1);
@@ -101,7 +101,7 @@ TEST_F(OpcodeTest, SourceOperandNames) {
 // Verify destination operand name vector.
 TEST_F(OpcodeTest, DestOperandNames) {
   for (int indx = 0; indx < 2; indx++) {
-    std::string dest_op_name = absl::StrCat("DestOp", indx);
+    std::string dest_op_name = ::absl::StrCat("DestOp", indx);
     if (indx == 0) {
       opcode_->AppendDestOp(dest_op_name, /*is_array=*/false,
                             /*is_reloc=*/false);

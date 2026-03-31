@@ -111,7 +111,7 @@ class BinFormatVisitorTest : public testing::Test {
 TEST_F(BinFormatVisitorTest, NullFileParsing) {
   // Set up input and output file paths.
   std::vector<std::string> input_files = {
-      absl::StrCat(kDepotPath, "testfiles/", kEmptyBaseName, ".bin_fmt")};
+      ::absl::StrCat(kDepotPath, "testfiles/", kEmptyBaseName, ".bin_fmt")};
   ASSERT_TRUE(FileExists(input_files[0]));
   std::string output_dir = OutputDir();
 
@@ -126,19 +126,19 @@ TEST_F(BinFormatVisitorTest, NullFileParsing) {
 // Make sure recursive includes cause a failure.
 TEST_F(BinFormatVisitorTest, RecursiveInclude) {
   // Set up input and output file paths.
-  std::vector<std::string> input_files = {absl::StrCat(
+  std::vector<std::string> input_files = {::absl::StrCat(
       kDepotPath, "testfiles/", kRecursiveExampleBaseName, ".bin_fmt")};
   ASSERT_TRUE(FileExists(input_files[0]));
   std::string output_dir = OutputDir();
   // Parse and process the input file, capturing the log.
   LogSink log_sink;
-  absl::AddLogSink(&log_sink);
+  ::absl::AddLogSink(&log_sink);
   BinFormatVisitor visitor;
   auto success = visitor
                      .Process(input_files, kRiscVDecoderName,
                               kRecursiveExampleBaseName, paths_, output_dir)
                      .ok();
-  absl::RemoveLogSink(&log_sink);
+  ::absl::RemoveLogSink(&log_sink);
   EXPECT_FALSE(success);
 
   // Make sure the requisite error messageßs are present.
@@ -150,9 +150,9 @@ TEST_F(BinFormatVisitorTest, BasicParsing) {
   // Make sure the visitor can read and parse the input file.
   // Set up input and output file paths.
   std::vector<std::string> input_files = {
-      absl::StrCat(kDepotPath, "testfiles/", kRiscVTopName),
-      absl::StrCat(kDepotPath, "testfiles/", kRiscV32GName),
-      absl::StrCat(kDepotPath, "testfiles/", kRiscV32CName),
+      ::absl::StrCat(kDepotPath, "testfiles/", kRiscVTopName),
+      ::absl::StrCat(kDepotPath, "testfiles/", kRiscV32GName),
+      ::absl::StrCat(kDepotPath, "testfiles/", kRiscV32CName),
   };
   ASSERT_TRUE(FileExists(input_files[0]));
   ASSERT_TRUE(FileExists(input_files[1]));
@@ -167,10 +167,10 @@ TEST_F(BinFormatVisitorTest, BasicParsing) {
                   .ok());
   // Verify that the decoder files _decoder.{.h,.cc} files were generated.
   EXPECT_TRUE(FileExists(
-      absl::StrCat(output_dir, "/", kRiscVBaseName, "_bin_decoder.h")));
+      ::absl::StrCat(output_dir, "/", kRiscVBaseName, "_bin_decoder.h")));
 
   EXPECT_TRUE(FileExists(
-      absl::StrCat(output_dir, "/", kRiscVBaseName, "_bin_decoder.cc")));
+      ::absl::StrCat(output_dir, "/", kRiscVBaseName, "_bin_decoder.cc")));
 }
 
 // This tests the generator using non-tuple values.
@@ -195,22 +195,22 @@ TEST_F(BinFormatVisitorTest, SimpleGenerator) {
   BinFormatVisitor visitor;
   // Parse and process the input file, capturing the log.
   LogSink log_sink;
-  absl::AddLogSink(&log_sink);
+  ::absl::AddLogSink(&log_sink);
   auto success = visitor
                      .Process(input_files, kGeneratorDecoderName,
                               kGeneratorBaseName, paths_, output_dir)
                      .ok();
-  absl::RemoveLogSink(&log_sink);
+  ::absl::RemoveLogSink(&log_sink);
   EXPECT_TRUE(success);
 
   // Verify that the decoder files _bin_decoder.{.h,.cc} files were generated.
   EXPECT_TRUE(FileExists(
-      absl::StrCat(output_dir, "/", kGeneratorBaseName, "_bin_decoder.h")));
+      ::absl::StrCat(output_dir, "/", kGeneratorBaseName, "_bin_decoder.h")));
   EXPECT_TRUE(FileExists(
-      absl::StrCat(output_dir, "/", kGeneratorBaseName, "_bin_decoder.cc")));
+      ::absl::StrCat(output_dir, "/", kGeneratorBaseName, "_bin_decoder.cc")));
 
   std::ifstream decoder_file(
-      absl::StrCat(output_dir, "/", kGeneratorBaseName, "_bin_decoder.cc"));
+      ::absl::StrCat(output_dir, "/", kGeneratorBaseName, "_bin_decoder.cc"));
   CHECK(decoder_file.good());
   // Verify that decoder entries include the instructions inside the GENERATE()
   // construct.
@@ -224,19 +224,19 @@ TEST_F(BinFormatVisitorTest, SimpleGenerator) {
 
 TEST_F(BinFormatVisitorTest, Generator) {
   std::string input_file =
-      absl::StrCat(kDepotPath, "testfiles/", kGeneratorBaseName, ".bin_fmt");
+      ::absl::StrCat(kDepotPath, "testfiles/", kGeneratorBaseName, ".bin_fmt");
   ASSERT_TRUE(FileExists(input_file));
   std::string output_dir = getenv(kTestUndeclaredOutputsDir);
 
   BinFormatVisitor visitor;
   // Parse and process the input file, capturing the log.
   LogSink log_sink;
-  absl::AddLogSink(&log_sink);
+  ::absl::AddLogSink(&log_sink);
   auto success = visitor
                      .Process({input_file}, kGeneratorDecoderName,
                               kGeneratorBaseName, paths_, output_dir)
                      .ok();
-  absl::RemoveLogSink(&log_sink);
+  ::absl::RemoveLogSink(&log_sink);
   EXPECT_TRUE(success);
   // Make sure the warning about unreferenced binding variable is found.
   auto ptr =
@@ -244,12 +244,12 @@ TEST_F(BinFormatVisitorTest, Generator) {
   EXPECT_TRUE(ptr != std::string::npos);
   // Verify that the decoder files _bin_decoder.{.h,.cc} files were generated.
   EXPECT_TRUE(FileExists(
-      absl::StrCat(output_dir, "/", kGeneratorBaseName, "_bin_decoder.h")));
+      ::absl::StrCat(output_dir, "/", kGeneratorBaseName, "_bin_decoder.h")));
   EXPECT_TRUE(FileExists(
-      absl::StrCat(output_dir, "/", kGeneratorBaseName, "_bin_decoder.cc")));
+      ::absl::StrCat(output_dir, "/", kGeneratorBaseName, "_bin_decoder.cc")));
 
   std::ifstream decoder_file(
-      absl::StrCat(output_dir, "/", kGeneratorBaseName, "_bin_decoder.cc"));
+      ::absl::StrCat(output_dir, "/", kGeneratorBaseName, "_bin_decoder.cc"));
   CHECK(decoder_file.good());
   // Verify that decoder entries include the instructions inside the GENERATE()
   // construct.
@@ -284,12 +284,12 @@ TEST_F(BinFormatVisitorTest, GeneratorErrorDuplicateVariable) {
   BinFormatVisitor visitor;
   // Parse and process the input file, capturing the log.
   LogSink log_sink;
-  absl::AddLogSink(&log_sink);
+  ::absl::AddLogSink(&log_sink);
   auto success = visitor
                      .Process(input_files, kGeneratorDecoderName,
                               kGeneratorBaseName, paths_, output_dir)
                      .ok();
-  absl::RemoveLogSink(&log_sink);
+  ::absl::RemoveLogSink(&log_sink);
   EXPECT_FALSE(success);
 
   // Make sure the error about duplicate binding variable 'btype' is found.
@@ -321,12 +321,12 @@ TEST_F(BinFormatVisitorTest, GeneratorErrorTuplesError) {
   BinFormatVisitor visitor;
   // Parse and process the input file, capturing the log.
   LogSink log_sink;
-  absl::AddLogSink(&log_sink);
+  ::absl::AddLogSink(&log_sink);
   auto success = visitor
                      .Process(input_files, kGeneratorDecoderName,
                               kGeneratorBaseName, paths_, output_dir)
                      .ok();
-  absl::RemoveLogSink(&log_sink);
+  ::absl::RemoveLogSink(&log_sink);
   EXPECT_FALSE(success);
 
   // Make sure the error about duplicate binding variable 'btype' is found.
@@ -358,12 +358,12 @@ TEST_F(BinFormatVisitorTest, GeneratorErrorUndefinedBindingVariable) {
   BinFormatVisitor visitor;
   // Parse and process the input file, capturing the log.
   LogSink log_sink;
-  absl::AddLogSink(&log_sink);
+  ::absl::AddLogSink(&log_sink);
   auto success = visitor
                      .Process(input_files, kGeneratorDecoderName,
                               kGeneratorBaseName, paths_, output_dir)
                      .ok();
-  absl::RemoveLogSink(&log_sink);
+  ::absl::RemoveLogSink(&log_sink);
   EXPECT_FALSE(success);
 
   // Make sure the error about duplicate binding variable 'funcX' is found.
@@ -374,23 +374,23 @@ TEST_F(BinFormatVisitorTest, GeneratorErrorUndefinedBindingVariable) {
 TEST_F(BinFormatVisitorTest, Vliw) {
   // Set up input and output file paths.
   std::vector<std::string> input_files = {
-      absl::StrCat(kDepotPath, "testfiles/", kVliwBaseName, ".bin_fmt")};
+      ::absl::StrCat(kDepotPath, "testfiles/", kVliwBaseName, ".bin_fmt")};
   ASSERT_TRUE(FileExists(input_files[0]));
   std::string output_dir = getenv(kTestUndeclaredOutputsDir);
   BinFormatVisitor visitor;
   // Parse and process the input file, capturing the log.
   LogSink log_sink;
-  absl::AddLogSink(&log_sink);
+  ::absl::AddLogSink(&log_sink);
   auto success = visitor
                      .Process(input_files, kVliwDecoderName, kVliwBaseName,
                               paths_, output_dir)
                      .ok();
-  absl::RemoveLogSink(&log_sink);
+  ::absl::RemoveLogSink(&log_sink);
   EXPECT_TRUE(success);
 
   // Verify that the extraction functions for the vliw format were generated.
   std::ifstream decoder_file(
-      absl::StrCat(output_dir, "/", kVliwBaseName, "_bin_decoder.h"));
+      ::absl::StrCat(output_dir, "/", kVliwBaseName, "_bin_decoder.h"));
   CHECK(decoder_file.good());
   // Verify that decoder entries include extraction functions for the vliw
   // format.
@@ -404,24 +404,24 @@ TEST_F(BinFormatVisitorTest, Vliw) {
 
 TEST_F(BinFormatVisitorTest, InstructionGroupGrouping) {
   // Set up input and output file paths.
-  std::vector<std::string> input_files = {absl::StrCat(
+  std::vector<std::string> input_files = {::absl::StrCat(
       kDepotPath, "testfiles/", kInstructionGroupBaseName, ".bin_fmt")};
   ASSERT_TRUE(FileExists(input_files[0]));
   std::string output_dir = getenv(kTestUndeclaredOutputsDir);
   BinFormatVisitor visitor;
   // Parse and process the input file, capturing the log.
   LogSink log_sink;
-  absl::AddLogSink(&log_sink);
+  ::absl::AddLogSink(&log_sink);
   auto success = visitor
                      .Process(input_files, kInstructionGroupDecoderName,
                               kInstructionGroupBaseName, paths_, output_dir)
                      .ok();
-  absl::RemoveLogSink(&log_sink);
+  ::absl::RemoveLogSink(&log_sink);
   EXPECT_TRUE(success);
 }
 
 TEST_F(BinFormatVisitorTest, SyntaxError) {
-  std::vector<std::string> input_files = {absl::StrCat(
+  std::vector<std::string> input_files = {::absl::StrCat(
       kDepotPath, "testfiles/", kBinFmtSyntaxErrorBaseName, ".bin_fmt")};
 
   ASSERT_TRUE(FileExists(input_files[0]));
@@ -429,11 +429,11 @@ TEST_F(BinFormatVisitorTest, SyntaxError) {
 
   BinFormatVisitor visitor;
   LogSink log_sink;
-  absl::AddLogSink(&log_sink);
+  ::absl::AddLogSink(&log_sink);
   EXPECT_FALSE(
       visitor.Process(input_files, kDecoderName, kBaseName, paths_, output_dir)
           .ok());
-  absl::RemoveLogSink(&log_sink);
+  ::absl::RemoveLogSink(&log_sink);
 
   // Verify that there was an error message about mismatched input.
   auto ptr = log_sink.error_log().find("mismatched input '");
@@ -443,7 +443,7 @@ TEST_F(BinFormatVisitorTest, SyntaxError) {
 }
 
 TEST_F(BinFormatVisitorTest, InstDefFormatError) {
-  std::vector<std::string> input_files = {absl::StrCat(
+  std::vector<std::string> input_files = {::absl::StrCat(
       kDepotPath, "testfiles/", kBinFmtFormatErrorBaseName, ".bin_fmt")};
 
   ASSERT_TRUE(FileExists(input_files[0]));
@@ -451,11 +451,11 @@ TEST_F(BinFormatVisitorTest, InstDefFormatError) {
 
   BinFormatVisitor visitor;
   LogSink log_sink;
-  absl::AddLogSink(&log_sink);
+  ::absl::AddLogSink(&log_sink);
   EXPECT_FALSE(
       visitor.Process(input_files, kDecoderName, kBaseName, paths_, output_dir)
           .ok());
-  absl::RemoveLogSink(&log_sink);
+  ::absl::RemoveLogSink(&log_sink);
 
   // There should be a number of error messages:
   //   * Multiple definitions of format 'ZFormat'.
@@ -544,7 +544,7 @@ TEST_F(BinFormatVisitorTest, InstDefFormatError) {
 }
 
 TEST_F(BinFormatVisitorTest, InstDefFormatErrorUndef) {
-  std::vector<std::string> input_files = {absl::StrCat(
+  std::vector<std::string> input_files = {::absl::StrCat(
       kDepotPath, "testfiles/", kBinFmtFormatErrorUndefBaseName, ".bin_fmt")};
 
   ASSERT_TRUE(FileExists(input_files[0]));
@@ -552,11 +552,11 @@ TEST_F(BinFormatVisitorTest, InstDefFormatErrorUndef) {
 
   BinFormatVisitor visitor;
   LogSink log_sink;
-  absl::AddLogSink(&log_sink);
+  ::absl::AddLogSink(&log_sink);
   EXPECT_FALSE(
       visitor.Process(input_files, kDecoderName, kBaseName, paths_, output_dir)
           .ok());
-  absl::RemoveLogSink(&log_sink);
+  ::absl::RemoveLogSink(&log_sink);
   auto ptr = log_sink.error_log().find(
       "Error: Undefined format 'NoneSuch' used by instruction group "
       "'RiscVGInst32'");
@@ -565,28 +565,28 @@ TEST_F(BinFormatVisitorTest, InstDefFormatErrorUndef) {
 
 TEST_F(BinFormatVisitorTest, Constraints) {
   std::vector<std::string> input_files = {
-      absl::StrCat(kDepotPath, "testfiles/", kConstraintsBaseName, ".bin_fmt")};
+      ::absl::StrCat(kDepotPath, "testfiles/", kConstraintsBaseName, ".bin_fmt")};
 
   ASSERT_TRUE(FileExists(input_files[0]));
   std::string output_dir = getenv(kTestUndeclaredOutputsDir);
 
   BinFormatVisitor visitor;
   LogSink log_sink;
-  absl::AddLogSink(&log_sink);
+  ::absl::AddLogSink(&log_sink);
   EXPECT_TRUE(visitor
                   .Process(input_files, kConstraintsDecoderName,
                            kConstraintsBaseName, paths_, output_dir)
                   .ok());
-  absl::RemoveLogSink(&log_sink);
+  ::absl::RemoveLogSink(&log_sink);
 
   // Verify that the decoder files _bin_decoder.{.h,.cc} files were generated.
   EXPECT_TRUE(FileExists(
-      absl::StrCat(output_dir, "/", kConstraintsBaseName, "_bin_decoder.h")));
+      ::absl::StrCat(output_dir, "/", kConstraintsBaseName, "_bin_decoder.h")));
   EXPECT_TRUE(FileExists(
-      absl::StrCat(output_dir, "/", kConstraintsBaseName, "_bin_decoder.cc")));
+      ::absl::StrCat(output_dir, "/", kConstraintsBaseName, "_bin_decoder.cc")));
 
   std::ifstream decoder_file(
-      absl::StrCat(output_dir, "/", kConstraintsBaseName, "_bin_decoder.cc"));
+      ::absl::StrCat(output_dir, "/", kConstraintsBaseName, "_bin_decoder.cc"));
   CHECK(decoder_file.good());
   // Verify that decoder entries use the different constraint types.
   std::string decoder_str((std::istreambuf_iterator<char>(decoder_file)),
@@ -600,7 +600,7 @@ TEST_F(BinFormatVisitorTest, Constraints) {
 }
 
 TEST_F(BinFormatVisitorTest, InstructionGroupErrors) {
-  std::vector<std::string> input_files = {absl::StrCat(
+  std::vector<std::string> input_files = {::absl::StrCat(
       kDepotPath, "testfiles/", kInstructionGroupErrorsBaseName, ".bin_fmt")};
 
   ASSERT_TRUE(FileExists(input_files[0]));
@@ -608,12 +608,12 @@ TEST_F(BinFormatVisitorTest, InstructionGroupErrors) {
 
   BinFormatVisitor visitor;
   LogSink log_sink;
-  absl::AddLogSink(&log_sink);
+  ::absl::AddLogSink(&log_sink);
   EXPECT_FALSE(visitor
                    .Process(input_files, kInstructionGroupErrorsDecoderName,
                             kInstructionGroupErrorsBaseName, paths_, output_dir)
                    .ok());
-  absl::RemoveLogSink(&log_sink);
+  ::absl::RemoveLogSink(&log_sink);
   auto ptr = log_sink.error_log().find(
       "Error: No such instruction group: 'InstGroup'");
   EXPECT_TRUE(ptr != std::string::npos);

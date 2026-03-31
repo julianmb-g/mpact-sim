@@ -70,21 +70,21 @@ ProtoInstructionEncoding* ProtoInstructionGroup::AddInstructionEncoding(
   return encoding;
 }
 
-absl::StatusOr<
-    std::pair<absl::btree_map<std::string, SetterInfo*>::const_iterator,
-              absl::btree_map<std::string, SetterInfo*>::const_iterator>>
-ProtoInstructionGroup::GetSetterGroup(absl::string_view group) const {
+::absl::StatusOr<
+    std::pair<::absl::btree_map<std::string, SetterInfo*>::const_iterator,
+              ::absl::btree_map<std::string, SetterInfo*>::const_iterator>>
+ProtoInstructionGroup::GetSetterGroup(::absl::string_view group) const {
   auto map_iter = setter_groups_.find(group);
   if (map_iter == setter_groups_.end()) {
-    return absl::NotFoundError(absl::StrCat("No setter group '", group, "'."));
+    return ::absl::NotFoundError(::absl::StrCat("No setter group '", group, "'."));
   }
-  return std::pair<absl::btree_map<std::string, SetterInfo*>::const_iterator,
-                   absl::btree_map<std::string, SetterInfo*>::const_iterator>{
+  return std::pair<::absl::btree_map<std::string, SetterInfo*>::const_iterator,
+                   ::absl::btree_map<std::string, SetterInfo*>::const_iterator>{
       map_iter->second.begin(), map_iter->second.end()};
 }
 
 // Add a group level setter.
-absl::Status ProtoInstructionGroup::AddSetter(
+::absl::Status ProtoInstructionGroup::AddSetter(
     const std::string& group_name, SetterDefCtx* ctx,
     const std::string& setter_name,
     const google::protobuf::FieldDescriptor* field_desc,
@@ -96,21 +96,21 @@ absl::Status ProtoInstructionGroup::AddSetter(
     map_iter = iter;
   }
   if (map_iter->second.contains(setter_name)) {
-    return absl::AlreadyExistsError(
-        absl::StrCat("Duplicate setter name '", setter_name,
+    return ::absl::AlreadyExistsError(
+        ::absl::StrCat("Duplicate setter name '", setter_name,
                      "' in setter group '", group_name, "'."));
   }
   auto* setter_info =
       new SetterInfo({ctx, setter_name, field_desc, one_of_fields, if_not});
   map_iter->second.insert({setter_name, setter_info});
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
 void ProtoInstructionGroup::CopyInstructionEncoding(
     ProtoInstructionEncoding* encoding) {
   if (encoding_name_set_.contains(encoding->name())) {
     encoding_info_->error_listener()->semanticWarning(
-        nullptr, absl::StrCat("Duplicate instruction opcode name '",
+        nullptr, ::absl::StrCat("Duplicate instruction opcode name '",
                               encoding->name(), "' in group '", name(), "'."));
   }
   encoding_name_set_.insert(encoding->name());
@@ -131,30 +131,30 @@ void ProtoInstructionGroup::ProcessEncodings(
 
 std::string ProtoInstructionGroup::GenerateDecoder() const {
   if (encoding_group_ == nullptr) {
-    return absl::StrCat("#error No decoder generated for instruction group '",
+    return ::absl::StrCat("#error No decoder generated for instruction group '",
                         name(), "'.");
   }
   std::string output;
   if (message_type_ == nullptr) {
-    absl::StrAppend(&output, "\n#error No message type for instruction group '",
+    ::absl::StrAppend(&output, "\n#error No message type for instruction group '",
                     name(), "'.\n");
     return output;
   }
   std::string qualified_message_type =
-      absl::StrReplaceAll(message_type_->full_name(), {{".", "::"}});
+      ::absl::StrReplaceAll(message_type_->full_name(), {{".", "::"}});
   std::string message_type = ToPascalCase(name()) + "MessageType";
-  absl::StrAppend(
+  ::absl::StrAppend(
       &output, "\n// Decoding functions for instruction group: ", name(), "\n");
-  absl::StrAppend(&output, "namespace {\n\n");
-  absl::StrAppend(&output, encoding_info_->opcode_enum(), " ", "Decode",
+  ::absl::StrAppend(&output, "namespace {\n\n");
+  ::absl::StrAppend(&output, encoding_info_->opcode_enum(), " ", "Decode",
                   ToPascalCase(name()), "_None(", message_type, ", ",
                   ToPascalCase(encoding_info_->decoder()->name()),
                   "Decoder *) {\n", "  return ", encoding_info_->opcode_enum(),
                   "::kNone;\n}\n\n");
-  absl::StrAppend(&output, encoding_group_->EmitDecoders(
+  ::absl::StrAppend(&output, encoding_group_->EmitDecoders(
                                "Decode" + ToPascalCase(name()),
                                encoding_info_->opcode_enum(), message_type));
-  absl::StrAppend(&output, "}  // namespace\n\n");
+  ::absl::StrAppend(&output, "}  // namespace\n\n");
   return output;
 }
 

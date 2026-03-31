@@ -56,7 +56,7 @@ std::string GetCppTypeName(
 }
 
 // Operator to implement negation.
-absl::StatusOr<ProtoValue> operator-(const ProtoValue& value) {
+::absl::StatusOr<ProtoValue> operator-(const ProtoValue& value) {
   switch (value.index()) {
     case *ProtoValueIndex::kInt32:
       return -std::get<int32_t>(value);
@@ -73,8 +73,8 @@ absl::StatusOr<ProtoValue> operator-(const ProtoValue& value) {
     case *ProtoValueIndex::kDouble:
       return -std::get<double>(value);
     default:
-      return absl::InvalidArgumentError(
-          absl::StrCat("Unsupported type in negation (", value.index(), ")"));
+      return ::absl::InvalidArgumentError(
+          ::absl::StrCat("Unsupported type in negation (", value.index(), ")"));
   }
 }
 
@@ -83,15 +83,15 @@ ProtoConstraintNegateExpression::~ProtoConstraintNegateExpression() {
   expr_ = nullptr;
 }
 
-absl::StatusOr<ProtoValue> ProtoConstraintNegateExpression::GetValue() const {
-  absl::StatusOr<ProtoValue> result = expr_->GetValue();
+::absl::StatusOr<ProtoValue> ProtoConstraintNegateExpression::GetValue() const {
+  ::absl::StatusOr<ProtoValue> result = expr_->GetValue();
   if (!result.ok()) return result;
   return -result.value();
 }
 
-absl::StatusOr<ProtoValue> ProtoConstraintEnumExpression::GetValue() const {
+::absl::StatusOr<ProtoValue> ProtoConstraintEnumExpression::GetValue() const {
   if (enum_value_ == nullptr) {
-    return absl::InvalidArgumentError("Enum value is null");
+    return ::absl::InvalidArgumentError("Enum value is null");
   }
   return enum_value_->number();
 }

@@ -60,12 +60,12 @@ class InstructionGroup {
   std::tuple<std::string, std::string> EmitDecoderCode();
   // Collect the encodings for these instructions.
   void GetInstructionEncodings(
-      absl::btree_map<std::string, std::tuple<uint64_t, int>>& encodings);
+      ::absl::btree_map<std::string, std::tuple<uint64_t, int>>& encodings);
   // Return a string containing information about this instruction group and
   // how it has been partitioned across encoding groups.
   std::string WriteGroup();
   // Add a specialization to this instruction group.
-  absl::Status AddSpecialization(const std::string& name,
+  ::absl::Status AddSpecialization(const std::string& name,
                                  const std::string& parent_name,
                                  InstructionEncoding* encoding);
 
@@ -78,7 +78,7 @@ class InstructionGroup {
   }
   int width() const { return width_; }
   BinEncodingInfo* encoding_info() const { return encoding_info_; }
-  const absl::flat_hash_map<std::string, InstructionEncoding*>&
+  const ::absl::flat_hash_map<std::string, InstructionEncoding*>&
   encoding_name_map() const {
     return encoding_name_map_;
   }
@@ -93,8 +93,8 @@ class InstructionGroup {
   std::string opcode_enum_;
   BinEncodingInfo* encoding_info_;
   std::vector<InstructionEncoding*> encoding_vec_;
-  absl::flat_hash_map<std::string, InstructionEncoding*> encoding_name_map_;
-  absl::btree_multimap<uint64_t, InstructionEncoding*> encoding_map_;
+  ::absl::flat_hash_map<std::string, InstructionEncoding*> encoding_name_map_;
+  ::absl::btree_multimap<uint64_t, InstructionEncoding*> encoding_map_;
   std::vector<EncodingGroup*> encoding_group_vec_;
 };
 

@@ -66,9 +66,9 @@ class ProtoEncodingGroup {
   // on their constraint value for the differentiating field.
   void AddSubGroups();
   // Top level function called for creating C++ code for the decoder.
-  std::string EmitDecoders(absl::string_view fcn_name,
-                           absl::string_view opcode_enum,
-                           absl::string_view message_type_name);
+  std::string EmitDecoders(::absl::string_view fcn_name,
+                           ::absl::string_view opcode_enum,
+                           ::absl::string_view message_type_name);
 
   // Getters/Setters.
   DecoderErrorListener* error_listener() const { return error_listener_; }
@@ -84,14 +84,14 @@ class ProtoEncodingGroup {
   bool DoConstraintsOverlap(const std::vector<ProtoConstraintValueSet*>& lhs,
                             const std::vector<ProtoConstraintValueSet*>& rhs);
   // Create C++ code for leaf (encoding group) instruction decoder.
-  std::string EmitLeafDecoder(absl::string_view fcn_name,
-                              absl::string_view opcode_enum,
-                              absl::string_view message_type_name,
+  std::string EmitLeafDecoder(::absl::string_view fcn_name,
+                              ::absl::string_view opcode_enum,
+                              ::absl::string_view message_type_name,
                               int indent_width) const;
   // Create C++ code for intermediary instruction decoder.
-  std::string EmitComplexDecoder(absl::string_view fcn_name,
-                                 absl::string_view opcode_enum,
-                                 absl::string_view message_type_name);
+  std::string EmitComplexDecoder(::absl::string_view fcn_name,
+                                 ::absl::string_view opcode_enum,
+                                 ::absl::string_view message_type_name);
 
   ProtoInstructionGroup* inst_group_ = nullptr;
   [[maybe_unused]] ProtoEncodingGroup* parent_ = nullptr;
@@ -101,10 +101,10 @@ class ProtoEncodingGroup {
   int level_;
   std::vector<ProtoInstructionEncoding*> encoding_vec_;
   std::vector<ProtoEncodingGroup*> encoding_group_vec_;
-  absl::btree_map<std::string, FieldInfo*> field_map_;
-  absl::flat_hash_set<const google::protobuf::FieldDescriptor*>
+  ::absl::btree_map<std::string, FieldInfo*> field_map_;
+  ::absl::flat_hash_set<const google::protobuf::FieldDescriptor*>
       other_field_set_;
-  absl::flat_hash_set<const google::protobuf::OneofDescriptor*>
+  ::absl::flat_hash_set<const google::protobuf::OneofDescriptor*>
       other_oneof_set_;
 };
 

@@ -39,18 +39,18 @@ ResourceFactory::~ResourceFactory() {
   resource_map_.clear();
 }
 
-absl::StatusOr<Resource*> ResourceFactory::CreateResource(
-    absl::string_view name) {
+::absl::StatusOr<Resource*> ResourceFactory::CreateResource(
+    ::absl::string_view name) {
   if (resource_map_.contains(name)) {
-    return absl::AlreadyExistsError(
-        absl::StrCat("Resource '", name, "' already exists"));
+    return ::absl::AlreadyExistsError(
+        ::absl::StrCat("Resource '", name, "' already exists"));
   }
   auto* resource = new Resource(std::string(name));
   resource_map_.insert(std::make_pair(resource->name(), resource));
   return resource;
 }
 
-Resource* ResourceFactory::GetOrInsertResource(absl::string_view name) {
+Resource* ResourceFactory::GetOrInsertResource(::absl::string_view name) {
   auto iter = resource_map_.find(name);
   if (iter != resource_map_.end()) return iter->second;
   auto result = CreateResource(name);

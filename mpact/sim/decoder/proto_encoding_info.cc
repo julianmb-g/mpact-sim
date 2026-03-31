@@ -62,12 +62,12 @@ ProtoInstructionDecoder* ProtoEncodingInfo::SetProtoDecoder(std::string name) {
   return proto_decoder;
 }
 
-absl::StatusOr<ProtoInstructionGroup*> ProtoEncodingInfo::AddInstructionGroup(
+::absl::StatusOr<ProtoInstructionGroup*> ProtoEncodingInfo::AddInstructionGroup(
     const std::string& group_name,
     const google::protobuf::Descriptor* descriptor) {
   // Make sure that the instruction group hasn't been added before.
   if (instruction_group_map_.contains(group_name)) {
-    return absl::AlreadyExistsError(absl::StrCat(
+    return ::absl::AlreadyExistsError(::absl::StrCat(
         "Error: instruction group '", group_name, "' already defined"));
   }
   auto group =
@@ -76,15 +76,15 @@ absl::StatusOr<ProtoInstructionGroup*> ProtoEncodingInfo::AddInstructionGroup(
   return group;
 }
 
-absl::Status ProtoEncodingInfo::CheckSetterType(
-    absl::string_view name,
+::absl::Status ProtoEncodingInfo::CheckSetterType(
+    ::absl::string_view name,
     const google::protobuf::FieldDescriptor* field_desc) {
   // Is it a new setter, if so, just insert it.
   auto iter = setter_types_.find(name);
   auto cpp_type = field_desc->cpp_type();
   if (cpp_type == google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE) {
-    return absl::InvalidArgumentError(
-        absl::StrCat("Setter type for '", name, "' cannot be a message."));
+    return ::absl::InvalidArgumentError(
+        ::absl::StrCat("Setter type for '", name, "' cannot be a message."));
   }
   // Treat enums at int32.
   if (cpp_type == google::protobuf::FieldDescriptor::CPPTYPE_ENUM) {
@@ -92,90 +92,90 @@ absl::Status ProtoEncodingInfo::CheckSetterType(
   }
   if (iter == setter_types_.end()) {
     setter_types_.insert({std::string(name), cpp_type});
-    return absl::OkStatus();
+    return ::absl::OkStatus();
   }
   // If the type is the same, return ok.
-  if (cpp_type == iter->second) return absl::OkStatus();
+  if (cpp_type == iter->second) return ::absl::OkStatus();
 
   // The types are not the same. See if we can use a compatible type.
   switch (iter->second) {
     case google::protobuf::FieldDescriptor::CPPTYPE_INT32:
       if (cpp_type == google::protobuf::FieldDescriptor::CPPTYPE_BOOL) {
-        return absl::OkStatus();
+        return ::absl::OkStatus();
       }
       if ((cpp_type == google::protobuf::FieldDescriptor::CPPTYPE_INT64) ||
           (cpp_type == google::protobuf::FieldDescriptor::CPPTYPE_UINT32)) {
         iter->second = google::protobuf::FieldDescriptor::CPPTYPE_INT64;
-        return absl::OkStatus();
+        return ::absl::OkStatus();
       }
-      return absl::InvalidArgumentError(
-          absl::StrCat("Type inconsistency in setter '", name, "'"));
+      return ::absl::InvalidArgumentError(
+          ::absl::StrCat("Type inconsistency in setter '", name, "'"));
     case google::protobuf::FieldDescriptor::CPPTYPE_INT64:
       if (cpp_type == google::protobuf::FieldDescriptor::CPPTYPE_BOOL) {
-        return absl::OkStatus();
+        return ::absl::OkStatus();
       }
       if ((cpp_type == google::protobuf::FieldDescriptor::CPPTYPE_UINT32) ||
           (cpp_type == google::protobuf::FieldDescriptor::CPPTYPE_INT32)) {
-        return absl::OkStatus();
+        return ::absl::OkStatus();
       }
-      return absl::InvalidArgumentError(
-          absl::StrCat("Type inconsistency in setter '", name, "'"));
+      return ::absl::InvalidArgumentError(
+          ::absl::StrCat("Type inconsistency in setter '", name, "'"));
     case google::protobuf::FieldDescriptor::CPPTYPE_UINT32:
       if (cpp_type == google::protobuf::FieldDescriptor::CPPTYPE_BOOL) {
-        return absl::OkStatus();
+        return ::absl::OkStatus();
       }
       if ((cpp_type == google::protobuf::FieldDescriptor::CPPTYPE_INT32) ||
           (iter->second = google::protobuf::FieldDescriptor::CPPTYPE_INT64)) {
         iter->second = google::protobuf::FieldDescriptor::CPPTYPE_INT64;
-        return absl::OkStatus();
+        return ::absl::OkStatus();
       }
       if (cpp_type == google::protobuf::FieldDescriptor::CPPTYPE_UINT64) {
         iter->second = google::protobuf::FieldDescriptor::CPPTYPE_UINT64;
-        return absl::OkStatus();
+        return ::absl::OkStatus();
       }
-      return absl::InvalidArgumentError(
-          absl::StrCat("Type inconsistency in setter '", name, "'"));
+      return ::absl::InvalidArgumentError(
+          ::absl::StrCat("Type inconsistency in setter '", name, "'"));
     case google::protobuf::FieldDescriptor::CPPTYPE_UINT64:
       if (cpp_type == google::protobuf::FieldDescriptor::CPPTYPE_BOOL) {
-        return absl::OkStatus();
+        return ::absl::OkStatus();
       }
       if ((cpp_type == google::protobuf::FieldDescriptor::CPPTYPE_INT32) ||
           (cpp_type == google::protobuf::FieldDescriptor::CPPTYPE_UINT32)) {
-        return absl::OkStatus();
+        return ::absl::OkStatus();
       }
-      return absl::InvalidArgumentError(
-          absl::StrCat("Type inconsistency in setter '", name, "'"));
+      return ::absl::InvalidArgumentError(
+          ::absl::StrCat("Type inconsistency in setter '", name, "'"));
     case google::protobuf::FieldDescriptor::CPPTYPE_DOUBLE:
       if (cpp_type == google::protobuf::FieldDescriptor::CPPTYPE_FLOAT) {
-        return absl::OkStatus();
+        return ::absl::OkStatus();
       }
-      return absl::InvalidArgumentError(
-          absl::StrCat("Type inconsistency in setter '", name, "'"));
+      return ::absl::InvalidArgumentError(
+          ::absl::StrCat("Type inconsistency in setter '", name, "'"));
     case google::protobuf::FieldDescriptor::CPPTYPE_FLOAT:
       if (cpp_type == google::protobuf::FieldDescriptor::CPPTYPE_DOUBLE) {
         iter->second = google::protobuf::FieldDescriptor::CPPTYPE_DOUBLE;
-        return absl::OkStatus();
+        return ::absl::OkStatus();
       }
-      return absl::InvalidArgumentError(
-          absl::StrCat("Type inconsistency in setter '", name, "'"));
+      return ::absl::InvalidArgumentError(
+          ::absl::StrCat("Type inconsistency in setter '", name, "'"));
     case google::protobuf::FieldDescriptor::CPPTYPE_BOOL:
       if ((cpp_type == google::protobuf::FieldDescriptor::CPPTYPE_INT32) ||
           (cpp_type == google::protobuf::FieldDescriptor::CPPTYPE_UINT32) ||
           (cpp_type == google::protobuf::FieldDescriptor::CPPTYPE_INT64) ||
           (cpp_type == google::protobuf::FieldDescriptor::CPPTYPE_UINT64)) {
         iter->second = cpp_type;
-        return absl::OkStatus();
+        return ::absl::OkStatus();
       }
-      return absl::InvalidArgumentError(
-          absl::StrCat("Type inconsistency in setter '", name, "'"));
+      return ::absl::InvalidArgumentError(
+          ::absl::StrCat("Type inconsistency in setter '", name, "'"));
     case google::protobuf::FieldDescriptor::CPPTYPE_STRING:
-      return absl::InvalidArgumentError(
-          absl::StrCat("Type inconsistency in setter '", name, "'"));
+      return ::absl::InvalidArgumentError(
+          ::absl::StrCat("Type inconsistency in setter '", name, "'"));
     default:
-      return absl::InvalidArgumentError(
-          absl::StrCat("Type inconsistency in setter '", name, "'"));
+      return ::absl::InvalidArgumentError(
+          ::absl::StrCat("Type inconsistency in setter '", name, "'"));
   }
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
 constexpr char kDecodeMsgName[] = "inst_proto";
@@ -189,51 +189,51 @@ StringPair ProtoEncodingInfo::GenerateDecoderClass() {
   std::string type_aliases;
   // Add type aliases for protobuf messages used in decoders.
   for (auto* inst_group : decoder_->instruction_groups()) {
-    std::string qualified_message_type = absl::StrReplaceAll(
+    std::string qualified_message_type = ::absl::StrReplaceAll(
         inst_group->message_type()->full_name(), {{".", "::"}});
-    absl::StrAppend(&type_aliases, "using ", ToPascalCase(inst_group->name()),
+    ::absl::StrAppend(&type_aliases, "using ", ToPascalCase(inst_group->name()),
                     "MessageType = ", qualified_message_type, ";\n");
-    absl::string_view file_name = inst_group->message_type()->file()->name();
+    ::absl::string_view file_name = inst_group->message_type()->file()->name();
     // Verify that this is a .proto file.
 
     if ((file_name.size() <= 5) &&
         (file_name.substr(file_name.size() - 5) != ".proto")) {
       error_listener_->semanticError(
-          nullptr, absl::StrCat("Not a .proto file: '", file_name, "'"));
+          nullptr, ::absl::StrCat("Not a .proto file: '", file_name, "'"));
       return {"", ""};
     }
-    auto proto_file_include = absl::StrCat(
+    auto proto_file_include = ::absl::StrCat(
         file_name.substr(0, file_name.size() - 6), kProtoFileExtension);
-    AddIncludeFile(absl::StrCat("\"", proto_file_include, "\""));
+    AddIncludeFile(::absl::StrCat("\"", proto_file_include, "\""));
   }
   // Include files.
-  absl::StrAppend(&h_output, "#include <cstdint>\n\n");
+  ::absl::StrAppend(&h_output, "#include <cstdint>\n\n");
   for (auto& include_file : include_files_) {
-    absl::StrAppend(&h_output, "#include ", include_file, "\n");
+    ::absl::StrAppend(&h_output, "#include ", include_file, "\n");
   }
-  absl::StrAppend(&h_output, "\n");
-  absl::StrAppend(&cc_output,
+  ::absl::StrAppend(&h_output, "\n");
+  ::absl::StrAppend(&cc_output,
                   "#include <functional>\n\n"
                   "#include \"absl/container/flat_hash_map.h\"\n\n");
   // Open namespaces.
-  std::string name_space_ref = absl::StrJoin(decoder_->namespaces(), "::");
+  std::string name_space_ref = ::absl::StrJoin(decoder_->namespaces(), "::");
   for (auto& name_space : decoder_->namespaces()) {
-    absl::StrAppend(&h_output, "namespace ", name_space, " {\n");
-    absl::StrAppend(&cc_output, "namespace ", name_space, " {\n");
+    ::absl::StrAppend(&h_output, "namespace ", name_space, " {\n");
+    ::absl::StrAppend(&cc_output, "namespace ", name_space, " {\n");
   }
   // Generate class definition.
-  absl::StrAppend(&h_output, "\n", type_aliases, "\nclass ", class_name, " {\n",
+  ::absl::StrAppend(&h_output, "\n", type_aliases, "\nclass ", class_name, " {\n",
                   " public:\n", "  ", class_name, "() = default;\n\n");
-  absl::StrAppend(&h_output, "  // Decode method(s).\n");
+  ::absl::StrAppend(&h_output, "  // Decode method(s).\n");
   std::string decoder_fcns;
   for (auto* inst_group : decoder_->instruction_groups()) {
     inst_group->ProcessEncodings(error_listener_);
-    absl::StrAppend(&h_output, "  ", opcode_enum_, " Decode",
+    ::absl::StrAppend(&h_output, "  ", opcode_enum_, " Decode",
                     ToPascalCase(inst_group->name()), "(",
                     ToPascalCase(inst_group->name()), "MessageType ",
                     kDecodeMsgName, ");\n");
-    absl::StrAppend(&cc_output, inst_group->GenerateDecoder());
-    absl::StrAppend(&decoder_fcns, opcode_enum_, " ", class_name, "::Decode",
+    ::absl::StrAppend(&cc_output, inst_group->GenerateDecoder());
+    ::absl::StrAppend(&decoder_fcns, opcode_enum_, " ", class_name, "::Decode",
                     ToPascalCase(inst_group->name()), "(",
                     ToPascalCase(inst_group->name()), "MessageType ",
                     kDecodeMsgName, ") {\n", "  return ", name_space_ref,
@@ -241,30 +241,30 @@ StringPair ProtoEncodingInfo::GenerateDecoderClass() {
                     kDecodeMsgName, ", this);\n", "}\n\n");
   }
   if (error_listener_->HasError()) return {"", ""};
-  absl::StrAppend(&cc_output, decoder_fcns);
-  absl::StrAppend(&h_output, "\n  // Setters and getters.\n");
+  ::absl::StrAppend(&cc_output, decoder_fcns);
+  ::absl::StrAppend(&h_output, "\n  // Setters and getters.\n");
   for (auto const& [name, cpp_type] : setter_types_) {
     auto cpp_type_name = GetCppTypeName(cpp_type);
     // Generate method declarations.
-    absl::StrAppend(&h_output, "  void Set", ToPascalCase(name), "(",
+    ::absl::StrAppend(&h_output, "  void Set", ToPascalCase(name), "(",
                     cpp_type_name, " value);\n", "  ", cpp_type_name, " Get",
                     ToPascalCase(name), "();\n");
     // Generate Method definitions.
-    absl::StrAppend(&cc_output, "void ", class_name, "::Set",
+    ::absl::StrAppend(&cc_output, "void ", class_name, "::Set",
                     ToPascalCase(name), "(", cpp_type_name, " value) { ",
                     ToSnakeCase(name), "_value_ = value;}\n", cpp_type_name,
                     " ", class_name, "::Get", ToPascalCase(name),
                     "() { return ", ToSnakeCase(name), "_value_;}\n\n");
     // Generate variable declarations.
-    absl::StrAppend(&var_output, "  ", cpp_type_name, " ", ToSnakeCase(name),
+    ::absl::StrAppend(&var_output, "  ", cpp_type_name, " ", ToSnakeCase(name),
                     "_value_;\n");
   }
-  absl::StrAppend(&h_output, "\n private:\n", var_output, "};\n\n");
+  ::absl::StrAppend(&h_output, "\n private:\n", var_output, "};\n\n");
   // Close namespaces.
   for (auto iter = decoder_->namespaces().rbegin();
        iter != decoder_->namespaces().rend(); ++iter) {
-    absl::StrAppend(&h_output, "}  // namespace ", *iter, "\n");
-    absl::StrAppend(&cc_output, "}  // namespace ", *iter, "\n");
+    ::absl::StrAppend(&h_output, "}  // namespace ", *iter, "\n");
+    ::absl::StrAppend(&cc_output, "}  // namespace ", *iter, "\n");
   }
   return {h_output, cc_output};
 }

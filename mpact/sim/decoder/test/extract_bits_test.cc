@@ -77,7 +77,7 @@ TEST(ExtractBitsTest, FieldWidths) {
       if (width == 64) {
         match--;
       }
-      EXPECT_EQ(absl::popcount(value), width)
+      EXPECT_EQ(::absl::popcount(value), width)
           << offset << " " << width << " 0x" << std::hex << value;
       EXPECT_EQ(value, match)
           << offset << " " << width << " 0x" << std::hex << value;

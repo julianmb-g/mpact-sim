@@ -48,7 +48,7 @@ struct FieldInfo {
   const google::protobuf::FieldDescriptor* field;
   const google::protobuf::OneofDescriptor* oneof;
   QualifiedIdentCtx* ctx;
-  absl::btree_multimap<int64_t, const ProtoInstructionEncoding*> value_map;
+  ::absl::btree_multimap<int64_t, const ProtoInstructionEncoding*> value_map;
   int64_t min_value = 0;
   int64_t max_value = 0;
   size_t unique_values = 0;
@@ -118,7 +118,7 @@ void ProtoEncodingGroup::AddEncoding(ProtoInstructionEncoding* enc) {
           if (tmp > std::numeric_limits<int64_t>::max()) {
             error_listener()->semanticError(
                 eq_constraint->ctx->start,
-                absl::StrCat("Expression value for field '", field->name(),
+                ::absl::StrCat("Expression value for field '", field->name(),
                              "' overflows int64_t."));
             return;
           }
@@ -128,7 +128,7 @@ void ProtoEncodingGroup::AddEncoding(ProtoInstructionEncoding* enc) {
         default:
           error_listener()->semanticError(
               eq_constraint->ctx->start,
-              absl::StrCat(
+              ::absl::StrCat(
                   "Illegal type in expression in constraint for field '",
                   field->name(), "'."));
           return;
@@ -141,7 +141,7 @@ void ProtoEncodingGroup::AddEncoding(ProtoInstructionEncoding* enc) {
     } else {
       error_listener()->semanticError(
           eq_constraint->ctx->start,
-          absl::StrCat("Illegal constraint op for field '", field->name(),
+          ::absl::StrCat("Illegal constraint op for field '", field->name(),
                        "' in equality constraints."));
       return;
     }
@@ -188,7 +188,7 @@ void ProtoEncodingGroup::AddSubGroups() {
   // To start with just pick the one with the largest number of unique values,
   // as that should create a shallower decoding tree.
   FieldInfo* best_field = nullptr;
-  absl::flat_hash_set<ProtoInstructionEncoding*> encodings;
+  ::absl::flat_hash_set<ProtoInstructionEncoding*> encodings;
   for (auto enc : encoding_vec_) {
     encodings.insert(enc);
   }
@@ -287,10 +287,10 @@ void ProtoEncodingGroup::CheckEncodings() {
   for (auto* enc : encoding_vec_) {
     if (enc->equal_constraints().empty() && enc->other_constraints().empty()) {
       std::string msg =
-          absl::StrCat("Decoding ambiguity between '", enc->name(), "' and :");
+          ::absl::StrCat("Decoding ambiguity between '", enc->name(), "' and :");
       for (auto* other_enc : encoding_vec_) {
         if (enc == other_enc) continue;
-        absl::StrAppend(&msg, " '", other_enc->name(), "'");
+        ::absl::StrAppend(&msg, " '", other_enc->name(), "'");
       }
       error_listener()->semanticError(nullptr, msg);
       return;
@@ -357,7 +357,7 @@ void ProtoEncodingGroup::CheckEncodings() {
     for (int j = i + 1; j < value_sets.size(); ++j) {
       if (DoConstraintsOverlap(value_sets[i], value_sets[j])) {
         error_listener()->semanticError(
-            nullptr, absl::StrCat("Encoding group '", inst_group_->name(),
+            nullptr, ::absl::StrCat("Encoding group '", inst_group_->name(),
                                   "': encoding ambiguity between '",
                                   encoding_vec_[i]->name(), " and ",
                                   encoding_vec_[j]->name(), "'"));
@@ -406,13 +406,13 @@ bool ProtoEncodingGroup::DoConstraintsOverlap(
 constexpr char kDecodeMsgName[] = "inst_proto";
 
 std::string ProtoEncodingGroup::EmitLeafDecoder(
-    absl::string_view fcn_name, absl::string_view opcode_enum,
-    absl::string_view message_type_name, int indent_width) const {
+    ::absl::string_view fcn_name, ::absl::string_view opcode_enum,
+    ::absl::string_view message_type_name, int indent_width) const {
   std::string output;
   std::string if_sep;
   std::string decoder_class =
       ToPascalCase(inst_group_->encoding_info()->decoder()->name()) + "Decoder";
-  absl::StrAppend(&output, std::string(indent_width, ' '), opcode_enum, " ",
+  ::absl::StrAppend(&output, std::string(indent_width, ' '), opcode_enum, " ",
                   fcn_name, "(", message_type_name, " ", kDecodeMsgName, ", ",
                   decoder_class, " *decoder) {\n");
   indent_width += 2;
@@ -422,12 +422,12 @@ std::string ProtoEncodingGroup::EmitLeafDecoder(
   if ((encoding_vec_.size() == 1) &&
       encoding_vec_[0]->equal_constraints().empty() &&
       encoding_vec_[0]->other_constraints().empty()) {
-    absl::StrAppend(
+    ::absl::StrAppend(
         &output, encoding_vec_[0]->GetSetterCode(kDecodeMsgName, indent_width),
         "return ", opcode_enum, "::k", ToPascalCase(encoding_vec_[0]->name()),
         ";\n");
     indent_width -= 2;
-    absl::StrAppend(&output, std::string(indent_width, ' '), "}\n\n");
+    ::absl::StrAppend(&output, std::string(indent_width, ' '), "}\n\n");
     return output;
   }
 
@@ -440,23 +440,23 @@ std::string ProtoEncodingGroup::EmitLeafDecoder(
       auto pos = ident.find_last_of('.');
       std::string prefix;
       if (pos != std::string::npos) {
-        prefix = absl::StrCat(".", ident.substr(0, pos + 1));
+        prefix = ::absl::StrCat(".", ident.substr(0, pos + 1));
       }
       auto oneof_desc = constraint->field_descriptor->containing_oneof();
       auto oneof_name = oneof_desc->name();
       std::string parent_name;
       for (auto parent = oneof_desc->containing_type(); parent != nullptr;
            parent = parent->containing_type()) {
-        absl::StrAppend(&parent_name, ToPascalCase(parent->name()), "::");
+        ::absl::StrAppend(&parent_name, ToPascalCase(parent->name()), "::");
       }
-      auto package = absl::StrReplaceAll(
+      auto package = ::absl::StrReplaceAll(
           constraint->field_descriptor->file()->package(), {{".", "::"}});
-      return absl::StrCat(
+      return ::absl::StrCat(
           "(", kDecodeMsgName, prefix, ".", oneof_name, "_case() == ", package,
           "::", parent_name, ToPascalCase(oneof_name), "Case::k",
           ToPascalCase(constraint->field_descriptor->name()), ")");
     } else {
-      return absl::StrCat("(", kDecodeMsgName, ".",
+      return ::absl::StrCat("(", kDecodeMsgName, ".",
                           constraint->ctx->field->getText(), " ",
                           GetOpText(constraint->op), " ",
                           constraint->ctx->constraint_expr()->getText(), ")");
@@ -468,20 +468,20 @@ std::string ProtoEncodingGroup::EmitLeafDecoder(
   std::string indent_body(indent_width + 2, ' ');
   for (auto* enc : encoding_vec_) {
     // Generate the if statement conditions.
-    absl::StrAppend(&output, indent, if_sep, "if (");
+    ::absl::StrAppend(&output, indent, if_sep, "if (");
     std::string cond_sep;
     for (auto const* constraint : enc->equal_constraints()) {
-      absl::StrAppend(&output, cond_sep, generate_condition(constraint));
+      ::absl::StrAppend(&output, cond_sep, generate_condition(constraint));
       cond_sep = " && ";
     }
     for (auto const* constraint : enc->other_constraints()) {
-      absl::StrAppend(&output, cond_sep, generate_condition(constraint));
+      ::absl::StrAppend(&output, cond_sep, generate_condition(constraint));
       cond_sep = " && ";
     }
-    absl::StrAppend(&output, ") {\n");
+    ::absl::StrAppend(&output, ") {\n");
 
     // Generate if statement body.
-    absl::StrAppend(&output, indent_body,
+    ::absl::StrAppend(&output, indent_body,
                     enc->GetSetterCode(kDecodeMsgName, indent_width + 2),
                     "return ", opcode_enum, "::k", ToPascalCase(enc->name()),
                     ";\n");
@@ -489,10 +489,10 @@ std::string ProtoEncodingGroup::EmitLeafDecoder(
     if_sep = "} else ";
   }
   // Generate the fall through.
-  absl::StrAppend(&output, indent, "}\n", indent, "return ", opcode_enum,
+  ::absl::StrAppend(&output, indent, "}\n", indent, "return ", opcode_enum,
                   "::kNone;\n");
   indent_width -= 2;
-  absl::StrAppend(&output, std::string(indent_width, ' '), "}\n\n");
+  ::absl::StrAppend(&output, std::string(indent_width, ' '), "}\n\n");
   return output;
 }
 
@@ -505,8 +505,8 @@ bool LessThan(ProtoEncodingGroup* lhs, ProtoEncodingGroup* rhs) {
 }  // namespace
 
 std::string ProtoEncodingGroup::EmitComplexDecoder(
-    absl::string_view fcn_name, absl::string_view opcode_enum,
-    absl::string_view message_type_name) {
+    ::absl::string_view fcn_name, ::absl::string_view opcode_enum,
+    ::absl::string_view message_type_name) {
   std::string output;
   if (encoding_group_vec_.empty()) {
     return EmitLeafDecoder(fcn_name, opcode_enum, message_type_name, 0);
@@ -521,22 +521,22 @@ std::string ProtoEncodingGroup::EmitComplexDecoder(
       (double)differentiator_->unique_values /
       (double)(differentiator_->max_value - differentiator_->min_value);
   if (density < 0.75) {
-    std::string map_name = absl::StrCat(ToSnakeCase(fcn_name), "_map");
-    absl::StrAppend(
+    std::string map_name = ::absl::StrCat(ToSnakeCase(fcn_name), "_map");
+    ::absl::StrAppend(
         &output,
-        "absl::NoDestructor<absl::flat_hash_map<int32_t, std::function<",
+        "::absl::NoDestructor<::absl::flat_hash_map<int32_t, std::function<",
         opcode_enum, "(", message_type_name, ", ", decoder_class, "*)>>> ",
         map_name, "({\n");
     for (auto* enc_group : encoding_group_vec_) {
       auto enc_value = enc_group->value();
-      absl::StrAppend(&output, "  {", enc_value, ", ", fcn_name, "_", enc_value,
+      ::absl::StrAppend(&output, "  {", enc_value, ", ", fcn_name, "_", enc_value,
                       "},\n");
     }
-    absl::StrAppend(&output, "});\n\n");
+    ::absl::StrAppend(&output, "});\n\n");
     // Emit the function body.
     auto call =
-        absl::StrReplaceAll(differentiator_->ctx->getText(), {{".", "()."}});
-    absl::StrAppend(&output, opcode_enum, " ", fcn_name, "(", message_type_name,
+        ::absl::StrReplaceAll(differentiator_->ctx->getText(), {{".", "()."}});
+    ::absl::StrAppend(&output, opcode_enum, " ", fcn_name, "(", message_type_name,
                     " ", kDecodeMsgName, ", ", decoder_class, " *decoder) {\n",
                     "  auto iter = ", map_name, "->find(", kDecodeMsgName, ".",
                     call, "());\n", "  if (iter == ", map_name,
@@ -548,7 +548,7 @@ std::string ProtoEncodingGroup::EmitComplexDecoder(
     auto max = differentiator_->max_value;
     auto num_values = max - min + 1;
     auto iter = encoding_group_vec_.begin();
-    absl::StrAppend(&output, "std::function<", opcode_enum, "(",
+    ::absl::StrAppend(&output, "std::function<", opcode_enum, "(",
                     message_type_name, ", ", decoder_class, "*)> ",
                     ToSnakeCase(fcn_name), "_table[", num_values, "] = {\n");
     // Fill in the entries in the function table.
@@ -558,17 +558,17 @@ std::string ProtoEncodingGroup::EmitComplexDecoder(
                            : std::numeric_limits<int64_t>::min();
       auto index = enc_value - min;
       if (index != i) {
-        absl::StrAppend(&output, "  Decode", ToPascalCase(inst_group_->name()),
+        ::absl::StrAppend(&output, "  Decode", ToPascalCase(inst_group_->name()),
                         "_None,\n");
       } else {
-        absl::StrAppend(&output, "  ", fcn_name, "_", enc_value, ",\n");
+        ::absl::StrAppend(&output, "  ", fcn_name, "_", enc_value, ",\n");
         ++iter;
       }
     }
     // Emit the function body.
     auto call =
-        absl::StrReplaceAll(differentiator_->ctx->getText(), {{".", "()."}});
-    absl::StrAppend(
+        ::absl::StrReplaceAll(differentiator_->ctx->getText(), {{".", "()."}});
+    ::absl::StrAppend(
         &output, "};\n\n", opcode_enum, " ", fcn_name, "(", message_type_name,
         " ", kDecodeMsgName, ", ", decoder_class, " *decoder) {\n", "  return ",
         ToSnakeCase(fcn_name), "_table[", kDecodeMsgName, ".", call, "() - ",
@@ -578,18 +578,18 @@ std::string ProtoEncodingGroup::EmitComplexDecoder(
 }
 
 std::string ProtoEncodingGroup::EmitDecoders(
-    absl::string_view fcn_name, absl::string_view opcode_enum,
-    absl::string_view message_type_name) {
+    ::absl::string_view fcn_name, ::absl::string_view opcode_enum,
+    ::absl::string_view message_type_name) {
   std::string output;
   // Emit decoders for subordinate groups (lower in the hierarchy).
   for (auto* enc_group : encoding_group_vec_) {
-    absl::StrAppend(
+    ::absl::StrAppend(
         &output,
-        enc_group->EmitDecoders(absl::StrCat(fcn_name, "_", enc_group->value()),
+        enc_group->EmitDecoders(::absl::StrCat(fcn_name, "_", enc_group->value()),
                                 opcode_enum, message_type_name));
   }
   // Emit decoder for this group.
-  absl::StrAppend(&output,
+  ::absl::StrAppend(&output,
                   EmitComplexDecoder(fcn_name, opcode_enum, message_type_name));
   return output;
 }

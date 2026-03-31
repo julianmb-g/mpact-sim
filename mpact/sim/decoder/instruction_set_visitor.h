@@ -80,15 +80,15 @@ class InstructionSetVisitor {
 
   // Entry point for processing a source_stream input, generating any output
   // files in the given directory. Returns OK if no errors were encountered.
-  absl::Status Process(const std::vector<std::string>& file_names,
+  ::absl::Status Process(const std::vector<std::string>& file_names,
                        const std::string& prefix, const std::string& isa_name,
                        const std::vector<std::string>& include_roots,
-                       absl::string_view directory);
+                       ::absl::string_view directory);
 
   // Global const expressions.
-  absl::Status AddConstant(absl::string_view name, absl::string_view type,
+  ::absl::Status AddConstant(::absl::string_view name, ::absl::string_view type,
                            TemplateExpression* expr);
-  TemplateExpression* GetConstExpression(absl::string_view name) const;
+  TemplateExpression* GetConstExpression(::absl::string_view name) const;
   // The current isa name.
   const std::string& isa_name() const { return isa_name_; }
 
@@ -138,7 +138,7 @@ class InstructionSetVisitor {
       Slot* slot, Instruction* inst, ResourceItemCtx* resource_item);
   void VisitResourceDetailsLists(ResourceDetailsCtx* ctx, Slot* slot,
                                  Instruction* inst, ResourceSpec* spec);
-  std::unique_ptr<InstructionSet> ProcessTopLevel(absl::string_view isa_name);
+  std::unique_ptr<InstructionSet> ProcessTopLevel(::absl::string_view isa_name);
   void ParseIncludeFile(antlr4::ParserRuleContext* ctx,
                         const std::string& file_name,
                         const std::vector<std::string>& dirs);
@@ -146,53 +146,53 @@ class InstructionSetVisitor {
                                                     const Slot* slot,
                                                     const Instruction* inst);
   void PerformOpcodeOverrides(
-      absl::flat_hash_set<OpcodeSpecCtx*> overridden_ops_set, Slot* slot);
+      ::absl::flat_hash_set<OpcodeSpecCtx*> overridden_ops_set, Slot* slot);
   void PreProcessDeclarations(const std::vector<DeclarationCtx*>& ctx_vec);
   void ProcessOpcodeList(
       OpcodeListCtx* ctx, Slot* slot,
       std::vector<Instruction*>& instruction_vec,
-      absl::flat_hash_set<std::string>& deleted_ops_set,
-      absl::flat_hash_set<OpcodeSpecCtx*>& overridden_ops_set);
+      ::absl::flat_hash_set<std::string>& deleted_ops_set,
+      ::absl::flat_hash_set<OpcodeSpecCtx*>& overridden_ops_set);
   void ProcessOpcodeSpec(
       OpcodeSpecCtx* opcode_ctx, Slot* slot,
       std::vector<Instruction*>& instruction_vec,
-      absl::flat_hash_set<std::string>& deleted_ops_set,
-      absl::flat_hash_set<OpcodeSpecCtx*>& overridden_ops_set);
+      ::absl::flat_hash_set<std::string>& deleted_ops_set,
+      ::absl::flat_hash_set<OpcodeSpecCtx*>& overridden_ops_set);
   // Process the GENERATE() directive.
-  absl::Status ProcessOpcodeGenerator(
+  ::absl::Status ProcessOpcodeGenerator(
       OpcodeSpecCtx* ctx, Slot* slot,
       std::vector<Instruction*>& instruction_vec,
-      absl::flat_hash_set<std::string>& deleted_ops_set,
-      absl::flat_hash_set<OpcodeSpecCtx*>& overridden_ops_set);
+      ::absl::flat_hash_set<std::string>& deleted_ops_set,
+      ::absl::flat_hash_set<OpcodeSpecCtx*>& overridden_ops_set);
   // Helper function fused by ProcessOpcodeGenerator.
   std::string GenerateOpcodeSpec(
       const std::vector<RangeAssignmentInfo*>& range_info_vec, int index,
       const std::string& template_str_in) const;
   // These methods parses the disassembly format string.
-  absl::Status ParseDisasmFormat(std::string format, Instruction* inst);
-  absl::StatusOr<std::string> ParseNumberFormat(std::string format);
-  absl::StatusOr<FormatInfo*> ParseFormatExpression(std::string expr,
+  ::absl::Status ParseDisasmFormat(std::string format, Instruction* inst);
+  ::absl::StatusOr<std::string> ParseNumberFormat(std::string format);
+  ::absl::StatusOr<FormatInfo*> ParseFormatExpression(std::string expr,
                                                     Opcode* op);
 
   // Generate file prologues/epilogues.
-  std::string GenerateHdrFileProlog(absl::string_view file_name,
-                                    absl::string_view opcode_file_name,
-                                    absl::string_view guard_name,
-                                    absl::string_view encoding_base_name,
+  std::string GenerateHdrFileProlog(::absl::string_view file_name,
+                                    ::absl::string_view opcode_file_name,
+                                    ::absl::string_view guard_name,
+                                    ::absl::string_view encoding_base_name,
                                     const std::vector<std::string>& namespaces);
   std::tuple<std::string, std::string> GenerateEncFilePrologs(
-      absl::string_view file_name, absl::string_view guard_name,
-      absl::string_view opcode_file_name, absl::string_view encoding_type_name,
+      ::absl::string_view file_name, ::absl::string_view guard_name,
+      ::absl::string_view opcode_file_name, ::absl::string_view encoding_type_name,
       const std::vector<std::string>& namespaces);
-  std::string GenerateHdrFileEpilog(absl::string_view guard_name,
+  std::string GenerateHdrFileEpilog(::absl::string_view guard_name,
                                     const std::vector<std::string>& namespaces);
-  std::string GenerateCcFileProlog(absl::string_view hdr_file_name,
+  std::string GenerateCcFileProlog(::absl::string_view hdr_file_name,
                                    bool use_includes,
                                    const std::vector<std::string>& namespaces);
   std::string GenerateNamespaceEpilog(
       const std::vector<std::string>& namespaces);
   std::string GenerateSimpleHdrProlog(
-      absl::string_view guard_name, const std::vector<std::string>& namespaces);
+      ::absl::string_view guard_name, const std::vector<std::string>& namespaces);
 
   // Error handler.
   decoder::DecoderErrorListener* error_listener() const {
@@ -207,21 +207,21 @@ class InstructionSetVisitor {
 
   // Slot and bundle maps - these point to the contexts for every slot and
   // bundle that have been declared.
-  absl::flat_hash_map<std::string, SlotDeclCtx*> slot_decl_map_;
-  absl::flat_hash_map<std::string, BundleDeclCtx*> bundle_decl_map_;
-  absl::flat_hash_map<std::string, IsaDeclCtx*> isa_decl_map_;
+  ::absl::flat_hash_map<std::string, SlotDeclCtx*> slot_decl_map_;
+  ::absl::flat_hash_map<std::string, BundleDeclCtx*> bundle_decl_map_;
+  ::absl::flat_hash_map<std::string, IsaDeclCtx*> isa_decl_map_;
 
   // Constant map
-  absl::flat_hash_map<std::string, TemplateExpression*> constant_map_;
+  ::absl::flat_hash_map<std::string, TemplateExpression*> constant_map_;
   // Include file strings.
-  absl::btree_set<std::string> include_files_;
+  ::absl::btree_set<std::string> include_files_;
 
   int current_file_index_ = 0;
   unsigned generator_version_;
   // Vector of file names.
   std::vector<std::string> file_names_;
   // Map from context pointer to file index.
-  absl::flat_hash_map<antlr4::ParserRuleContext*, int> context_file_map_;
+  ::absl::flat_hash_map<antlr4::ParserRuleContext*, int> context_file_map_;
   // Include file roots.
   std::vector<std::string> include_dir_vec_;
   // Keep track of files that are included in case there is recursive includes.
@@ -229,7 +229,7 @@ class InstructionSetVisitor {
   // Error listening object passed to the parser.
   std::unique_ptr<decoder::DecoderErrorListener> error_listener_;
   // For template functions evaluators.
-  absl::flat_hash_map<std::string, TemplateFunctionEvaluator>
+  ::absl::flat_hash_map<std::string, TemplateFunctionEvaluator>
       template_function_evaluators_;
   // Disassembler field widths.
   std::vector<TemplateExpression*> disasm_field_widths_;

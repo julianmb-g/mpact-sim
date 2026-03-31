@@ -32,10 +32,10 @@ constexpr int kIntConst2 = 2;
 constexpr int kIntConst3 = 3;
 constexpr int kIntConst0 = 0;
 
-static absl::StatusOr<TemplateValue> Add3TemplateFunc(
+static ::absl::StatusOr<TemplateValue> Add3TemplateFunc(
     TemplateInstantiationArgs* args) {
   if (args->size() != 1) {
-    return absl::InternalError(absl::StrCat(
+    return ::absl::InternalError(::absl::StrCat(
         "Wrong number of arguments, expected 1, was given ", args->size()));
   }
   auto result = (*args)[0]->GetValue();
@@ -43,7 +43,7 @@ static absl::StatusOr<TemplateValue> Add3TemplateFunc(
 
   auto* value_ptr = std::get_if<int>(&result.value());
   if (value_ptr == nullptr) {
-    return absl::InternalError("Type mismatch - int expected");
+    return ::absl::InternalError("Type mismatch - int expected");
   }
   int return_value = *value_ptr + kIntConst3;
   return TemplateValue(return_value);
@@ -141,7 +141,7 @@ TEST(TemplateExpressionTest, DivideByZero) {
   auto div_expr = new TemplateDivide(five, zero);
   EXPECT_TRUE(div_expr->IsConstant());
   auto result = div_expr->GetValue();
-  EXPECT_EQ(result.status().code(), absl::StatusCode::kInternal);
+  EXPECT_EQ(result.status().code(), ::absl::StatusCode::kInternal);
   EXPECT_EQ(result.status().message(), "Divide by zero");
   delete div_expr;
 }

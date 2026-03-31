@@ -13,32 +13,32 @@ namespace mpact {
 namespace sim {
 namespace test {
 
-class LogSink : public absl::LogSink {
+class LogSink : public ::absl::LogSink {
  public:
   LogSink() = default;
   ~LogSink() override = default;
   // Method called for each log message.
-  void Send(const absl::LogEntry& entry) override {
+  void Send(const ::absl::LogEntry& entry) override {
     switch (entry.log_severity()) {
-      case absl::LogSeverity::kInfo:
-        absl::StrAppend(&info_log_, entry.text_message());
+      case ::absl::LogSeverity::kInfo:
+        ::absl::StrAppend(&info_log_, entry.text_message());
         break;
-      case absl::LogSeverity::kWarning:
-        absl::StrAppend(&warning_log_, entry.text_message());
+      case ::absl::LogSeverity::kWarning:
+        ::absl::StrAppend(&warning_log_, entry.text_message());
         break;
-      case absl::LogSeverity::kError:
-        absl::StrAppend(&error_log_, entry.text_message());
+      case ::absl::LogSeverity::kError:
+        ::absl::StrAppend(&error_log_, entry.text_message());
         break;
-      case absl::LogSeverity::kFatal:
-        absl::StrAppend(&fatal_log_, entry.text_message());
+      case ::absl::LogSeverity::kFatal:
+        ::absl::StrAppend(&fatal_log_, entry.text_message());
         break;
     }
   }
 
-  absl::string_view info_log() const { return info_log_; }
-  absl::string_view warning_log() const { return warning_log_; }
-  absl::string_view error_log() const { return error_log_; }
-  absl::string_view fatal_log() const { return fatal_log_; }
+  ::absl::string_view info_log() const { return info_log_; }
+  ::absl::string_view warning_log() const { return warning_log_; }
+  ::absl::string_view error_log() const { return error_log_; }
+  ::absl::string_view fatal_log() const { return fatal_log_; }
 
  private:
   std::string info_log_;

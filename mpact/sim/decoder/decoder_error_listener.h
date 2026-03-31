@@ -32,12 +32,12 @@ namespace decoder {
 // An Antlr4 error listener to check for syntax errors.
 class DecoderErrorListener : public antlr4::BaseErrorListener {
  public:
-  void semanticError(antlr4::Token* token, absl::string_view msg);
-  void semanticWarning(antlr4::Token* token, absl::string_view msg);
+  void semanticError(antlr4::Token* token, ::absl::string_view msg);
+  void semanticWarning(antlr4::Token* token, ::absl::string_view msg);
   void semanticError(const std::string& file_name, antlr4::Token* token,
-                     absl::string_view msg);
+                     ::absl::string_view msg);
   void semanticWarning(const std::string& file_name, antlr4::Token* token,
-                       absl::string_view msg);
+                       ::absl::string_view msg);
   void syntaxError(antlr4::Recognizer* recognizer,
                    antlr4::Token* offendingSymbol, size_t line,
                    size_t charPositionInLine, const std::string& msg,

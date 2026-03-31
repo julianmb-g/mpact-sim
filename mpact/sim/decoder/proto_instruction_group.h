@@ -57,7 +57,7 @@ class ProtoInstructionGroup {
   ~ProtoInstructionGroup();
 
   // Add group level setter.
-  absl::Status AddSetter(
+  ::absl::Status AddSetter(
       const std::string& group_name, SetterDefCtx* ctx,
       const std::string& setter_name,
       const google::protobuf::FieldDescriptor* field_desc,
@@ -65,10 +65,10 @@ class ProtoInstructionGroup {
       IfNotCtx* if_not);
   // Look up the setters in the named setter group. If found, return the begin
   // and end iterators for those setters.
-  absl::StatusOr<
-      std::pair<absl::btree_map<std::string, SetterInfo*>::const_iterator,
-                absl::btree_map<std::string, SetterInfo*>::const_iterator>>
-  GetSetterGroup(absl::string_view group) const;
+  ::absl::StatusOr<
+      std::pair<::absl::btree_map<std::string, SetterInfo*>::const_iterator,
+                ::absl::btree_map<std::string, SetterInfo*>::const_iterator>>
+  GetSetterGroup(::absl::string_view group) const;
   // Create and return an instruction encoding with the given name.
   ProtoInstructionEncoding* AddInstructionEncoding(std::string name);
   // Create a copy of the given instruction encoding.
@@ -95,15 +95,15 @@ class ProtoInstructionGroup {
   const google::protobuf::Descriptor* message_type_;
   std::string opcode_enum_;
   ProtoEncodingInfo* encoding_info_;
-  absl::flat_hash_set<std::string> encoding_name_set_;
+  ::absl::flat_hash_set<std::string> encoding_name_set_;
   std::vector<ProtoInstructionEncoding*> encodings_;
   // Encoding group.
   ProtoEncodingGroup* encoding_group_ = nullptr;
   // Setter names and types.
-  absl::btree_map<std::string, int> setter_name_to_type_;
+  ::absl::btree_map<std::string, int> setter_name_to_type_;
   // Setter group map. Maps from setter group name to a map from setter name
   // to setter info.
-  absl::btree_map<std::string, absl::btree_map<std::string, SetterInfo*>>
+  ::absl::btree_map<std::string, ::absl::btree_map<std::string, SetterInfo*>>
       setter_groups_;
 };
 

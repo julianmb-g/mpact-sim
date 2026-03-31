@@ -47,37 +47,37 @@ class InstructionSet {
   };
 
   // Constructor and destructor.
-  explicit InstructionSet(absl::string_view name);
+  explicit InstructionSet(::absl::string_view name);
   virtual ~InstructionSet();
 
   // Add bundle and slot to instruction set.
   void AddBundle(Bundle* bundle);
   void AddSlot(Slot* slot);
-  void PrependNamespace(absl::string_view namespace_name);
+  void PrependNamespace(::absl::string_view namespace_name);
 
   // Look up bundle and slot names and return pointers to their respective
   // objects. If not found, return nullptr.
-  Bundle* GetBundle(absl::string_view) const;
-  Slot* GetSlot(absl::string_view) const;
+  Bundle* GetBundle(::absl::string_view) const;
+  Slot* GetSlot(::absl::string_view) const;
   // Compute the set of reachable bundles and slots.
   void ComputeSlotAndBundleOrders();
   // Analyze the resource use in the opcodes in the slots. This is done to
   // determine which resources must be modeled by complex resource types vs
   // simple resource types.
-  absl::Status AnalyzeResourceUse();
+  ::absl::Status AnalyzeResourceUse();
   // Return strings containing class declarations, definitions, and opcode enum
   // class.
-  std::string GenerateClassDeclarations(absl::string_view file_name,
-                                        absl::string_view opcode_file_name,
-                                        absl::string_view encoding_type) const;
-  std::string GenerateClassDefinitions(absl::string_view include_file,
-                                       absl::string_view encoding_type) const;
+  std::string GenerateClassDeclarations(::absl::string_view file_name,
+                                        ::absl::string_view opcode_file_name,
+                                        ::absl::string_view encoding_type) const;
+  std::string GenerateClassDefinitions(::absl::string_view include_file,
+                                       ::absl::string_view encoding_type) const;
   std::tuple<std::string, std::string> GenerateEncClasses(
-      absl::string_view file_name, absl::string_view opcode_file_name,
-      absl::string_view encoder_type) const;
+      ::absl::string_view file_name, ::absl::string_view opcode_file_name,
+      ::absl::string_view encoder_type) const;
   // This method is static, as it considers all the instruction sets that were
   // defined.
-  StringPair GenerateEnums(absl::string_view file_name);
+  StringPair GenerateEnums(::absl::string_view file_name);
 
   void AddInstruction(Instruction* inst) {
     if (instruction_map_.contains(inst->opcode()->name())) return;
@@ -93,28 +93,28 @@ class InstructionSet {
   OpcodeFactory* opcode_factory() const { return opcode_factory_.get(); }
   ResourceFactory* resource_factory() const { return resource_factory_.get(); }
 
-  absl::flat_hash_map<std::string, Bundle*>& bundle_map() {
+  ::absl::flat_hash_map<std::string, Bundle*>& bundle_map() {
     return bundle_map_;
   }
-  absl::flat_hash_map<std::string, Slot*>& slot_map() { return slot_map_; }
+  ::absl::flat_hash_map<std::string, Slot*>& slot_map() { return slot_map_; }
 
   // Maps from operand names to enum values.
-  absl::flat_hash_map<std::string, int>& pred_op_map() { return pred_op_map_; }
-  absl::flat_hash_map<std::string, int>& source_op_map() {
+  ::absl::flat_hash_map<std::string, int>& pred_op_map() { return pred_op_map_; }
+  ::absl::flat_hash_map<std::string, int>& source_op_map() {
     return source_op_map_;
   }
-  absl::flat_hash_map<std::string, int>& list_source_op_map() {
+  ::absl::flat_hash_map<std::string, int>& list_source_op_map() {
     return list_source_op_map_;
   }
-  absl::flat_hash_map<std::string, int>& dest_op_map() { return dest_op_map_; }
-  absl::flat_hash_map<std::string, int>& list_dest_op_map() {
+  ::absl::flat_hash_map<std::string, int>& dest_op_map() { return dest_op_map_; }
+  ::absl::flat_hash_map<std::string, int>& list_dest_op_map() {
     return list_dest_op_map_;
   }
 
   std::string GenerateEncodingFunctions() const;
 
  private:
-  std::string GenerateOperandEncoder(int position, absl::string_view op_name,
+  std::string GenerateOperandEncoder(int position, ::absl::string_view op_name,
                                      const OperandLocator& locator,
                                      const Opcode* opcode) const;
   // Add bundle and slot to list of classes that need to be generated.
@@ -131,16 +131,16 @@ class InstructionSet {
   std::string pascal_name_;
   Bundle* bundle_ = nullptr;
   // Map from instruction name to pointer.
-  absl::btree_map<std::string, Instruction*> instruction_map_;
+  ::absl::btree_map<std::string, Instruction*> instruction_map_;
   // Maps from names to bundle/slot pointers.
-  absl::flat_hash_map<std::string, Bundle*> bundle_map_;
-  absl::flat_hash_map<std::string, Slot*> slot_map_;
+  ::absl::flat_hash_map<std::string, Bundle*> bundle_map_;
+  ::absl::flat_hash_map<std::string, Slot*> slot_map_;
   // Maps from operand names to enum values.
-  absl::flat_hash_map<std::string, int> pred_op_map_;
-  absl::flat_hash_map<std::string, int> source_op_map_;
-  absl::flat_hash_map<std::string, int> list_source_op_map_;
-  absl::flat_hash_map<std::string, int> dest_op_map_;
-  absl::flat_hash_map<std::string, int> list_dest_op_map_;
+  ::absl::flat_hash_map<std::string, int> pred_op_map_;
+  ::absl::flat_hash_map<std::string, int> source_op_map_;
+  ::absl::flat_hash_map<std::string, int> list_source_op_map_;
+  ::absl::flat_hash_map<std::string, int> dest_op_map_;
+  ::absl::flat_hash_map<std::string, int> list_dest_op_map_;
 };
 
 }  // namespace instruction_set

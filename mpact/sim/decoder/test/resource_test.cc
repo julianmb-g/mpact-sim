@@ -27,14 +27,14 @@ TEST_F(ResourceTest, Factory) {
   auto result = factory_.CreateResource(kResource1Name);
   EXPECT_TRUE(result.status().ok());
   auto result2 = factory_.CreateResource(kResource1Name);
-  EXPECT_TRUE(absl::IsAlreadyExists(result2.status()));
+  EXPECT_TRUE(::absl::IsAlreadyExists(result2.status()));
   auto* resource1 = factory_.GetOrInsertResource(kResource1Name);
   EXPECT_EQ(result.value(), resource1);
   auto* resource2 = factory_.GetOrInsertResource(kResource2Name);
   EXPECT_NE(resource2, nullptr);
   EXPECT_NE(resource2, resource1);
   auto result3 = factory_.CreateResource(kResource2Name);
-  EXPECT_TRUE(absl::IsAlreadyExists(result3.status()));
+  EXPECT_TRUE(::absl::IsAlreadyExists(result3.status()));
 
   EXPECT_EQ(factory_.resource_map().find(kResource1Name)->second, resource1);
   EXPECT_EQ(factory_.resource_map().find(kResource2Name)->second, resource2);

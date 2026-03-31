@@ -96,7 +96,7 @@ TEST_F(InstructionEncodingTest, BadConstraintName) {
   // Wrong field names.
   auto status = i_type_->AddEqualConstraint("NotAName", 0);
   // Verify error message, and that nothing has changed.
-  EXPECT_TRUE(absl::IsNotFound(status));
+  EXPECT_TRUE(::absl::IsNotFound(status));
   EXPECT_EQ(i_type_->GetValue(), 0);
   EXPECT_EQ(i_type_->GetMask(), 0);
   EXPECT_EQ(i_type_->GetCombinedMask(), 0);
@@ -106,7 +106,7 @@ TEST_F(InstructionEncodingTest, BadConstraintName) {
 
   // Check for other constraint type.
   status = i_type_->AddOtherConstraint(ConstraintType::kNe, "NotAName", 0);
-  EXPECT_TRUE(absl::IsNotFound(status));
+  EXPECT_TRUE(::absl::IsNotFound(status));
   EXPECT_EQ(i_type_->GetValue(), 0);
   EXPECT_EQ(i_type_->GetMask(), 0);
   EXPECT_EQ(i_type_->GetCombinedMask(), 0);
@@ -118,71 +118,71 @@ TEST_F(InstructionEncodingTest, BadConstraintName) {
 TEST_F(InstructionEncodingTest, OutOfRangeUnsignedField) {
   // Correct field name, but value out of range.
   auto status = i_type_->AddEqualConstraint("func3", 8);
-  EXPECT_TRUE(absl::IsOutOfRange(status));
+  EXPECT_TRUE(::absl::IsOutOfRange(status));
   status = i_type_->AddEqualConstraint("func3", -5);
-  EXPECT_TRUE(absl::IsOutOfRange(status));
+  EXPECT_TRUE(::absl::IsOutOfRange(status));
   status = i_type_->AddOtherConstraint(ConstraintType::kLt, "func3", 8);
-  EXPECT_TRUE(absl::IsOutOfRange(status));
+  EXPECT_TRUE(::absl::IsOutOfRange(status));
   status = i_type_->AddOtherConstraint(ConstraintType::kLe, "func3", -5);
-  EXPECT_TRUE(absl::IsOutOfRange(status));
+  EXPECT_TRUE(::absl::IsOutOfRange(status));
 }
 
 TEST_F(InstructionEncodingTest, OutOfRangeSignedField) {
   auto status = i_type_->AddEqualConstraint("imm12", 1 << 11);
-  EXPECT_TRUE(absl::IsOutOfRange(status));
+  EXPECT_TRUE(::absl::IsOutOfRange(status));
   status = i_type_->AddEqualConstraint("imm12", -(1 << 11) - 1);
-  EXPECT_TRUE(absl::IsOutOfRange(status));
+  EXPECT_TRUE(::absl::IsOutOfRange(status));
   status = i_type_->AddOtherConstraint(ConstraintType::kNe, "imm12", 1 << 11);
-  EXPECT_TRUE(absl::IsOutOfRange(status));
+  EXPECT_TRUE(::absl::IsOutOfRange(status));
   status =
       i_type_->AddOtherConstraint(ConstraintType::kNe, "imm12", -(1 << 11) - 1);
-  EXPECT_TRUE(absl::IsOutOfRange(status));
+  EXPECT_TRUE(::absl::IsOutOfRange(status));
 }
 
 TEST_F(InstructionEncodingTest, OutOfRangeUnsignedOverlay) {
   // Correct field name, but value out of range.
   auto status = i_type_->AddEqualConstraint("uspecial", 1024);
-  EXPECT_TRUE(absl::IsOutOfRange(status));
+  EXPECT_TRUE(::absl::IsOutOfRange(status));
   status = i_type_->AddEqualConstraint("uspecial", -5);
-  EXPECT_TRUE(absl::IsOutOfRange(status));
+  EXPECT_TRUE(::absl::IsOutOfRange(status));
   status = i_type_->AddOtherConstraint(ConstraintType::kNe, "uspecial", 1024);
-  EXPECT_TRUE(absl::IsOutOfRange(status));
+  EXPECT_TRUE(::absl::IsOutOfRange(status));
   status = i_type_->AddOtherConstraint(ConstraintType::kNe, "uspecial", -5);
-  EXPECT_TRUE(absl::IsOutOfRange(status));
+  EXPECT_TRUE(::absl::IsOutOfRange(status));
 }
 
 TEST_F(InstructionEncodingTest, OutOfRangeSignedOverlay) {
   auto status = i_type_->AddEqualConstraint("sspecial", 1 << 10);
-  EXPECT_TRUE(absl::IsOutOfRange(status));
+  EXPECT_TRUE(::absl::IsOutOfRange(status));
   status = i_type_->AddEqualConstraint("sspecial", -(1 << 10) - 1);
-  EXPECT_TRUE(absl::IsOutOfRange(status));
+  EXPECT_TRUE(::absl::IsOutOfRange(status));
   status =
       i_type_->AddOtherConstraint(ConstraintType::kNe, "sspecial", 1 << 10);
-  EXPECT_TRUE(absl::IsOutOfRange(status));
+  EXPECT_TRUE(::absl::IsOutOfRange(status));
   status = i_type_->AddOtherConstraint(ConstraintType::kNe, "sspecial",
                                        -(1 << 10) - 1);
-  EXPECT_TRUE(absl::IsOutOfRange(status));
+  EXPECT_TRUE(::absl::IsOutOfRange(status));
 }
 
 TEST_F(InstructionEncodingTest, IllegalSignedConstraints) {
   // Field.
   auto status = i_type_->AddOtherConstraint(ConstraintType::kLt, "imm12", 5);
-  EXPECT_TRUE(absl::IsInvalidArgument(status));
+  EXPECT_TRUE(::absl::IsInvalidArgument(status));
   status = i_type_->AddOtherConstraint(ConstraintType::kLe, "imm12", 5);
-  EXPECT_TRUE(absl::IsInvalidArgument(status));
+  EXPECT_TRUE(::absl::IsInvalidArgument(status));
   status = i_type_->AddOtherConstraint(ConstraintType::kGt, "imm12", 5);
-  EXPECT_TRUE(absl::IsInvalidArgument(status));
+  EXPECT_TRUE(::absl::IsInvalidArgument(status));
   status = i_type_->AddOtherConstraint(ConstraintType::kGe, "imm12", 5);
-  EXPECT_TRUE(absl::IsInvalidArgument(status));
+  EXPECT_TRUE(::absl::IsInvalidArgument(status));
   // Overlay.
   status = i_type_->AddOtherConstraint(ConstraintType::kLt, "sspecial", 5);
-  EXPECT_TRUE(absl::IsInvalidArgument(status));
+  EXPECT_TRUE(::absl::IsInvalidArgument(status));
   status = i_type_->AddOtherConstraint(ConstraintType::kLe, "sspecial", 5);
-  EXPECT_TRUE(absl::IsInvalidArgument(status));
+  EXPECT_TRUE(::absl::IsInvalidArgument(status));
   status = i_type_->AddOtherConstraint(ConstraintType::kGt, "sspecial", 5);
-  EXPECT_TRUE(absl::IsInvalidArgument(status));
+  EXPECT_TRUE(::absl::IsInvalidArgument(status));
   status = i_type_->AddOtherConstraint(ConstraintType::kGe, "sspecial", 5);
-  EXPECT_TRUE(absl::IsInvalidArgument(status));
+  EXPECT_TRUE(::absl::IsInvalidArgument(status));
 }
 
 TEST_F(InstructionEncodingTest, AddEqualUnsignedConstraint) {

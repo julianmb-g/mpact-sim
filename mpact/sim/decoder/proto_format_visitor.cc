@@ -71,11 +71,11 @@ class MultiFileErrorCollector
   MultiFileErrorCollector(const MultiFileErrorCollector&) = delete;
   MultiFileErrorCollector& operator=(const MultiFileErrorCollector&) = delete;
 
-  void RecordError(absl::string_view filename, int line, int column,
-                   absl::string_view message) override {
-    LOG(ERROR) << absl::StrCat("Line ", line, " Column ", column, ": ", message,
+  void RecordError(::absl::string_view filename, int line, int column,
+                   ::absl::string_view message) override {
+    LOG(ERROR) << ::absl::StrCat("Line ", line, " Column ", column, ": ", message,
                                "\n");
-    absl::StrAppend(&error_, "Line ", line, " Column ", column, ": ", message,
+    ::absl::StrAppend(&error_, "Line ", line, " Column ", column, ": ", message,
                     "\n");
   }
   const std::string& GetError() const { return error_; }
@@ -94,7 +94,7 @@ class MultiFileErrorCollector
 //   proto_dirs: vector of directories from which to resolve proto files.
 //   proto_files: vector of .proto files to import.
 //   directory: target directory to generate the C++ files in.
-absl::Status ProtoFormatVisitor::Process(
+::absl::Status ProtoFormatVisitor::Process(
     const std::vector<std::string>& file_names, const std::string& decoder_name,
     std::string_view prefix, const std::vector<std::string>& include_roots,
     const std::vector<std::string>& proto_dirs,
@@ -136,29 +136,29 @@ absl::Status ProtoFormatVisitor::Process(
     auto* file_desc = importer.Import(proto_file);
     if (file_desc == nullptr) {
       error_listener()->semanticError(
-          nullptr, absl::StrCat("Failed to import '", proto_file, "'"));
+          nullptr, ::absl::StrCat("Failed to import '", proto_file, "'"));
       continue;
     }
     file_descriptor_map_.emplace(proto_file, file_desc);
   }
   // If there have been any errors, terminate.
   if (!proto_error_collector.GetError().empty()) {
-    return absl::InternalError(proto_error_collector.GetError());
+    return ::absl::InternalError(proto_error_collector.GetError());
   }
   if (error_listener()->HasError()) {
-    return absl::InternalError("Errors encountered - terminating.");
+    return ::absl::InternalError("Errors encountered - terminating.");
   }
 
   descriptor_pool_ = importer.pool();
   // Set the finder function objects.
-  field_finder_ = absl::bind_front(
+  field_finder_ = ::absl::bind_front(
       &google::protobuf::DescriptorPool::FindFieldByName, descriptor_pool_);
   message_finder_ =
-      absl::bind_front(&google::protobuf::DescriptorPool::FindMessageTypeByName,
+      ::absl::bind_front(&google::protobuf::DescriptorPool::FindMessageTypeByName,
                        descriptor_pool_);
-  enum_type_finder_ = absl::bind_front(
+  enum_type_finder_ = ::absl::bind_front(
       &google::protobuf::DescriptorPool::FindEnumTypeByName, descriptor_pool_);
-  enum_value_finder_ = absl::bind_front(
+  enum_value_finder_ = ::absl::bind_front(
       &google::protobuf::DescriptorPool::FindEnumValueByName, descriptor_pool_);
 
   // Parse the file and then create the data structures.
@@ -170,7 +170,7 @@ absl::Status ProtoFormatVisitor::Process(
   }
 
   if (error_listener_->HasError() > 0) {
-    return absl::InternalError("Errors encountered - terminating.");
+    return ::absl::InternalError("Errors encountered - terminating.");
   }
 
   // Visit the parse tree.
@@ -185,10 +185,10 @@ absl::Status ProtoFormatVisitor::Process(
   // Include files may generate additional syntax errors.
   if (encoding_info == nullptr) {
     LOG(ERROR) << "No encoding specified";
-    return absl::InternalError("No encoding specified");
+    return ::absl::InternalError("No encoding specified");
   }
   if (error_listener_->HasError() > 0) {
-    return absl::InternalError("Errors encountered - terminating.");
+    return ::absl::InternalError("Errors encountered - terminating.");
   }
 
   // Generate the decoder.
@@ -196,7 +196,7 @@ absl::Status ProtoFormatVisitor::Process(
 
   // Terminate if there were errors.
   if (error_listener_->HasError() > 0) {
-    return absl::InternalError("Errors encountered - terminating.");
+    return ::absl::InternalError("Errors encountered - terminating.");
   }
   // Create file names for the output files.
   std::string file_prefix(prefix);
@@ -205,23 +205,23 @@ absl::Status ProtoFormatVisitor::Process(
     file_prefix = mpact::sim::machine_description::instruction_set::ToSnakeCase(
         decoder_name);
   }
-  std::string dot_h_name = absl::StrCat(file_prefix, "_proto_decoder.h");
-  std::string dot_cc_name = absl::StrCat(file_prefix, "_proto_decoder.cc");
+  std::string dot_h_name = ::absl::StrCat(file_prefix, "_proto_decoder.h");
+  std::string dot_cc_name = ::absl::StrCat(file_prefix, "_proto_decoder.cc");
   // Create output streams for .h and .cc files.
-  std::ofstream dot_h_file(absl::StrCat(directory, "/", dot_h_name));
-  std::ofstream dot_cc_file(absl::StrCat(directory, "/", dot_cc_name));
+  std::ofstream dot_h_file(::absl::StrCat(directory, "/", dot_h_name));
+  std::ofstream dot_cc_file(::absl::StrCat(directory, "/", dot_cc_name));
   // Output the decoder with header guards inserted in the .h file.
   std::string header_guard_name = ToHeaderGuard(dot_h_name);
   dot_h_file << "#ifndef " << header_guard_name << "\n";
   dot_h_file << "#define " << header_guard_name << "\n\n";
   dot_h_file << h_decoder;
   dot_h_file << "\n#endif  // " << header_guard_name << "\n";
-  dot_cc_file << absl::StrCat("#include \"", dot_h_name, "\"\n\n");
+  dot_cc_file << ::absl::StrCat("#include \"", dot_h_name, "\"\n\n");
   dot_cc_file << cc_decoder;
   // Close files.
   dot_h_file.close();
   dot_cc_file.close();
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
 // Check the using declarations map, and expand the name if it matches.
@@ -298,12 +298,12 @@ ProtoFormatVisitor::GetEnumValueDescriptor(const std::string& full_name) const {
   return enum_value_desc;
 }
 
-absl::StatusOr<int> ProtoFormatVisitor::GetEnumValue(
+::absl::StatusOr<int> ProtoFormatVisitor::GetEnumValue(
     const std::string& enum_name) const {
   auto* enum_value_desc = GetEnumValueDescriptor(enum_name);
   if (enum_value_desc == nullptr) {
-    return absl::NotFoundError(
-        absl::StrCat("Enum '", enum_name, "' not found"));
+    return ::absl::NotFoundError(
+        ::absl::StrCat("Enum '", enum_name, "' not found"));
   }
   return enum_value_desc->number();
 }
@@ -322,7 +322,7 @@ void ProtoFormatVisitor::PreProcessDeclarations(
       if (iter != group_decl_map_.end()) {
         error_listener()->semanticError(
             group_def->start,
-            absl::StrCat(
+            ::absl::StrCat(
                 "Multiple definitions of instruction group '", name,
                 "' first defined at line: ", iter->second->start->getLine()));
         continue;
@@ -348,7 +348,7 @@ void ProtoFormatVisitor::PreProcessDeclarations(
       }
       if (using_decl_map_.find(name) != using_decl_map_.end()) {
         error_listener()->semanticError(
-            declaration->start, absl::StrCat("Redefinition of '", name, "'"));
+            declaration->start, ::absl::StrCat("Redefinition of '", name, "'"));
       }
       using_decl_map_.emplace(alias, name);
       continue;
@@ -360,7 +360,7 @@ void ProtoFormatVisitor::PreProcessDeclarations(
       auto iter = decoder_decl_map_.find(name);
       if (iter != decoder_decl_map_.end()) {
         error_listener()->semanticError(
-            decoder->start, absl::StrCat("Multiple definitions of decoder '",
+            decoder->start, ::absl::StrCat("Multiple definitions of decoder '",
                                          name, "' first defined at line: ",
                                          iter->second->start->getLine()));
         continue;
@@ -388,7 +388,7 @@ void ProtoFormatVisitor::VisitIncludeFile(IncludeFileCtx* ctx) {
     if (name == file_name) {
       error_listener()->semanticError(
           ctx->start,
-          absl::StrCat(": ", "Recursive include of '", file_name, "'"));
+          ::absl::StrCat(": ", "Recursive include of '", file_name, "'"));
       return;
     }
   }
@@ -404,7 +404,7 @@ void ProtoFormatVisitor::ParseIncludeFile(
   if (!include_file.is_open()) {
     // Try each of the include file directories.
     for (auto const& dir : dirs) {
-      std::string include_name = absl::StrCat(dir, "/", file_name);
+      std::string include_name = ::absl::StrCat(dir, "/", file_name);
       include_file.open(include_name, std::fstream::in);
       if (include_file.is_open()) break;
     }
@@ -413,7 +413,7 @@ void ProtoFormatVisitor::ParseIncludeFile(
       include_file.open(file_name, std::fstream::in);
       if (!include_file.is_open()) {
         error_listener()->semanticError(
-            ctx->start, absl::StrCat("Failed to open '", file_name, "'"));
+            ctx->start, ::absl::StrCat("Failed to open '", file_name, "'"));
         return;
       }
     }
@@ -447,7 +447,7 @@ std::unique_ptr<ProtoEncodingInfo> ProtoFormatVisitor::ProcessTopLevel(
   auto decoder_iter = decoder_decl_map_.find(decoder_name);
   if (decoder_iter == decoder_decl_map_.end()) {
     error_listener()->semanticError(
-        nullptr, absl::StrCat("Decoder '", decoder_name, "' not declared"));
+        nullptr, ::absl::StrCat("Decoder '", decoder_name, "' not declared"));
     return nullptr;
   }
   auto proto_encoding_info = VisitDecoderDef(decoder_iter->second);
@@ -468,7 +468,7 @@ ProtoInstructionGroup* ProtoFormatVisitor::VisitInstructionGroupDef(
   if (message_desc == nullptr) {
     error_listener_->semanticError(
         ctx->start,
-        absl::StrCat("Undefined proto message type: '", message_name, "'"));
+        ::absl::StrCat("Undefined proto message type: '", message_name, "'"));
     return nullptr;
   }
   // Create the named instruction group.
@@ -532,7 +532,7 @@ void ProtoFormatVisitor::VisitFieldConstraint(
   // value may be an enumeration, so will have to check for that too.
   // TODO(torerik): In the future, enable expressions on the right hand side.
 
-  absl::Status status;
+  ::absl::Status status;
   if (ctx->HAS() != nullptr) {
     std::string field_name = ctx->qualified_ident()->getText();
     std::vector<const google::protobuf::FieldDescriptor*> one_of_fields;
@@ -541,7 +541,7 @@ void ProtoFormatVisitor::VisitFieldConstraint(
     if (field_desc == nullptr) {
       error_listener()->semanticError(
           ctx->start,
-          absl::StrCat("Field '", field_name, "' not found in message '",
+          ::absl::StrCat("Field '", field_name, "' not found in message '",
                        inst_group->message_type()->name(), "'"));
       return;
     }
@@ -563,7 +563,7 @@ void ProtoFormatVisitor::VisitFieldConstraint(
     if (field_desc == nullptr) {
       error_listener()->semanticError(
           ctx->start,
-          absl::StrCat("Field '", field_name, "' not found in message '",
+          ::absl::StrCat("Field '", field_name, "' not found in message '",
                        inst_group->message_type()->name(), "'"));
       return;
     }
@@ -619,7 +619,7 @@ ProtoConstraintExpression* ProtoFormatVisitor::VisitValue(ValueCtx* ctx) {
   }
   if (ctx->bool_value()) {
     bool value;
-    if (!absl::SimpleAtob(ctx->bool_value()->getText(), &value)) {
+    if (!::absl::SimpleAtob(ctx->bool_value()->getText(), &value)) {
       error_listener()->semanticError(ctx->start, "Invalid boolean literal");
       return nullptr;
     }
@@ -634,9 +634,9 @@ ProtoConstraintExpression* ProtoFormatVisitor::VisitNumber(NumberCtx* ctx) {
   std::string num_str = ctx->getText();
   // Convert to lower case to avoid capital chars in suffix.
   for (int i = 0; i < num_str.size(); ++i) num_str[i] = tolower(num_str[i]);
-  bool is_signed = !absl::StrContains(num_str, "u");
-  bool is_long_long = absl::StrContains(num_str, "ll");
-  bool is_long = !is_long_long && absl::StrContains(num_str, "l");
+  bool is_signed = !::absl::StrContains(num_str, "u");
+  bool is_long_long = ::absl::StrContains(num_str, "ll");
+  bool is_long = !is_long_long && ::absl::StrContains(num_str, "l");
   bool is_hex = num_str.substr(0, 2) == "0x";
   // If neither 'l' nor 'll' is specified, try using the 32 bit wide integer if
   // the value fits, otherwise use 64 bit.
@@ -645,18 +645,18 @@ ProtoConstraintExpression* ProtoFormatVisitor::VisitNumber(NumberCtx* ctx) {
     int64_t int64_val;
     if (is_hex) {
       if (!is_long && !is_long_long &&
-          absl::SimpleHexAtoi(num_str, &int32_val)) {
+          ::absl::SimpleHexAtoi(num_str, &int32_val)) {
         return new ProtoConstraintValueExpression(int32_val);
-      } else if (absl::SimpleHexAtoi(num_str, &int64_val)) {
+      } else if (::absl::SimpleHexAtoi(num_str, &int64_val)) {
         return new ProtoConstraintValueExpression(int64_val);
       } else {
         error_listener()->semanticError(ctx->start, "Invalid number literal");
         return nullptr;
       }
     } else {
-      if (!is_long && !is_long_long && absl::SimpleAtoi(num_str, &int32_val)) {
+      if (!is_long && !is_long_long && ::absl::SimpleAtoi(num_str, &int32_val)) {
         return new ProtoConstraintValueExpression(int32_val);
-      } else if (absl::SimpleAtoi(num_str, &int64_val)) {
+      } else if (::absl::SimpleAtoi(num_str, &int64_val)) {
         return new ProtoConstraintValueExpression(int64_val);
       } else {
         error_listener()->semanticError(ctx->start, "Invalid number literal");
@@ -668,18 +668,18 @@ ProtoConstraintExpression* ProtoFormatVisitor::VisitNumber(NumberCtx* ctx) {
     uint64_t uint64_val;
     if (is_hex) {
       if (!is_long && !is_long_long &&
-          absl::SimpleHexAtoi(num_str, &uint32_val)) {
+          ::absl::SimpleHexAtoi(num_str, &uint32_val)) {
         return new ProtoConstraintValueExpression(uint32_val);
-      } else if (absl::SimpleHexAtoi(num_str, &uint64_val)) {
+      } else if (::absl::SimpleHexAtoi(num_str, &uint64_val)) {
         return new ProtoConstraintValueExpression(uint64_val);
       } else {
         error_listener()->semanticError(ctx->start, "Invalid number literal");
         return nullptr;
       }
     } else {
-      if (!is_long && !is_long_long && absl::SimpleAtoi(num_str, &uint32_val)) {
+      if (!is_long && !is_long_long && ::absl::SimpleAtoi(num_str, &uint32_val)) {
         return new ProtoConstraintValueExpression(uint32_val);
-      } else if (absl::SimpleAtoi(num_str, &uint64_val)) {
+      } else if (::absl::SimpleAtoi(num_str, &uint64_val)) {
         return new ProtoConstraintValueExpression(uint64_val);
       } else {
         error_listener()->semanticError(ctx->start, "Invalid number literal");
@@ -698,7 +698,7 @@ ProtoConstraintExpression* ProtoFormatVisitor::VisitQualifiedIdent(
   if (field_desc->enum_type() == nullptr) {
     error_listener()->semanticError(
         ctx->start,
-        absl::StrCat("Field '", field_desc->name(), "' is not enum type"));
+        ::absl::StrCat("Field '", field_desc->name(), "' is not enum type"));
     return nullptr;
   }
   // Look up the value (if it exists).
@@ -707,7 +707,7 @@ ProtoConstraintExpression* ProtoFormatVisitor::VisitQualifiedIdent(
   if (enum_value_desc == nullptr) {
     error_listener()->semanticError(
         ctx->start,
-        absl::StrCat("Enum value not found: '", ctx->getText(), "'"));
+        ::absl::StrCat("Enum value not found: '", ctx->getText(), "'"));
     return nullptr;
   }
   return new ProtoConstraintEnumExpression(enum_value_desc);
@@ -728,7 +728,7 @@ void ProtoFormatVisitor::VisitSetterGroupDef(SetterGroupDefCtx* ctx,
     if (field_desc == nullptr) {
       error_listener()->semanticError(
           setter_def->start,
-          absl::StrCat("Field '", field_name, "' not found in message '",
+          ::absl::StrCat("Field '", field_name, "' not found in message '",
                        inst_group->message_type()->name(), "'"));
       return;
     }
@@ -762,7 +762,7 @@ void ProtoFormatVisitor::VisitSetterDef(SetterDefCtx* ctx,
   if (field_desc == nullptr) {
     error_listener()->semanticError(
         ctx->start,
-        absl::StrCat("Field '", field_name, "' not found in message '",
+        ::absl::StrCat("Field '", field_name, "' not found in message '",
                      inst_group->message_type()->name(), "'"));
     return;
   }
@@ -812,7 +812,7 @@ void ProtoFormatVisitor::ProcessInstructionDefGenerator(
     InstructionDefCtx* ctx, ProtoInstructionGroup* inst_group,
     ProtoEncodingInfo* encoding_info) {
   if (ctx == nullptr) return;
-  absl::flat_hash_set<std::string> range_variable_names;
+  ::absl::flat_hash_set<std::string> range_variable_names;
   std::vector<RangeAssignmentInfo*> range_info_vec;
 
   // Process range assignment lists. The range assignment is either a single
@@ -827,20 +827,20 @@ void ProtoFormatVisitor::ProcessInstructionDefGenerator(
       if (range_variable_names.contains(name)) {
         error_listener()->semanticError(
             assign_ctx->start,
-            absl::StrCat("Duplicate binding variable name '", name, "'"));
+            ::absl::StrCat("Duplicate binding variable name '", name, "'"));
         continue;
       }
       range_variable_names.insert(name);
       range_info->range_names.push_back(ident_ctx->getText());
       range_info->range_values.push_back({});
       range_info->range_regexes.emplace_back(
-          absl::StrCat("\\$\\(", name, "\\)"));
+          ::absl::StrCat("\\$\\(", name, "\\)"));
       // Verify that the range variable is used in the string.
       if (!RE2::PartialMatch(ctx->generator_instruction_def_list()->getText(),
                              range_info->range_regexes.back())) {
         error_listener()->semanticWarning(
             assign_ctx->start,
-            absl::StrCat("Unreferenced binding variable '", name, "'."));
+            ::absl::StrCat("Unreferenced binding variable '", name, "'."));
       }
     }
     // See if it's a list of simple values.
@@ -912,7 +912,7 @@ void ProtoFormatVisitor::ProcessInstructionDefGenerator(
     if (!range_variable_names.contains(ident)) {
       error_listener()->semanticError(
           ctx->generator_instruction_def_list()->start,
-          absl::StrCat("Undefined binding variable '", ident, "'"));
+          ::absl::StrCat("Undefined binding variable '", ident, "'"));
     }
     start_pos = end_pos;
     pos = input_text.find_first_of('$', start_pos);
@@ -962,10 +962,10 @@ std::string ProtoFormatVisitor::GenerateInstructionDefList(
     // generate the cartesian product with the values of the next value range
     // substitutions.
     if (range_info_vec.size() > index + 1) {
-      absl::StrAppend(&generated, GenerateInstructionDefList(
+      ::absl::StrAppend(&generated, GenerateInstructionDefList(
                                       range_info_vec, index + 1, template_str));
     } else {
-      absl::StrAppend(&generated, template_str);
+      ::absl::StrAppend(&generated, template_str);
     }
     // If there were no replacements, then the range variables weren't used,
     // and the template string won't change for any other values in the range.
@@ -1007,7 +1007,7 @@ std::unique_ptr<ProtoEncodingInfo> ProtoFormatVisitor::VisitDecoderDef(
       std::make_unique<ProtoEncodingInfo>(opcode_enum, error_listener_.get());
   auto* decoder = encoding_info->SetProtoDecoder(name);
   if (decoder == nullptr) return nullptr;
-  absl::flat_hash_set<std::string> group_name_set;
+  ::absl::flat_hash_set<std::string> group_name_set;
   int namespace_count = 0;
   // Iterate over the decoder attributes.
   for (auto* attr_ctx : ctx->decoder_attribute()) {
@@ -1059,7 +1059,7 @@ std::unique_ptr<ProtoEncodingInfo> ProtoFormatVisitor::VisitDecoderDef(
 
 void ProtoFormatVisitor::ProcessSingleGroup(
     DecoderAttributeCtx* attr_ctx, ProtoEncodingInfo* encoding_info,
-    absl::flat_hash_set<std::string>& group_name_set) {
+    ::absl::flat_hash_set<std::string>& group_name_set) {
   if (attr_ctx == nullptr) return;
   std::string group_name = attr_ctx->group_name()->IDENT()->getText();
 
@@ -1067,7 +1067,7 @@ void ProtoFormatVisitor::ProcessSingleGroup(
   if (group_name_set.contains(group_name)) {
     error_listener_->semanticError(
         attr_ctx->start,
-        absl::StrCat("Instruction group '", group_name, "' listed twice"));
+        ::absl::StrCat("Instruction group '", group_name, "' listed twice"));
     return;
   }
 
@@ -1084,7 +1084,7 @@ void ProtoFormatVisitor::ProcessSingleGroup(
     if (iter == group_decl_map_.end()) {
       error_listener_->semanticError(
           attr_ctx->start,
-          absl::StrCat("No such instruction group: '", group_name, "'"));
+          ::absl::StrCat("No such instruction group: '", group_name, "'"));
       return;
     }
     inst_group = VisitInstructionGroupDef(iter->second, encoding_info);
@@ -1098,7 +1098,7 @@ void ProtoFormatVisitor::ProcessSingleGroup(
 
 void ProtoFormatVisitor::ProcessParentGroup(
     DecoderAttributeCtx* attr_ctx, ProtoEncodingInfo* encoding_info,
-    absl::flat_hash_set<std::string>& group_name_set) {
+    ::absl::flat_hash_set<std::string>& group_name_set) {
   if (attr_ctx == nullptr) return;
   // Check each of the child groups. Visit any that hasn't been visited
   // yet, and make sure all use the same encoding proto message.
@@ -1106,7 +1106,7 @@ void ProtoFormatVisitor::ProcessParentGroup(
   // It's an error if the instruction group as already been listed.
   if (group_name_set.contains(group_name)) {
     error_listener_->semanticError(
-        attr_ctx->start, absl::StrCat("Instruction group '", group_name,
+        attr_ctx->start, ::absl::StrCat("Instruction group '", group_name,
                                       "' listed twice - ignored"));
     return;
   }
@@ -1118,7 +1118,7 @@ void ProtoFormatVisitor::ProcessParentGroup(
     // Make sure the child group hasn't been listed already.
     if (group_name_set.contains(child_name)) {
       error_listener_->semanticError(
-          attr_ctx->start, absl::StrCat("Instruction group listed twice: '",
+          attr_ctx->start, ::absl::StrCat("Instruction group listed twice: '",
                                         child_name, "' - ignored"));
       return;
     }
@@ -1138,7 +1138,7 @@ void ProtoFormatVisitor::ProcessParentGroup(
       if (exists) {
         error_listener_->semanticError(
             attr_ctx->start,
-            absl::StrCat("Instruction group '", child_name, "' listed twice"));
+            ::absl::StrCat("Instruction group '", child_name, "' listed twice"));
         // Clean up.
         for (auto* child_group : child_groups) delete child_group;
         return;
@@ -1153,7 +1153,7 @@ void ProtoFormatVisitor::ProcessParentGroup(
       if (child_group == nullptr) {
         error_listener_->semanticError(
             attr_ctx->start,
-            absl::StrCat("Instruction group '", child_name, "' not found"));
+            ::absl::StrCat("Instruction group '", child_name, "' not found"));
         // Clean up.
         for (auto* child_group : child_groups) delete child_group;
         continue;
@@ -1168,7 +1168,7 @@ void ProtoFormatVisitor::ProcessParentGroup(
     if (group_format_name != child_group->message_type()->name()) {
       error_listener_->semanticError(
           attr_ctx->start,
-          absl::StrCat("Instruction group '", child_name, "' must use format '",
+          ::absl::StrCat("Instruction group '", child_name, "' must use format '",
                        group_format_name, ", to be merged into group '",
                        group_name, "'"));
       // Clean up.
@@ -1190,13 +1190,13 @@ void ProtoFormatVisitor::ProcessParentGroup(
   if (group_format == nullptr) {
     error_listener_->semanticError(
         attr_ctx->start,
-        absl::StrCat("Could not find proto message type '", group_format_name,
+        ::absl::StrCat("Could not find proto message type '", group_format_name,
                      "' in proto descriptor pool"));
     // Clean up.
     for (auto* child_group : child_groups) delete child_group;
     return;
   }
-  absl::StatusOr<ProtoInstructionGroup*> result = encoding_info->AddInstructionGroup(group_name, group_format);
+  ::absl::StatusOr<ProtoInstructionGroup*> result = encoding_info->AddInstructionGroup(group_name, group_format);
   if (!result.ok()) {
     error_listener_->semanticError(attr_ctx->start, result.status().message());
     // Clean up.

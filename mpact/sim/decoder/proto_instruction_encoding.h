@@ -131,7 +131,7 @@ class ProtoInstructionEncoding {
   // decoded. This is used to make values, such as register numbers, immediate
   // values, etc., that could be stored in a nested one_of submessage, available
   // at known names.
-  absl::Status AddSetter(
+  ::absl::Status AddSetter(
       SetterDefCtx* ctx, const std::string& name,
       const google::protobuf::FieldDescriptor* field_descriptor,
       const std::vector<const google::protobuf::FieldDescriptor*>&
@@ -140,7 +140,7 @@ class ProtoInstructionEncoding {
   // Adds an encoding constraint for the current instruction. Encoding
   // constraints provide constraints on values of proto message fields that
   // have to be satisfied in order for the instruction to match.
-  absl::Status AddConstraint(
+  ::absl::Status AddConstraint(
       FieldConstraintCtx* ctx, ConstraintType op,
       const google::protobuf::FieldDescriptor* field_descriptor,
       const std::vector<const google::protobuf::FieldDescriptor*>&
@@ -151,7 +151,7 @@ class ProtoInstructionEncoding {
   // the setter code into the setter_code_ variable.
   void GenerateSetterCode();
   // Get setter code, substituting 'message_name' for '$' in the text.
-  std::string GetSetterCode(absl::string_view message_name, int indent) const;
+  std::string GetSetterCode(::absl::string_view message_name, int indent) const;
   // Getters.
   const std::string& name() const { return name_; }
   ProtoInstructionGroup* instruction_group() const {
@@ -163,7 +163,7 @@ class ProtoInstructionEncoding {
   std::vector<ProtoConstraint*>& other_constraints() {
     return other_constraints_;
   }
-  absl::flat_hash_map<std::string, ProtoConstraint*>& has_constraints() {
+  ::absl::flat_hash_map<std::string, ProtoConstraint*>& has_constraints() {
     return has_constraints_;
   }
 
@@ -187,9 +187,9 @@ class ProtoInstructionEncoding {
   // Setter code for this encoding.
   std::string setter_code_;
   // Map from setter names to the setter structs.
-  absl::btree_map<std::string, ProtoSetter*> setter_map_;
+  ::absl::btree_map<std::string, ProtoSetter*> setter_map_;
   // Map from one_of descriptor to field.
-  absl::flat_hash_map<const google::protobuf::OneofDescriptor*,
+  ::absl::flat_hash_map<const google::protobuf::OneofDescriptor*,
                       const google::protobuf::FieldDescriptor*>
       oneof_field_map_;
   // "equal-to" field constraints.
@@ -198,7 +198,7 @@ class ProtoInstructionEncoding {
   std::vector<ProtoConstraint*> other_constraints_;
   // Has Constraints, these are required one_of members that other constraints
   // may depend on.
-  absl::flat_hash_map<std::string, ProtoConstraint*> has_constraints_;
+  ::absl::flat_hash_map<std::string, ProtoConstraint*> has_constraints_;
 };
 
 }  // namespace proto_fmt

@@ -129,10 +129,10 @@ struct CppType<std::string> {
 class ProtoConstraintExpression {
  public:
   virtual ~ProtoConstraintExpression() = default;
-  virtual absl::StatusOr<ProtoValue> GetValue() const = 0;
+  virtual ::absl::StatusOr<ProtoValue> GetValue() const = 0;
   template <typename T>
   T GetValueAs() const {
-    absl::StatusOr<ProtoValue> result = this->GetValue();
+    ::absl::StatusOr<ProtoValue> result = this->GetValue();
     // If there is a error, or the value is of a different type, just return
     // the default constructed object of the desired type.
     if (!result.ok() || !std::holds_alternative<T>(result.value())) return T();
@@ -149,7 +149,7 @@ class ProtoConstraintNegateExpression : public ProtoConstraintExpression {
   explicit ProtoConstraintNegateExpression(ProtoConstraintExpression* expr)
       : expr_(expr) {}
   ~ProtoConstraintNegateExpression() override;
-  absl::StatusOr<ProtoValue> GetValue() const override;
+  ::absl::StatusOr<ProtoValue> GetValue() const override;
   ProtoConstraintExpression* Clone() const override {
     return new ProtoConstraintNegateExpression(expr_->Clone());
   }
@@ -169,7 +169,7 @@ class ProtoConstraintEnumExpression : public ProtoConstraintExpression {
       const google::protobuf::EnumValueDescriptor* enum_value)
       : enum_value_(enum_value) {}
   ~ProtoConstraintEnumExpression() override = default;
-  absl::StatusOr<ProtoValue> GetValue() const override;
+  ::absl::StatusOr<ProtoValue> GetValue() const override;
   ProtoConstraintExpression* Clone() const override {
     return new ProtoConstraintEnumExpression(enum_value_);
   }
@@ -191,7 +191,7 @@ class ProtoConstraintValueExpression : public ProtoConstraintExpression {
   explicit ProtoConstraintValueExpression(const T& value) : value_(value) {}
 
   ~ProtoConstraintValueExpression() override = default;
-  absl::StatusOr<ProtoValue> GetValue() const override { return value_; }
+  ::absl::StatusOr<ProtoValue> GetValue() const override { return value_; }
   ProtoConstraintExpression* Clone() const override {
     return new ProtoConstraintValueExpression(value_);
   }

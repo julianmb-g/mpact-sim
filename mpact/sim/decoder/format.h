@@ -87,7 +87,7 @@ class FieldOrFormat {
   const std::string& format_name() const { return format_name_; }
   antlr4::Token* ctx() const { return ctx_; }
   Format* format() const { return format_; }
-  absl::string_view format_alias() const { return format_alias_; }
+  ::absl::string_view format_alias() const { return format_alias_; }
   int size() const { return size_; }
   void set_format(Format* fmt) { format_ = fmt; }
 
@@ -126,7 +126,7 @@ class Format {
   ~Format();
 
   // Adds a field (signed or unsigned) of the given width to the format.
-  absl::Status AddField(std::string name, bool is_signed, int width);
+  ::absl::Status AddField(std::string name, bool is_signed, int width);
   // Adds a format reference to the current format. It will be resolved to
   // another format later, or generate an error at that time.
   void AddFormatReferenceField(std::string format_alias,
@@ -134,18 +134,18 @@ class Format {
                                antlr4::Token* ctx);
   // Adds an overlay to the format. An overlay is an alias to a set of bits
   // in the instruction format.
-  absl::StatusOr<Overlay*> AddFieldOverlay(std::string name, bool is_signed,
+  ::absl::StatusOr<Overlay*> AddFieldOverlay(std::string name, bool is_signed,
                                            int width);
 
   // Returns the named field if it exists in the format. Otherwise it returns
   // nullptr.
-  Field* GetField(absl::string_view field_name) const;
+  Field* GetField(::absl::string_view field_name) const;
   // Returns the named overlay if it exists in the format. Otherwise it returns
   // nullptr.
-  Overlay* GetOverlay(absl::string_view overlay_name) const;
+  Overlay* GetOverlay(::absl::string_view overlay_name) const;
 
   // Performs a consistency check on the format.
-  absl::Status ComputeAndCheckFormatWidth();
+  ::absl::Status ComputeAndCheckFormatWidth();
   // Propagate extractors to the top level in the format inheritance
   // hierarchy.
   void PropagateExtractorsUp();
@@ -220,8 +220,8 @@ class Format {
   std::vector<Format*> derived_formats_;
   BinEncodingInfo* encoding_info_;
 
-  absl::btree_map<std::string, Overlay*> overlay_map_;
-  absl::btree_map<std::string, Field*> field_map_;
+  ::absl::btree_map<std::string, Overlay*> overlay_map_;
+  ::absl::btree_map<std::string, Field*> field_map_;
   std::vector<FieldOrFormat*> field_vec_;
   // Using std::map because of sorted traversal and better iterator stability
   // when elements are erased.

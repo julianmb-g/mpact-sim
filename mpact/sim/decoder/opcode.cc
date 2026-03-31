@@ -33,7 +33,7 @@ namespace instruction_set {
 // There is not much to the Opcode class. Note that the AppendSourceOpName
 // method use emplace since a string_view can be passed to a std::string
 // constructor but cannot be passed directly to push_back().
-Opcode::Opcode(absl::string_view name, int value)
+Opcode::Opcode(::absl::string_view name, int value)
     : name_(name), pascal_name_(ToPascalCase(name)), value_(value) {}
 
 Opcode::~Opcode() {
@@ -44,19 +44,19 @@ Opcode::~Opcode() {
   dest_op_map_.clear();
 }
 
-void Opcode::AppendSourceOp(absl::string_view op_name, bool is_array,
+void Opcode::AppendSourceOp(::absl::string_view op_name, bool is_array,
                             bool is_reloc) {
   source_op_vec_.emplace_back(std::string(op_name), is_array, is_reloc);
 }
 
-void Opcode::AppendDestOp(absl::string_view op_name, bool is_array,
+void Opcode::AppendDestOp(::absl::string_view op_name, bool is_array,
                           bool is_reloc) {
   auto* op = new DestinationOperand(std::string(op_name), is_array, is_reloc);
   dest_op_vec_.push_back(op);
   dest_op_map_.insert(std::make_pair(std::string(op_name), op));
 }
 
-void Opcode::AppendDestOp(absl::string_view op_name, bool is_array,
+void Opcode::AppendDestOp(::absl::string_view op_name, bool is_array,
                           bool is_reloc, TemplateExpression* expression) {
   auto* op = new DestinationOperand(std::string(op_name), is_array, is_reloc,
                                     expression);
@@ -64,7 +64,7 @@ void Opcode::AppendDestOp(absl::string_view op_name, bool is_array,
   dest_op_map_.insert(std::make_pair(std::string(op_name), op));
 }
 
-DestinationOperand* Opcode::GetDestOp(absl::string_view op_name) {
+DestinationOperand* Opcode::GetDestOp(::absl::string_view op_name) {
   auto iter = dest_op_map_.find(op_name);
   if (iter != dest_op_map_.end()) return iter->second;
 
@@ -85,10 +85,10 @@ bool Opcode::ValidateDestLatencies(
 
 Opcode* OpcodeFactory::CreateDefaultOpcode() { return new Opcode("", -1); }
 
-absl::StatusOr<Opcode*> OpcodeFactory::CreateOpcode(absl::string_view name) {
+::absl::StatusOr<Opcode*> OpcodeFactory::CreateOpcode(::absl::string_view name) {
   if (opcode_names_.contains(name)) {
-    return absl::InternalError(
-        absl::StrCat("Opcode '", name, "' already declared"));
+    return ::absl::InternalError(
+        ::absl::StrCat("Opcode '", name, "' already declared"));
   }
   // Using emplace since name is a string_view which insert doesn't accept.
   opcode_names_.emplace(name);
@@ -103,7 +103,7 @@ Opcode* OpcodeFactory::CreateChildOpcode(Opcode* opcode) const {
   return child;
 }
 
-absl::StatusOr<Opcode*> OpcodeFactory::CreateDerivedOpcode(
+::absl::StatusOr<Opcode*> OpcodeFactory::CreateDerivedOpcode(
     const Opcode* opcode, TemplateInstantiationArgs* args) {
   // Allocate a new opcode. Copy the basic information.
   auto new_opcode = new Opcode(opcode->name(), opcode->value());
@@ -131,7 +131,7 @@ absl::StatusOr<Opcode*> OpcodeFactory::CreateDerivedOpcode(
                                  dest_op->is_reloc(), result.value());
       } else {
         delete new_opcode;
-        return absl::InternalError(absl::StrCat(
+        return ::absl::InternalError(::absl::StrCat(
             "Failed to create derived opcode for '", opcode->name(), "'"));
       }
     }

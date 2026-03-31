@@ -57,7 +57,7 @@ class ArrayOperandTest : public ::testing::Test {
     decoder_ = std::make_unique<PushPopDecoder>(state_.get(), memory_.get());
     // Add registers to the state.
     for (int i = 1; i < 32; i++) {
-      state_->AddRegister(new TestRegister(state_.get(), absl::StrCat("x", i)));
+      state_->AddRegister(new TestRegister(state_.get(), ::absl::StrCat("x", i)));
     }
     // Write instructions to memory - 16 each of pushes and pops. The first
     // 4 of each are illegal instructions since rlist < 4.

@@ -57,14 +57,14 @@ class InstructionEncoding {
 
   // Add a constraint on a field/overlay (in the format associated with the
   // instruction) needing to be equal to a value.
-  absl::Status AddEqualConstraint(std::string field_name, int64_t value);
+  ::absl::Status AddEqualConstraint(std::string field_name, int64_t value);
   // Add a constraint on a field/overlay (in the format associated with the
   // instruction) needing a different comparison (ne, lt, le, etc.).
-  absl::Status AddOtherConstraint(ConstraintType type, std::string field_name,
+  ::absl::Status AddOtherConstraint(ConstraintType type, std::string field_name,
                                   int64_t value);
   // Add a constraint on a field/overlay (in the format associated with the
   // instruction) that compares against another field/overlay.
-  absl::Status AddOtherConstraint(ConstraintType type,
+  ::absl::Status AddOtherConstraint(ConstraintType type,
                                   const std::string& lhs_name,
                                   const std::string& rhs_name);
 
@@ -78,7 +78,7 @@ class InstructionEncoding {
   // not equal constraints.
   uint64_t GetCombinedMask();
   // Add specialization to this encoding.
-  absl::Status AddSpecialization(const std::string& name,
+  ::absl::Status AddSpecialization(const std::string& name,
                                  InstructionEncoding* encoding);
   bool HasSpecialization() const { return !specializations_.empty(); }
 
@@ -104,7 +104,7 @@ class InstructionEncoding {
     return other_constraints_;
   }
 
-  const absl::btree_map<std::string, InstructionEncoding*>& specializations()
+  const ::absl::btree_map<std::string, InstructionEncoding*>& specializations()
       const {
     return specializations_;
   }
@@ -116,15 +116,15 @@ class InstructionEncoding {
 
  private:
   // Internal helper to create and check a constraint.
-  absl::StatusOr<Constraint*> CreateConstraint(ConstraintType type,
+  ::absl::StatusOr<Constraint*> CreateConstraint(ConstraintType type,
                                                std::string lhs_name,
                                                std::string rhs_name);
 
-  absl::StatusOr<Constraint*> CreateConstraint(ConstraintType type,
+  ::absl::StatusOr<Constraint*> CreateConstraint(ConstraintType type,
                                                std::string field_name,
                                                int64_t value);
   // Recomputes the masks and values.
-  absl::Status ComputeMaskAndValue();
+  ::absl::Status ComputeMaskAndValue();
 
   std::string name_;
   std::string format_name_;
@@ -137,7 +137,7 @@ class InstructionEncoding {
   uint64_t other_mask_ = 0;
   uint64_t extracted_mask_ = 0;
   uint64_t value_ = 0;
-  absl::btree_map<std::string, InstructionEncoding*> specializations_;
+  ::absl::btree_map<std::string, InstructionEncoding*> specializations_;
   // True if this encoding is declared as using a duplicate of another opcode
   // name. This is used to suppress warning messages for encodings which
   // purposefully have the same opcode name as another encoding.

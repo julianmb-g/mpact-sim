@@ -34,7 +34,7 @@ namespace proto_fmt {
 // expression based on its type.
 static ProtoConstraintExpression* MinValueExpr(
     const ProtoConstraintExpression* expr) {
-  absl::StatusOr<ProtoValue> result = expr->GetValue();
+  ::absl::StatusOr<ProtoValue> result = expr->GetValue();
   if (!result.ok()) return nullptr;
   auto value = result.value();
   switch (value.index()) {
@@ -67,7 +67,7 @@ static ProtoConstraintExpression* MinValueExpr(
 // expression based on its type.
 static ProtoConstraintExpression* MaxValueExpr(
     const ProtoConstraintExpression* expr) {
-  absl::StatusOr<ProtoValue> result = expr->GetValue();
+  ::absl::StatusOr<ProtoValue> result = expr->GetValue();
   if (!result.ok()) return nullptr;
   auto value = result.value();
   switch (value.index()) {
@@ -274,7 +274,7 @@ void ProtoConstraintValueSet::IntersectSubranges(
   }
 }
 
-absl::Status ProtoConstraintValueSet::IntersectWith(
+::absl::Status ProtoConstraintValueSet::IntersectWith(
     const ProtoConstraintValueSet& rhs) {
   std::vector<SubRange> new_subranges;
   // If either set is empty, the result is empty.
@@ -284,7 +284,7 @@ absl::Status ProtoConstraintValueSet::IntersectWith(
       delete subrange.max;
     }
     subranges_.clear();
-    return absl::OkStatus();
+    return ::absl::OkStatus();
   }
   // Get expressions to check on type compatibility. Signal error if types
   // don't match.
@@ -295,7 +295,7 @@ absl::Status ProtoConstraintValueSet::IntersectWith(
                              : rhs.subranges_[0].max;
   if ((lhs_expr != nullptr) && (rhs_expr != nullptr) &&
       (lhs_expr->variant_type() != rhs_expr->variant_type())) {
-    return absl::InvalidArgumentError(
+    return ::absl::InvalidArgumentError(
         "ProtoConstraintValueSet::IntersectWith: type error");
   }
   // Perform the intersections.
@@ -322,8 +322,8 @@ absl::Status ProtoConstraintValueSet::IntersectWith(
       IntersectSubranges<double>(subranges_, rhs.subranges_, new_subranges);
       break;
     default:
-      return absl::InvalidArgumentError(
-          absl::StrCat("Unsupported type in range"));
+      return ::absl::InvalidArgumentError(
+          ::absl::StrCat("Unsupported type in range"));
   }
   // Clean up the old subranges and replace with the new subranges.
   for (auto& subrange : subranges_) {
@@ -332,12 +332,12 @@ absl::Status ProtoConstraintValueSet::IntersectWith(
   }
   subranges_.clear();
   subranges_ = std::move(new_subranges);
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
-absl::Status ProtoConstraintValueSet::UnionWith(
+::absl::Status ProtoConstraintValueSet::UnionWith(
     const ProtoConstraintValueSet& rhs) {
-  if (rhs.IsEmpty()) return absl::OkStatus();
+  if (rhs.IsEmpty()) return ::absl::OkStatus();
   // Copy the rhs subranges.
   for (auto& subrange : rhs.subranges_) {
     SubRange new_subrange;
@@ -349,7 +349,7 @@ absl::Status ProtoConstraintValueSet::UnionWith(
     new_subrange.max_included = subrange.max_included;
     subranges_.emplace_back(new_subrange);
   }
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
 bool ProtoConstraintValueSet::IsEmpty() const { return subranges_.empty(); }

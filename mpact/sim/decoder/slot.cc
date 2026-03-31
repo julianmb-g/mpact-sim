@@ -49,35 +49,35 @@ namespace sim {
 namespace machine_description {
 namespace instruction_set {
 
-absl::NoDestructor<absl::flat_hash_map<std::string, std::string>>
+::absl::NoDestructor<::absl::flat_hash_map<std::string, std::string>>
     Slot::operand_setter_name_map_;
-absl::NoDestructor<absl::flat_hash_map<std::string, std::string>>
+::absl::NoDestructor<::absl::flat_hash_map<std::string, std::string>>
     Slot::disasm_setter_name_map_;
-absl::NoDestructor<absl::flat_hash_map<std::string, std::string>>
+::absl::NoDestructor<::absl::flat_hash_map<std::string, std::string>>
     Slot::resource_setter_name_map_;
-absl::NoDestructor<absl::flat_hash_map<std::string, std::string>>
+::absl::NoDestructor<::absl::flat_hash_map<std::string, std::string>>
     Slot::attribute_setter_name_map_;
 
 // This function translates the location specification into a set of '->'
 // references starting with 'inst->' to get to the operand that is implied.
-static absl::StatusOr<std::string> TranslateLocator(
+static ::absl::StatusOr<std::string> TranslateLocator(
     const OperandLocator& locator) {
   std::string code;
-  absl::StrAppend(&code, "inst->");
+  ::absl::StrAppend(&code, "inst->");
   if (locator.op_spec_number > 0) {
-    absl::StrAppend(&code, "child()->");
+    ::absl::StrAppend(&code, "child()->");
   }
   for (int i = 1; i < locator.op_spec_number; i++) {
-    absl::StrAppend(&code, "next()->");
+    ::absl::StrAppend(&code, "next()->");
   }
   if (locator.type == 'p') {
-    absl::StrAppend(&code, "Predicate()");
+    ::absl::StrAppend(&code, "Predicate()");
   } else if (locator.type == 's' || locator.type == 't') {
-    absl::StrAppend(&code, "Source(", locator.instance, ")");
+    ::absl::StrAppend(&code, "Source(", locator.instance, ")");
   } else if (locator.type == 'd' || locator.type == 'e') {
-    absl::StrAppend(&code, "Destination(", locator.instance, ")");
+    ::absl::StrAppend(&code, "Destination(", locator.instance, ")");
   } else {
-    return absl::InternalError(absl::StrCat("Unknown locator type '",
+    return ::absl::InternalError(::absl::StrCat("Unknown locator type '",
                                             std::string(locator.type, 1), "'"));
   }
   return code;
@@ -96,7 +96,7 @@ static std::string GetExtractor(const std::string& format) {
     break;
   }
   while (isdigit(format[pos + len])) len++;
-  if (!absl::SimpleAtoi(format.substr(pos, len), &size)) size = 0;
+  if (!::absl::SimpleAtoi(format.substr(pos, len), &size)) size = 0;
   if (size == 0) return "->AsInt64(0)";
   if (size <= 2) return "->AsInt8(0)";
   if (size <= 4) return "->AsInt16(0)";
@@ -110,31 +110,31 @@ static std::string ExpandExpression(const FormatInfo& format,
                                     const std::string& locator) {
   // Handle the case when it's just an '@' - i.e., just the address.
   if (format.use_address && format.operation.empty()) {
-    return absl::StrCat("(inst->address())");
+    return ::absl::StrCat("(inst->address())");
   }
   if (format.operation.empty()) {
     // No +/- for the @ sign, i.e., @ <</>> amount.
-    if (locator.empty()) return absl::StrCat("#error missing field locator");
+    if (locator.empty()) return ::absl::StrCat("#error missing field locator");
     if (format.shift_amount == 0) {
-      return absl::StrCat(locator, GetExtractor(format.number_format));
+      return ::absl::StrCat(locator, GetExtractor(format.number_format));
     }
-    return absl::StrCat("(", locator, GetExtractor(format.number_format),
+    return ::absl::StrCat("(", locator, GetExtractor(format.number_format),
                         format.do_left_shift ? " << " : " >> ",
                         format.shift_amount, ")");
   }
   // (@ +/- operand) <</>> shift amount
-  if (locator.empty()) return absl::StrCat("#error missing field locator");
+  if (locator.empty()) return ::absl::StrCat("#error missing field locator");
 
-  return absl::StrCat("(", format.use_address ? "inst->address() " : "0 ",
+  return ::absl::StrCat("(", format.use_address ? "inst->address() " : "0 ",
                       format.operation, "(", locator,
                       GetExtractor(format.number_format),
                       format.shift_amount != 0
-                          ? absl::StrCat(format.do_left_shift ? " << " : " >> ",
+                          ? ::absl::StrCat(format.do_left_shift ? " << " : " >> ",
                                          format.shift_amount, "))")
                           : "))");
 }
 
-Slot::Slot(absl::string_view name, InstructionSet* instruction_set,
+Slot::Slot(::absl::string_view name, InstructionSet* instruction_set,
            bool is_templated, SlotDeclCtx* ctx, unsigned generator_version)
     : instruction_set_(instruction_set),
       ctx_(ctx),
@@ -178,25 +178,25 @@ Slot::~Slot() {
   attribute_map_.clear();
 }
 
-absl::Status Slot::AppendInstruction(Instruction* inst) {
+::absl::Status Slot::AppendInstruction(Instruction* inst) {
   if (!is_templated()) {
     bool valid = inst->opcode()->ValidateDestLatencies(
         [](int l) -> bool { return l >= 0; });
     if (!valid) {
-      return absl::InternalError(absl::StrCat("Invalid latency for opcode '",
+      return ::absl::InternalError(::absl::StrCat("Invalid latency for opcode '",
                                               inst->opcode()->name(), "'"));
     }
   }
   std::string name = inst->opcode()->name();
   if (!instruction_map_.contains(name)) {
     instruction_map_.emplace(name, inst);
-    return absl::OkStatus();
+    return ::absl::OkStatus();
   }
-  return absl::InternalError(absl::StrCat(
+  return ::absl::InternalError(::absl::StrCat(
       "Opcode '", name, "' already added to slot '", this->name(), "'"));
 }
 
-absl::Status Slot::AppendInheritedInstruction(Instruction* inst,
+::absl::Status Slot::AppendInheritedInstruction(Instruction* inst,
                                               TemplateInstantiationArgs* args) {
   std::string name = inst->opcode()->name();
   if (!instruction_map_.contains(name)) {
@@ -207,17 +207,17 @@ absl::Status Slot::AppendInheritedInstruction(Instruction* inst,
         bool valid = derived.value()->opcode()->ValidateDestLatencies(
             [](int l) -> bool { return l >= 0; });
         if (!valid) {
-          return absl::InternalError(absl::StrCat(
+          return ::absl::InternalError(::absl::StrCat(
               "Invalid latency for opcode '", inst->opcode()->name(), "'"));
         }
       }
       instruction_map_.emplace(name, derived.value());
-      return absl::OkStatus();
+      return ::absl::OkStatus();
     }
     return derived.status();
   }
-  return absl::InternalError(
-      absl::StrCat("instruction already added: ", inst->opcode()->name()));
+  return ::absl::InternalError(
+      ::absl::StrCat("instruction already added: ", inst->opcode()->name()));
 }
 
 bool Slot::HasInstruction(const std::string& opcode_name) const {
@@ -234,54 +234,54 @@ std::string Slot::CreateAttributeLookupKey(const Instruction* inst) const {
     std::string value;
     auto result = expr->GetValue();
     if (!result.ok()) {
-      absl::StrAppend(&key, name, "[e1]:");
+      ::absl::StrAppend(&key, name, "[e1]:");
       continue;
     }
     auto* value_ptr = std::get_if<int>(&result.value());
     if (value_ptr == nullptr) {
-      absl::StrAppend(&key, name, "[e2]:");
+      ::absl::StrAppend(&key, name, "[e2]:");
       continue;
     }
-    absl::StrAppend(&key, name, "[", *value_ptr, "]:");
+    ::absl::StrAppend(&key, name, "[", *value_ptr, "]:");
   }
   return key;
 }
 
 // Generate the attribute setter function that matches the "key" of the given
 // instruction.
-std::string Slot::GenerateAttributeSetterFcn(absl::string_view name,
+std::string Slot::GenerateAttributeSetterFcn(::absl::string_view name,
                                              const Instruction* inst) const {
   std::string output;
-  absl::StrAppend(&output, "void ", name, "(Instruction *inst) {\n");
+  ::absl::StrAppend(&output, "void ", name, "(Instruction *inst) {\n");
   int size = attribute_names_.size();
   if (size > 0) {
     // Allocate the array and initialize to zero.
-    absl::StrAppend(&output, "  int *attrs = new int[", size,
+    ::absl::StrAppend(&output, "  int *attrs = new int[", size,
                     "];\n"
                     "  *attrs = {");
     for (auto const& attribute_name : attribute_names_) {
       auto it = inst->attribute_map().find(attribute_name);
       if (it == inst->attribute_map().end()) {
-        absl::StrAppend(&output, "0, ");
+        ::absl::StrAppend(&output, "0, ");
         continue;
       }
       auto result = it->second->GetValue();
       if (!result.ok()) {
-        absl::StrAppend(&output, "0, ");
+        ::absl::StrAppend(&output, "0, ");
         continue;
       }
       int* value = std::get_if<int>(&result.value());
       if (value == nullptr) {
-        absl::StrAppend(&output, "0, ");
+        ::absl::StrAppend(&output, "0, ");
         continue;
       }
-      absl::StrAppend(&output, *value, ", ");
+      ::absl::StrAppend(&output, *value, ", ");
     }
-    absl::StrAppend(&output, "};\n");
-    absl::StrAppend(&output, "  inst->SetAttributes(absl::Span<int>(attrs,",
+    ::absl::StrAppend(&output, "};\n");
+    ::absl::StrAppend(&output, "  inst->SetAttributes(::absl::Span<int>(attrs,",
                     size, "));\n");
   }
-  absl::StrAppend(&output, "}\n\n");
+  ::absl::StrAppend(&output, "}\n\n");
   return output;
 }
 
@@ -293,9 +293,9 @@ std::string Slot::GenerateAttributeSetter(const Instruction* inst) {
   if (iter == attribute_setter_name_map_->end()) {
     auto index = attribute_setter_name_map_->size();
     std::string func_name =
-        absl::StrCat(pascal_name(), "Slot", "SetAttributes", index);
+        ::absl::StrCat(pascal_name(), "Slot", "SetAttributes", index);
     iter = attribute_setter_name_map_->emplace(key, func_name).first;
-    absl::StrAppend(&setter_functions_,
+    ::absl::StrAppend(&setter_functions_,
                     GenerateAttributeSetterFcn(func_name, inst));
   }
   return iter->second;
@@ -317,9 +317,9 @@ std::string EscapeRegexCharacters(const std::string& str) {
     if (isspace(c)) {
       if (!in_space) {
         if (ispunct(p)) {
-          absl::StrAppend(&output, "\\s*");
+          ::absl::StrAppend(&output, "\\s*");
         } else {
-          absl::StrAppend(&output, "\\s+");
+          ::absl::StrAppend(&output, "\\s+");
         }
       }
       in_space = true;
@@ -329,52 +329,52 @@ std::string EscapeRegexCharacters(const std::string& str) {
     in_space = false;
     switch (c) {
       case '.':
-        absl::StrAppend(&output, "\\.");
+        ::absl::StrAppend(&output, "\\.");
         break;
       case '(':
-        absl::StrAppend(&output, "\\(");
+        ::absl::StrAppend(&output, "\\(");
         break;
       case ')':
-        absl::StrAppend(&output, "\\)");
+        ::absl::StrAppend(&output, "\\)");
         break;
       case '[':
-        absl::StrAppend(&output, "\\[");
+        ::absl::StrAppend(&output, "\\[");
         break;
       case ']':
-        absl::StrAppend(&output, "\\]");
+        ::absl::StrAppend(&output, "\\]");
         break;
       case '*':
-        absl::StrAppend(&output, "\\*");
+        ::absl::StrAppend(&output, "\\*");
         break;
       case '+':
-        absl::StrAppend(&output, "\\+");
+        ::absl::StrAppend(&output, "\\+");
         break;
       case '?':
-        absl::StrAppend(&output, "\\?");
+        ::absl::StrAppend(&output, "\\?");
         break;
       case '|':
-        absl::StrAppend(&output, "\\|");
+        ::absl::StrAppend(&output, "\\|");
         break;
       case '{':
-        absl::StrAppend(&output, "\\{");
+        ::absl::StrAppend(&output, "\\{");
         break;
       case '}':
-        absl::StrAppend(&output, "\\}");
+        ::absl::StrAppend(&output, "\\}");
         break;
       case '^':
-        absl::StrAppend(&output, "\\^");
+        ::absl::StrAppend(&output, "\\^");
         break;
       case '$':
-        absl::StrAppend(&output, "\\$");
+        ::absl::StrAppend(&output, "\\$");
         break;
       case '!':
-        absl::StrAppend(&output, "\\!");
+        ::absl::StrAppend(&output, "\\!");
         break;
       case '\\':
-        absl::StrAppend(&output, "\\\\");
+        ::absl::StrAppend(&output, "\\\\");
         break;
       default:
-        absl::StrAppend(&output, std::string(1, c));
+        ::absl::StrAppend(&output, std::string(1, c));
         break;
     }
   }
@@ -391,7 +391,7 @@ std::tuple<std::string, std::vector<OperandLocator>> Slot::GenerateRegEx(
   // Iterate over the vector of disasm formats. These will end up concatenated
   // with \s+ separators.
   for (auto const* disasm_fmt : inst->disasm_format_vec()) {
-    absl::StrAppend(&output, sep);
+    ::absl::StrAppend(&output, sep);
     sep = "\\s+";
     // The fragments are the text part (not part of operands), that occur
     // between the operand of the format. E.g., the commas in "r1, r2, r3".
@@ -408,13 +408,13 @@ std::tuple<std::string, std::vector<OperandLocator>> Slot::GenerateRegEx(
       auto fragment = *fragment_iter;
       if (!fragment.empty()) {
         auto str = EscapeRegexCharacters(fragment);
-        absl::StrAppend(&output, str);
+        ::absl::StrAppend(&output, str);
         prev = str.back();
       } else {
         prev = '\0';
       }
       if (optional) {
-        absl::StrAppend(&output, ")?");
+        ::absl::StrAppend(&output, ")?");
       }
       optional = false;
       fragment_iter++;
@@ -425,44 +425,44 @@ std::tuple<std::string, std::vector<OperandLocator>> Slot::GenerateRegEx(
         if (output.substr(len - 3) != "\\s*") {
           if ((prev != '\0') &&
               !(isalnum(prev) || (prev == '_') || (prev == '.'))) {
-            absl::StrAppend(&output, "\\s*");
+            ::absl::StrAppend(&output, "\\s*");
           }
         }
         if ((*format_iter)->is_optional) {
           optional = true;
-          absl::StrAppend(&output, "(?:");
+          ::absl::StrAppend(&output, "(?:");
         }
         std::string op_name = (*format_iter)->op_name;
-        absl::StrAppend(&output, "(\\S*?)");
+        ::absl::StrAppend(&output, "(\\S*?)");
         opnd_locators.push_back(inst->opcode()->op_locator_map().at(op_name));
         if ((fragment_iter != fragment_end) && (!(*fragment_iter).empty())) {
           char c = (*fragment_iter)[0];
           // If the next fragment is not alnum or underscore, add a space
           // separator.
           if (!isalnum(c) || (c != '_')) {
-            absl::StrAppend(&output, "\\s*");
+            ::absl::StrAppend(&output, "\\s*");
           }
         }
         format_iter++;
       }
     }
     if (optional) {
-      absl::StrAppend(&output, ")?");
+      ::absl::StrAppend(&output, ")?");
     }
   }
-  absl::StrAppend(&output, "\\s*$)\"");
+  ::absl::StrAppend(&output, "\\s*$)\"");
   return {output, opnd_locators};
 }
 
 std::string GenerateEncodingFunctions(const std::string& encoder,
                                       InstructionSet instruction_set) {
   std::string output;
-  absl::StrAppend(&output, "namespace {\n\n");
-  absl::StrAppend(
-      &output, "absl::StatusOr<std::tuple<uint64_t, int>> EncodeNone(", encoder,
+  ::absl::StrAppend(&output, "namespace {\n\n");
+  ::absl::StrAppend(
+      &output, "::absl::StatusOr<std::tuple<uint64_t, int>> EncodeNone(", encoder,
       "*, SlotEnum, int, OpcodeEnum, uint64_t, const "
       "std::vector<std::string> &) {\n"
-      "  return absl::NotFoundError(\"No such opcode\");\n"
+      "  return ::absl::NotFoundError(\"No such opcode\");\n"
       "}\n\n");
   return output;
 }
@@ -475,10 +475,10 @@ std::tuple<std::string, std::string> Slot::GenerateAsmRegexMatcher() const {
 
   // Generate the encoder function for each instruction.
   std::string encoder =
-      absl::StrCat(instruction_set_->pascal_name(), "EncoderInterfaceBase");
+      ::absl::StrCat(instruction_set_->pascal_name(), "EncoderInterfaceBase");
 
   // Generate the matcher class.
-  absl::StrAppend(
+  ::absl::StrAppend(
       &h_output,
       "// Assembly matcher.\n"
       "class ",
@@ -491,29 +491,29 @@ std::tuple<std::string, std::string> Slot::GenerateAsmRegexMatcher() const {
       "  ~",
       class_name,
       "();\n"
-      "  absl::Status Initialize();\n"
-      "absl::StatusOr<std::tuple<uint64_t, int>> "
-      "  Encode(uint64_t address, absl::string_view text, int entry, "
+      "  ::absl::Status Initialize();\n"
+      "::absl::StatusOr<std::tuple<uint64_t, int>> "
+      "  Encode(uint64_t address, ::absl::string_view text, int entry, "
       "ResolverInterface *resolver, std::vector<RelocationInfo> "
       "&relocations) override;\n"
-      "  absl::StatusOr<std::tuple<uint64_t, int>> "
+      "  ::absl::StatusOr<std::tuple<uint64_t, int>> "
       "  Encode(uint64_t address, int opcode_index, "
       "const std::vector<std::string> &operands, int entry, "
       "ResolverInterface *resolver, std::vector<RelocationInfo> "
       "&relocations) override;\n"
-      "  absl::StatusOr<uint32_t> "
+      "  ::absl::StatusOr<uint32_t> "
       "  Encode(const ::coralnpu::sim::InstructionAST& node) const override;\n\n"
       " private:\n"
-      "  bool Match(absl::string_view text, std::vector<int> &matches);\n"
-      "  bool Extract(absl::string_view text, int index, "
+      "  bool Match(::absl::string_view text, std::vector<int> &matches);\n"
+      "  bool Extract(::absl::string_view text, int index, "
       "std::vector<std::string> &values);\n"
       "  ",
       encoder,
       " *encoder_;\n"
       "  std::vector<RE2 *> regex_vec_;\n"
       "  RE2::Set regex_set_;\n"
-      "  absl::flat_hash_map<int, int> index_to_opcode_map_;\n");
-  absl::StrAppend(&cc_output, class_name, "::", class_name, "(",
+      "  ::absl::flat_hash_map<int, int> index_to_opcode_map_;\n");
+  ::absl::StrAppend(&cc_output, class_name, "::", class_name, "(",
                   instruction_set_->pascal_name(),
                   "EncoderInterfaceBase *encoder) :\n"
                   "  encoder_(encoder),\n"
@@ -527,56 +527,56 @@ std::tuple<std::string, std::string> Slot::GenerateAsmRegexMatcher() const {
                   "  for (auto *regex : regex_vec_) delete regex;\n"
                   "  regex_vec_.clear();\n"
                   "}\n\n"
-                  "absl::Status ",
+                  "::absl::Status ",
                   class_name,
                   "::Initialize() {\n"
                   "  std::string error;\n"
                   "  int index = regex_set_.Add(\"^$\", &error);\n"
-                  "  if (index == -1) return absl::InternalError(error);\n"
+                  "  if (index == -1) return ::absl::InternalError(error);\n"
                   "  regex_vec_.push_back(new RE2(\"^$\"));\n");
   std::vector<std::string> formats;
   for (auto const& [name, inst_ptr] : instruction_map_) {
     auto [regex, opnd_locators] = GenerateRegEx(inst_ptr, formats);
     max_args = std::max(max_args, opnd_locators.size());
     std::string opcode_name =
-        absl::StrCat("OpcodeEnum::k", ToPascalCase(inst_ptr->opcode()->name()));
-    absl::StrAppend(&cc_output, "  regex_vec_.push_back(new RE2(", regex,
+        ::absl::StrCat("OpcodeEnum::k", ToPascalCase(inst_ptr->opcode()->name()));
+    ::absl::StrAppend(&cc_output, "  regex_vec_.push_back(new RE2(", regex,
                     "));\n"
                     "  index = regex_set_.Add(",
                     regex,
                     ", &error);\n"
-                    "  if (index == -1) return absl::InternalError(error);\n"
+                    "  if (index == -1) return ::absl::InternalError(error);\n"
                     "  index_to_opcode_map_.insert({index, static_cast<int>(",
                     opcode_name, ")", "});\n");
   }
-  absl::StrAppend(&h_output, "  std::string args[", max_args,
+  ::absl::StrAppend(&h_output, "  std::string args[", max_args,
                   "];\n"
                   "  std::array<RE2::Arg*, ",
                   max_args, "> re2_args = {");
-  for (int i = 0; i < max_args; ++i) absl::StrAppend(&h_output, "nullptr, ");
-  absl::StrAppend(&h_output, "  };\n");
+  for (int i = 0; i < max_args; ++i) ::absl::StrAppend(&h_output, "nullptr, ");
+  ::absl::StrAppend(&h_output, "  };\n");
   // Construct the RE2::Arg objects.
-  absl::StrAppend(&cc_output,
+  ::absl::StrAppend(&cc_output,
                   "  auto ok = regex_set_.Compile();\n"
-                  "  if (!ok) return absl::InternalError(\"Failed to compile "
+                  "  if (!ok) return ::absl::InternalError(\"Failed to compile "
                   "regex set\");\n"
                   "  for (int i = 0; i < ",
                   max_args,
                   "; ++i) {\n"
                   "    re2_args[i] = new RE2::Arg(&args[i]);\n"
                   "  }\n");
-  absl::StrAppend(
+  ::absl::StrAppend(
       &cc_output,
-      "  return absl::OkStatus();\n"
+      "  return ::absl::OkStatus();\n"
       "}\n\n"
       "bool ",
       class_name,
-      "::Match(absl::string_view text, std::vector<int> &matches) {\n"
+      "::Match(::absl::string_view text, std::vector<int> &matches) {\n"
       "  return regex_set_.Match(text, &matches);\n"
       "}\n\n"
       "bool ",
       class_name,
-      "::Extract(absl::string_view text, int index, "
+      "::Extract(::absl::string_view text, int index, "
       "std::vector<std::string> &values) {\n"
       "  auto &regex = regex_vec_.at(index);\n"
       "  int arg_count = regex->NumberOfCapturingGroups();\n"
@@ -589,16 +589,16 @@ std::tuple<std::string, std::string> Slot::GenerateAsmRegexMatcher() const {
       "  }\n"
       "  return true;\n"
       "}\n\n"
-      "absl::StatusOr<std::tuple<uint64_t, int>> ",
+      "::absl::StatusOr<std::tuple<uint64_t, int>> ",
       pascal_name(),
       "SlotMatcher::Encode(\n"
       R"(
-    uint64_t address, absl::string_view text, int entry, ResolverInterface *resolver,
+    uint64_t address, ::absl::string_view text, int entry, ResolverInterface *resolver,
     std::vector<RelocationInfo> &relocations) {
   std::vector<int> matches;
-  std::string error_message = absl::StrCat("Failed to encode '", text, "':");
+  std::string error_message = ::absl::StrCat("Failed to encode '", text, "':");
   if (!Match(text, matches) || (matches.size() == 0)) {
-    return absl::NotFoundError(error_message);
+    return ::absl::NotFoundError(error_message);
   }
   std::vector<std::tuple<uint64_t, int>> encodings;
   for (auto index : matches) {
@@ -616,26 +616,26 @@ std::tuple<std::string, std::string> Slot::GenerateAsmRegexMatcher() const {
       "relocations);\n",
       R"(
     if (!result.status().ok()) {
-      absl::StrAppend(&error_message, "\n    ", result.status().message());
+      ::absl::StrAppend(&error_message, "\n    ", result.status().message());
       continue;
     }
     encodings.push_back(result.value());
   }
-  if (encodings.empty()) return absl::NotFoundError(error_message);
+  if (encodings.empty()) return ::absl::NotFoundError(error_message);
   if (encodings.size() > 1) {
-    return absl::NotFoundError(
-        absl::StrCat("Failed to encode '", text, "': ambiguous"));
+    return ::absl::NotFoundError(
+        ::absl::StrCat("Failed to encode '", text, "': ambiguous"));
   }
   return encodings[0];
 }
 
-absl::StatusOr<uint32_t> )",
+::absl::StatusOr<uint32_t> )",
       pascal_name(),
       "SlotMatcher::Encode(\n"
       "    const ::coralnpu::sim::InstructionAST& node) const {\n"
       "  auto it = index_to_opcode_map_.find(node.opcode_index);\n"
       "  if (it == index_to_opcode_map_.end()) {\n"
-      "    return absl::NotFoundError(\"Invalid opcode index\");\n"
+      "    return ::absl::NotFoundError(\"Invalid opcode index\");\n"
       "  }\n"
       "  int mapped_opcode_index = it->second;\n"
       "  std::vector<RelocationInfo> relocations;\n"
@@ -647,7 +647,7 @@ absl::StatusOr<uint32_t> )",
       "  }\n"
       "  return static_cast<uint32_t>(std::get<0>(result.value()));\n"
       "}\n\n"
-      "absl::StatusOr<std::tuple<uint64_t, int>> ",
+      "::absl::StatusOr<std::tuple<uint64_t, int>> ",
       pascal_name(),
       "SlotMatcher::Encode(\n"
       "    uint64_t address, int opcode_index, "
@@ -655,31 +655,31 @@ absl::StatusOr<uint32_t> )",
       "ResolverInterface *resolver, std::vector<RelocationInfo> "
       "&relocations) {\n"
       "  if (opcode_index < 0 || opcode_index >= static_cast<int>(OpcodeEnum::kPastMaxValue)) {\n"
-      "    return absl::NotFoundError(\"Invalid opcode index\");\n"
+      "    return ::absl::NotFoundError(\"Invalid opcode index\");\n"
       "  }\n"
       "  return encode_fcns[opcode_index](encoder_, SlotEnum::k",
       pascal_name(),
       ", entry, static_cast<OpcodeEnum>(opcode_index), address, operands, resolver, relocations);\n"
       "}\n\n");
-  absl::StrAppend(&h_output, "};\n\n");
+  ::absl::StrAppend(&h_output, "};\n\n");
   return {h_output, cc_output};
 }
 
 // Generate a function that will set the disassembly string for the given
 // instruction.
-std::string Slot::GenerateDisasmSetterFcn(absl::string_view name,
+std::string Slot::GenerateDisasmSetterFcn(::absl::string_view name,
                                           const Instruction* inst) const {
   std::string output;
   std::string class_name = pascal_name() + "Slot";
-  absl::StrAppend(&output, "void ", name, "(Instruction *inst) {\n");
-  absl::StrAppend(&output, "  inst->SetDisassemblyString(");
+  ::absl::StrAppend(&output, "void ", name, "(Instruction *inst) {\n");
+  ::absl::StrAppend(&output, "  inst->SetDisassemblyString(");
   int indent = 2;
   int outer_paren = false;
   // This is used to keep track of whether the current code emitted is in
   // a call to strcat or not. It helps reduce the number of strcat calls made
   // in the generated code.
   std::stack<bool> in_strcat;
-  absl::StrAppend(&output, "absl::StrCat(\n");
+  ::absl::StrAppend(&output, "::absl::StrCat(\n");
   in_strcat.push(true);
   outer_paren = true;
   std::string outer_sep;
@@ -690,20 +690,20 @@ std::string Slot::GenerateDisasmSetterFcn(absl::string_view name,
     // If the next string needs to be formatted within a certain width field,
     // start out with a StrFormat call.
     if (disasm_fmt->width != 0) {
-      absl::StrAppend(&output, outer_sep, indent_string(indent),
-                      "absl::StrFormat(\"%", disasm_fmt->width, "s\",\n");
+      ::absl::StrAppend(&output, outer_sep, indent_string(indent),
+                      "::absl::StrFormat(\"%", disasm_fmt->width, "s\",\n");
       indent += 2;
       inner_paren++;
       in_strcat.push(false);
     } else if (!outer_sep.empty()) {
-      absl::StrAppend(&output, ", ");
+      ::absl::StrAppend(&output, ", ");
     }
     // If multiple strings will be generated, and we're not currently in a
     // StrCat, start a StrCat.
     if (!((disasm_fmt->format_fragment_vec.size() == 1) &&
           disasm_fmt->format_info_vec.empty()) &&
         !in_strcat.top()) {
-      absl::StrAppend(&output, indent_string(indent), "absl::StrCat(\n");
+      ::absl::StrAppend(&output, indent_string(indent), "::absl::StrCat(\n");
       indent += 2;
       inner_paren++;
       in_strcat.push(true);
@@ -712,7 +712,7 @@ std::string Slot::GenerateDisasmSetterFcn(absl::string_view name,
     std::string next_sep;
     for (auto const& frag : disasm_fmt->format_fragment_vec) {
       if (!frag.empty()) {
-        absl::StrAppend(&output, inner_sep, indent_string(indent), "\"", frag,
+        ::absl::StrAppend(&output, inner_sep, indent_string(indent), "\"", frag,
                         "\"");
         next_sep = ", ";
       }
@@ -720,10 +720,10 @@ std::string Slot::GenerateDisasmSetterFcn(absl::string_view name,
         auto* format_info = disasm_fmt->format_info_vec[index];
         if (format_info->op_name.empty()) {
           if (!format_info->is_formatted) {
-            absl::StrAppend(&output, "\n#error Missing locator information");
+            ::absl::StrAppend(&output, "\n#error Missing locator information");
           } else {
-            absl::StrAppend(
-                &output, next_sep, "absl::StrFormat(\"",
+            ::absl::StrAppend(
+                &output, next_sep, "::absl::StrFormat(\"",
                 format_info->number_format.back() == 'x' ? "0x" : "",
                 format_info->number_format, "\", ",
                 ExpandExpression(*format_info, ""), ")");
@@ -732,21 +732,21 @@ std::string Slot::GenerateDisasmSetterFcn(absl::string_view name,
           auto key = format_info->op_name;
           auto iter = inst->opcode()->op_locator_map().find(key);
           if (iter == inst->opcode()->op_locator_map().end()) {
-            absl::StrAppend(&output, "\n#error ", key,
+            ::absl::StrAppend(&output, "\n#error ", key,
                             " not found in instruction opcodes\n");
             continue;
           }
           auto result = TranslateLocator(iter->second);
           if (!result.status().ok()) {
-            absl::StrAppend(&output, "\n#error ", result.status().message(),
+            ::absl::StrAppend(&output, "\n#error ", result.status().message(),
                             "\n");
             continue;
           }
           if (!format_info->is_formatted) {
-            absl::StrAppend(&output, next_sep, result.value(), "->AsString()");
+            ::absl::StrAppend(&output, next_sep, result.value(), "->AsString()");
           } else {
-            absl::StrAppend(
-                &output, next_sep, "absl::StrFormat(\"",
+            ::absl::StrAppend(
+                &output, next_sep, "::absl::StrFormat(\"",
                 format_info->number_format.back() == 'x' ? "0x" : "",
                 format_info->number_format, "\", ",
                 ExpandExpression(*format_info, result.value()), ")");
@@ -759,10 +759,10 @@ std::string Slot::GenerateDisasmSetterFcn(absl::string_view name,
     }
     // Close up parentheses as required.
     for (int i = 0; i < inner_paren; i++) {
-      absl::StrAppend(&output, ")");
+      ::absl::StrAppend(&output, ")");
       indent -= 2;
       if (!in_strcat.top()) {  // Finished a StrFormat.
-        absl::StrAppend(&output, "\n", indent_string(indent));
+        ::absl::StrAppend(&output, "\n", indent_string(indent));
       }
       in_strcat.pop();
     }
@@ -770,10 +770,10 @@ std::string Slot::GenerateDisasmSetterFcn(absl::string_view name,
   }
   if (outer_paren) {
     in_strcat.pop();
-    absl::StrAppend(&output, ")");
+    ::absl::StrAppend(&output, ")");
   }
 
-  absl::StrAppend(&output, ");\n}\n\n");
+  ::absl::StrAppend(&output, ");\n}\n\n");
   return output;
 }
 
@@ -785,46 +785,46 @@ std::string Slot::GenerateDisassemblySetter(const Instruction* inst) {
   // First combine the disassembly fragments.
   for (auto const* format : inst->disasm_format_vec()) {
     for (auto const& frag : format->format_fragment_vec) {
-      absl::StrAppend(&key, frag);
+      ::absl::StrAppend(&key, frag);
     }
   }
   // Then add the resources.
-  absl::StrAppend(&key, ":", CreateOperandLookupKey(inst->opcode()));
-  std::string func_name = absl::StrCat(
+  ::absl::StrAppend(&key, ":", CreateOperandLookupKey(inst->opcode()));
+  std::string func_name = ::absl::StrCat(
       pascal_name(), "Slot", inst->opcode()->pascal_name(), "SetDisasm");
   auto iter = disasm_setter_name_map_->find(key);
   if (iter == disasm_setter_name_map_->end()) {
     iter = disasm_setter_name_map_->emplace(key, func_name).first;
-    absl::StrAppend(&setter_functions_,
+    ::absl::StrAppend(&setter_functions_,
                     GenerateDisasmSetterFcn(func_name, inst));
   }
-  return absl::StrCat(iter->second);
+  return ::absl::StrCat(iter->second);
 }
 
 // Generate the assembler function for the given instruction.
 std::string Slot::GenerateAssemblerFcn(const Instruction* inst,
-                                       absl::string_view encoder_type) const {
+                                       ::absl::string_view encoder_type) const {
   std::string output;
   int num_values = inst->opcode()->source_op_vec().size() +
                    inst->opcode()->dest_op_vec().size();
-  absl::StrAppend(
-      &output, "absl::StatusOr<std::tuple<int, uint64_t>> ", pascal_name(),
+  ::absl::StrAppend(
+      &output, "::absl::StatusOr<std::tuple<int, uint64_t>> ", pascal_name(),
       "Slot", "Assemble", inst->opcode()->pascal_name(), "(", encoder_type,
       " *enc, const std::vector<std::string> &values, SlotEnum "
       "slot, int entry) {\n",
       "  if (values.size() != ", num_values,
       ")\n"
-      "    return absl::InvalidArgumentError(\"Wrong number of values\");\n"
+      "    return ::absl::InvalidArgumentError(\"Wrong number of values\");\n"
       "  constexpr OpcodeEnum opcode = OpcodeEnum::k",
       inst->opcode()->pascal_name(),
       ";\n"
       "auto [inst_word, num_bits] = enc->GetOpEncoding(opcode, slot, "
       "entry);\n",
-      "  absl::Status status;\n");
+      "  ::absl::Status status;\n");
   auto const& source_op_vec = inst->opcode()->source_op_vec();
   for (int i = 0; i < source_op_vec.size(); ++i) {
     std::string op_name = ToPascalCase(source_op_vec[i].name);
-    absl::StrAppend(&output, "  status = enc->SetSrcEncoding(values.at(", i,
+    ::absl::StrAppend(&output, "  status = enc->SetSrcEncoding(values.at(", i,
                     "), slot, entry,\n"
                     "SourceOpEnum::k",
                     op_name, ", ", i,
@@ -833,19 +833,19 @@ std::string Slot::GenerateAssemblerFcn(const Instruction* inst,
   }
   auto const& dest_op_vec = inst->opcode()->dest_op_vec();
   for (int i = 0; i < dest_op_vec.size(); ++i) {
-    absl::StrAppend(&output, "  status = enc->SetDestEncoding(values.at(", i,
+    ::absl::StrAppend(&output, "  status = enc->SetDestEncoding(values.at(", i,
                     "), slot, entry,\n"
                     "DestOpEnum::k",
                     dest_op_vec[i]->pascal_case_name(), ", ", i,
                     ", opcode);\n"
                     "  if (!stats.ok()) return status;\n");
   }
-  absl::StrAppend(
+  ::absl::StrAppend(
       &output,
       "  auto ok = enc->ValidateEncoding(opcode, slot, entry, inst_word);\n"
-      "  if (!ok) return absl::InvalidArgumentError(\"Invalid "
+      "  if (!ok) return ::absl::InvalidArgumentError(\"Invalid "
       "encoding\");\n");
-  absl::StrAppend(&output,
+  ::absl::StrAppend(&output,
                   "return std::tie(num_bits, inst_word);\n"
                   "}\n\n");
   return output;
@@ -858,7 +858,7 @@ std::string Slot::CreateResourceKey(
   std::string key;
   std::vector<const ResourceReference*> complex_refs;
   std::vector<const ResourceReference*> simple_refs;
-  absl::btree_set<std::string> names;
+  ::absl::btree_set<std::string> names;
   // Iterate over use resources.
   for (auto const* ref : refs) {
     if (!ref->resource->is_simple()) {
@@ -871,45 +871,45 @@ std::string Slot::CreateResourceKey(
   for (auto const* ref : simple_refs) {
     std::string name = "S$";
     if (ref->is_array) {
-      absl::StrAppend(&name, "[", ref->resource->pascal_name(), "]");
+      ::absl::StrAppend(&name, "[", ref->resource->pascal_name(), "]");
     } else {
-      absl::StrAppend(&name, ref->resource->pascal_name());
+      ::absl::StrAppend(&name, ref->resource->pascal_name());
     }
     names.insert(name);
   }
   std::string sep = "";
   for (auto const& name : names) {
-    absl::StrAppend(&key, sep, name);
+    ::absl::StrAppend(&key, sep, name);
     sep = "/";
   }
   names.clear();
-  absl::StrAppend(&key, ":");
+  ::absl::StrAppend(&key, ":");
 
   // Complex use resources.
   for (auto const* ref : complex_refs) {
     std::string name = "C$";
     if (ref->is_array) {
-      absl::StrAppend(&name, "[", ref->resource->pascal_name(), "]");
+      ::absl::StrAppend(&name, "[", ref->resource->pascal_name(), "]");
     } else {
-      absl::StrAppend(&name, ref->resource->pascal_name());
+      ::absl::StrAppend(&name, ref->resource->pascal_name());
     }
     auto begin_value = ref->begin_expression->GetValue();
     if (!begin_value.ok()) {
-      absl::StrAppend(&name, "(?)");
+      ::absl::StrAppend(&name, "(?)");
     } else {
-      absl::StrAppend(&name, *std::get_if<int>(&begin_value.value()));
+      ::absl::StrAppend(&name, *std::get_if<int>(&begin_value.value()));
     }
     auto end_value = ref->end_expression->GetValue();
     if (!end_value.ok()) {
-      absl::StrAppend(&name, "(?)");
+      ::absl::StrAppend(&name, "(?)");
     } else {
-      absl::StrAppend(&name, *std::get_if<int>(&end_value.value()));
+      ::absl::StrAppend(&name, *std::get_if<int>(&end_value.value()));
     }
     names.insert(name);
   }
   sep = "";
   for (auto const& name : names) {
-    absl::StrAppend(&key, sep, name);
+    ::absl::StrAppend(&key, sep, name);
     sep = "/";
   }
   return key;
@@ -919,16 +919,16 @@ std::string Slot::CreateResourceKey(
 // given instruction. If a matching one does not exist, call to create such a
 // function.
 std::string Slot::GenerateResourceSetter(const Instruction* inst,
-                                         absl::string_view encoding_type) {
+                                         ::absl::string_view encoding_type) {
   std::string key = CreateResourceKey(inst->resource_use_vec());
-  absl::StrAppend(&key, ":", CreateResourceKey(inst->resource_acquire_vec()));
+  ::absl::StrAppend(&key, ":", CreateResourceKey(inst->resource_acquire_vec()));
   auto iter = resource_setter_name_map_->find(key);
   if (iter == resource_setter_name_map_->end()) {
     auto index = resource_setter_name_map_->size();
     std::string func_name =
-        absl::StrCat(pascal_name(), "Slot", "SetResources", index);
+        ::absl::StrCat(pascal_name(), "Slot", "SetResources", index);
     iter = resource_setter_name_map_->emplace(key, func_name).first;
-    absl::StrAppend(&setter_functions_,
+    ::absl::StrAppend(&setter_functions_,
                     GenerateResourceSetterFcn(func_name, inst, encoding_type));
   }
   return iter->second;
@@ -937,16 +937,16 @@ std::string Slot::GenerateResourceSetter(const Instruction* inst,
 // Create a resource setter function for the resource "key" of the given
 // instruction.
 std::string Slot::GenerateResourceSetterFcn(
-    absl::string_view name, const Instruction* inst,
-    absl::string_view encoding_type) const {
+    ::absl::string_view name, const Instruction* inst,
+    ::absl::string_view encoding_type) const {
   std::string output;
-  absl::StrAppend(&output, "void ", name, "(Instruction *inst, ", encoding_type,
+  ::absl::StrAppend(&output, "void ", name, "(Instruction *inst, ", encoding_type,
                   " *enc, SlotEnum slot, int entry) {\n");
   std::string opcode_name = inst->opcode()->pascal_name();
-  std::string opcode_enum = absl::StrCat("OpcodeEnum::k", opcode_name);
+  std::string opcode_enum = ::absl::StrCat("OpcodeEnum::k", opcode_name);
   if (!inst->resource_use_vec().empty() ||
       !inst->resource_acquire_vec().empty()) {
-    absl::StrAppend(&output, "  ResourceOperandInterface *res_op;\n");
+    ::absl::StrAppend(&output, "  ResourceOperandInterface *res_op;\n");
   }
   std::string optional_inst;
   if (generator_version_ == 2) {
@@ -968,19 +968,19 @@ std::string Slot::GenerateResourceSetterFcn(
   if (!simple_refs.empty()) {
     // First gather the resource references into a single vector, then request
     // the resource operands for all the resource references in that vector.
-    absl::StrAppend(&output, "  std::vector<SimpleResourceEnum> hold_vec = {");
+    ::absl::StrAppend(&output, "  std::vector<SimpleResourceEnum> hold_vec = {");
     for (auto const* simple : simple_refs) {
       std::string resource_name;
       if (simple->is_array) {
-        resource_name = absl::StrCat("SimpleResourceEnum::k",
+        resource_name = ::absl::StrCat("SimpleResourceEnum::k",
                                      simple->resource->pascal_name());
       } else {
-        resource_name = absl::StrCat("SimpleResourceEnum::k",
+        resource_name = ::absl::StrCat("SimpleResourceEnum::k",
                                      simple->resource->pascal_name());
       }
-      absl::StrAppend(&output, "\n      ", resource_name, ",");
+      ::absl::StrAppend(&output, "\n      ", resource_name, ",");
     }
-    absl::StrAppend(&output,
+    ::absl::StrAppend(&output,
                     "};\n"
                     "  res_op = enc->GetSimpleResourceOperand(",
                     optional_inst, "slot, entry, ", opcode_enum,
@@ -995,7 +995,7 @@ std::string Slot::GenerateResourceSetterFcn(
     auto begin_value = complex->begin_expression->GetValue();
     auto end_value = complex->end_expression->GetValue();
     if (!begin_value.ok() || !end_value.ok()) {
-      absl::StrAppend(&output,
+      ::absl::StrAppend(&output,
                       "#error Unable to evaluate begin or end expression\n");
       continue;
     }
@@ -1003,27 +1003,27 @@ std::string Slot::GenerateResourceSetterFcn(
     int* begin = std::get_if<int>(&begin_value.value());
     int* end = std::get_if<int>(&end_value.value());
     if ((begin == nullptr) || (end == nullptr)) {
-      absl::StrAppend(
+      ::absl::StrAppend(
           &output, "#error Unable to get value of begin or end expression\n");
       continue;
     }
     if (complex->is_array) {
-      absl::StrAppend(
+      ::absl::StrAppend(
           &output, "  auto res_op_vec = enc->GetComplexResourceOperands(",
           optional_inst, "slot, entry, ", opcode_enum,
           ", ListComplexResourceEnum::k", complex->resource->pascal_name(),
           *begin, ", ", *end, ");\n");
-      absl::StrAppend(&output,
+      ::absl::StrAppend(&output,
                       "  for (auto res_op : res_op_vec) {\n"
                       "    inst->AppendResourceHold(res_op);\n"
                       "  }\n");
     } else {
-      absl::StrAppend(&output, "  res_op = enc->GetComplexResourceOperand(",
+      ::absl::StrAppend(&output, "  res_op = enc->GetComplexResourceOperand(",
                       optional_inst, "slot, entry, ", opcode_enum,
                       ", ComplexResourceEnum::k",
                       complex->resource->pascal_name(), ", ");
-      absl::StrAppend(&output, *begin, ", ", *end, ");\n");
-      absl::StrAppend(&output,
+      ::absl::StrAppend(&output, *begin, ", ", *end, ");\n");
+      ::absl::StrAppend(&output,
                       "  if (res_op != nullptr) {\n"
                       "    inst->AppendResourceHold(res_op);\n"
                       "  }\n");
@@ -1047,19 +1047,19 @@ std::string Slot::GenerateResourceSetterFcn(
     // Compute the set of latencies. Insert each reference into a multi-map
     // keyed by the latency.
     std::multimap<int, const ResourceReference*> latency_map;
-    absl::flat_hash_set<int> latencies;
+    ::absl::flat_hash_set<int> latencies;
     for (auto const* simple : simple_refs) {
       if (simple->end_expression == nullptr) {
         continue;
       }
       auto end_value = simple->end_expression->GetValue();
       if (!end_value.ok()) {
-        absl::StrAppend(&output, "#error Unable to evaluate end expression\n");
+        ::absl::StrAppend(&output, "#error Unable to evaluate end expression\n");
         continue;
       }
       int* end = std::get_if<int>(&end_value.value());
       if (end == nullptr) {
-        absl::StrAppend(&output,
+        ::absl::StrAppend(&output,
                         "#error Unable to get value of  end expression\n");
         continue;
       }
@@ -1070,22 +1070,22 @@ std::string Slot::GenerateResourceSetterFcn(
     // Process the resources by latencies.
     for (auto latency : latencies) {
       std::string sep = "";
-      absl::StrAppend(&output, "  std::vector<SimpleResourceEnum> acquire_vec",
+      ::absl::StrAppend(&output, "  std::vector<SimpleResourceEnum> acquire_vec",
                       latency, " = {");
       for (auto iter = latency_map.lower_bound(latency);
            iter != latency_map.upper_bound(latency); ++iter) {
         auto* simple = iter->second;
         std::string resource_name;
         if (simple->is_array) {
-          resource_name = absl::StrCat("SimpleResourceEnum::k",
+          resource_name = ::absl::StrCat("SimpleResourceEnum::k",
                                        simple->resource->pascal_name());
         } else {
-          resource_name = absl::StrCat("SimpleResourceEnum::k",
+          resource_name = ::absl::StrCat("SimpleResourceEnum::k",
                                        simple->resource->pascal_name());
         }
-        absl::StrAppend(&output, sep, "\n      ", resource_name, ",");
+        ::absl::StrAppend(&output, sep, "\n      ", resource_name, ",");
       }
-      absl::StrAppend(&output,
+      ::absl::StrAppend(&output,
                       "};\n\n"
                       "  res_op = enc->GetSimpleResourceOperand(",
                       optional_inst, "slot, entry, ", opcode_enum,
@@ -1106,7 +1106,7 @@ std::string Slot::GenerateResourceSetterFcn(
       auto begin_value = complex->begin_expression->GetValue();
       auto end_value = complex->end_expression->GetValue();
       if (!begin_value.ok() || !end_value.ok()) {
-        absl::StrAppend(&output,
+        ::absl::StrAppend(&output,
                         "#error Unable to evaluate begin or end expression\n");
         continue;
       }
@@ -1114,36 +1114,36 @@ std::string Slot::GenerateResourceSetterFcn(
       int* begin = std::get_if<int>(&begin_value.value());
       int* end = std::get_if<int>(&end_value.value());
       if (complex->is_array) {
-        absl::StrAppend(&output,
+        ::absl::StrAppend(&output,
                         "  auto res_op_vec = "
                         "enc->GetComplexResourceOperands(",
                         optional_inst, "slot, entry, ", opcode_enum,
                         ", ListComplexResourceEnum::k",
                         complex->resource->pascal_name(), *begin, ", ", *end,
                         ");\n");
-        absl::StrAppend(&output,
+        ::absl::StrAppend(&output,
                         "  for (auto res_op : res_op_vec) {\n"
                         "    inst->AppendResourceHold(res_op);\n"
                         "  }\n");
       } else {
-        absl::StrAppend(&output, "    res_op = enc->GetComplexResourceOperand(",
+        ::absl::StrAppend(&output, "    res_op = enc->GetComplexResourceOperand(",
                         optional_inst, "slot, entry, ", opcode_enum,
                         ", ComplexResourceEnum::k",
                         complex->resource->pascal_name(), ", ");
-        absl::StrAppend(&output, *begin, ", ", *end, ");\n");
-        absl::StrAppend(&output,
+        ::absl::StrAppend(&output, *begin, ", ", *end, ");\n");
+        ::absl::StrAppend(&output,
                         "  if (res_op != nullptr) {\n"
                         "    inst->AppendResourceHold(res_op);\n"
                         "  }\n");
       }
     }
   }
-  absl::StrAppend(&output, "}\n\n");
+  ::absl::StrAppend(&output, "}\n\n");
   return output;
 }
 
 std::string Slot::GetInstructionArrayName() const {
-  return absl::StrCat("k", pascal_name(), "SlotInstructionArray");
+  return ::absl::StrCat("k", pascal_name(), "SlotInstructionArray");
 }
 
 // Generates a string that is a unique identifier from the operands to
@@ -1153,47 +1153,47 @@ std::string Slot::CreateOperandLookupKey(const Opcode* opcode) const {
   // Generate identifier for the predicate operand, if the opcode has one.
   const std::string& op_name = opcode->predicate_op_name();
   if (!op_name.empty()) {
-    absl::StrAppend(&key, op_name, ":");
+    ::absl::StrAppend(&key, op_name, ":");
   }
   // Generate key for the source operands.
   std::string sep = "";
   for (const auto& src_op : opcode->source_op_vec()) {
     if (src_op.is_array) {
-      absl::StrAppend(&key, sep, "[", src_op.name, "]");
+      ::absl::StrAppend(&key, sep, "[", src_op.name, "]");
     } else {
-      absl::StrAppend(&key, sep, src_op.name);
+      ::absl::StrAppend(&key, sep, src_op.name);
     }
     sep = "/";
   }
-  absl::StrAppend(&key, ":");
+  ::absl::StrAppend(&key, ":");
   // Append identifier for destination operands.
   sep.clear();
   for (auto const* dst_op : opcode->dest_op_vec()) {
     std::string dest_op_enum;
     if (dst_op->is_array()) {
-      absl::StrAppend(&key, sep, "[", dst_op->name(), "]");
+      ::absl::StrAppend(&key, sep, "[", dst_op->name(), "]");
     } else {
-      absl::StrAppend(&key, sep, dst_op->name());
+      ::absl::StrAppend(&key, sep, dst_op->name());
     }
     std::string latency;
     if (dst_op->expression() == nullptr) {
-      absl::StrAppend(&latency, "(*)");
+      ::absl::StrAppend(&latency, "(*)");
     } else {
       auto result = dst_op->GetLatency();
       if (!result.ok()) {
-        absl::StrAppend(&latency, "(-1)");
+        ::absl::StrAppend(&latency, "(-1)");
         continue;
       }
       if (dst_op->is_array()) {
-        absl::StrAppend(&latency, "({", result.value(), "})");
+        ::absl::StrAppend(&latency, "({", result.value(), "})");
       } else {
-        absl::StrAppend(&latency, "(", result.value(), ")");
+        ::absl::StrAppend(&latency, "(", result.value(), ")");
       }
     }
     if (dst_op->is_array()) {
-      absl::StrAppend(&key, sep, "[", dst_op->name(), "]", latency);
+      ::absl::StrAppend(&key, sep, "[", dst_op->name(), "]", latency);
     } else {
-      absl::StrAppend(&key, sep, dst_op->name(), latency);
+      ::absl::StrAppend(&key, sep, dst_op->name(), latency);
     }
     sep = "/";
   }
@@ -1202,23 +1202,23 @@ std::string Slot::CreateOperandLookupKey(const Opcode* opcode) const {
 
 // Generates a function that sets the operands for the operand "key" of the
 // given opcode.
-std::string Slot::GenerateOperandSetterFcn(absl::string_view getter_name,
-                                           absl::string_view encoding_type,
+std::string Slot::GenerateOperandSetterFcn(::absl::string_view getter_name,
+                                           ::absl::string_view encoding_type,
                                            const Opcode* opcode) const {
   std::string output;
   std::string optional_inst;
   if (generator_version_ == 2) {
     optional_inst = "inst, ";
   }
-  absl::StrAppend(&output, "void ", getter_name, "(Instruction *inst, ",
+  ::absl::StrAppend(&output, "void ", getter_name, "(Instruction *inst, ",
                   encoding_type,
                   " *enc, OpcodeEnum opcode, SlotEnum slot, int entry) {\n");
   // Generate code to set predicate operand, if the opcode has one.
   const std::string& op_name = opcode->predicate_op_name();
   if (!op_name.empty()) {
     std::string pred_op_enum =
-        absl::StrCat("PredOpEnum::k", ToPascalCase(op_name));
-    absl::StrAppend(&output, "  inst->SetPredicate(enc->GetPredicate", "(",
+        ::absl::StrCat("PredOpEnum::k", ToPascalCase(op_name));
+    ::absl::StrAppend(&output, "  inst->SetPredicate(enc->GetPredicate", "(",
                     optional_inst, "slot, entry, opcode, ", pred_op_enum,
                     "));\n");
   }
@@ -1229,8 +1229,8 @@ std::string Slot::GenerateOperandSetterFcn(absl::string_view getter_name,
     // vector of operands that GetSources returns.
     if (src_op.is_array) {
       std::string src_op_enum =
-          absl::StrCat("ListSourceOpEnum::k", ToPascalCase(src_op.name));
-      absl::StrAppend(&output,
+          ::absl::StrCat("ListSourceOpEnum::k", ToPascalCase(src_op.name));
+      ::absl::StrAppend(&output,
                       "  {\n"
                       "    auto vec = enc->GetSources",
                       "(", optional_inst, "slot, entry, opcode, ", src_op_enum,
@@ -1240,8 +1240,8 @@ std::string Slot::GenerateOperandSetterFcn(absl::string_view getter_name,
                       "  }\n");
     } else {
       std::string src_op_enum =
-          absl::StrCat("SourceOpEnum::k", ToPascalCase(src_op.name));
-      absl::StrAppend(&output, "  inst->AppendSource(enc->GetSource", "(",
+          ::absl::StrCat("SourceOpEnum::k", ToPascalCase(src_op.name));
+      ::absl::StrAppend(&output, "  inst->AppendSource(enc->GetSource", "(",
                       optional_inst, "slot, entry, opcode, ", src_op_enum, ", ",
                       source_no++, "));\n");
     }
@@ -1252,31 +1252,31 @@ std::string Slot::GenerateOperandSetterFcn(absl::string_view getter_name,
     std::string dest_op_enum;
     if (dst_op->is_array()) {
       dest_op_enum =
-          absl::StrCat("ListDestOpEnum::k", dst_op->pascal_case_name());
+          ::absl::StrCat("ListDestOpEnum::k", dst_op->pascal_case_name());
     } else {
-      dest_op_enum = absl::StrCat("DestOpEnum::k", dst_op->pascal_case_name());
+      dest_op_enum = ::absl::StrCat("DestOpEnum::k", dst_op->pascal_case_name());
     }
     std::string latency;
     if (dst_op->expression() == nullptr) {
-      latency = absl::StrCat("enc->GetLatency(", optional_inst,
+      latency = ::absl::StrCat("enc->GetLatency(", optional_inst,
                              "slot, entry, opcode, ", dest_op_enum, ", ",
                              dest_no, ")");
     } else {
       auto result = dst_op->GetLatency();
       if (!result.ok()) {
-        absl::StrAppend(&output, "#error \"Failed to get latency for operand '",
+        ::absl::StrAppend(&output, "#error \"Failed to get latency for operand '",
                         dst_op->name(), "'\"");
         dest_no++;
         continue;
       }
-      latency = absl::StrCat(result.value());
+      latency = ::absl::StrCat(result.value());
       // If the operand is an array, then the latency is a vector.
       if (dst_op->is_array()) {
-        latency = absl::StrCat("{", latency, "}");
+        latency = ::absl::StrCat("{", latency, "}");
       }
     }
     if (dst_op->is_array()) {
-      absl::StrAppend(&output,
+      ::absl::StrAppend(&output,
                       "  {\n"
                       "    auto vec = enc->GetDestinations",
                       "(", optional_inst, "slot, entry, opcode, ", dest_op_enum,
@@ -1285,30 +1285,30 @@ std::string Slot::GenerateOperandSetterFcn(absl::string_view getter_name,
                       "    for (auto *op : vec) inst->AppendDestination(op);\n"
                       "  }");
     } else {
-      absl::StrAppend(&output, "  inst->AppendDestination(enc->GetDestination(",
+      ::absl::StrAppend(&output, "  inst->AppendDestination(enc->GetDestination(",
                       optional_inst, "slot, entry, opcode, ", dest_op_enum,
                       ", ", dest_no, ", ", latency, "));\n");
       dest_no++;
     }
     dest_no++;
   }
-  absl::StrAppend(&output, "}\n\n");
+  ::absl::StrAppend(&output, "}\n\n");
   return output;
 }
 
-std::string Slot::CreateFuncGetterGlobalArray(absl::string_view encoding_type) {
+std::string Slot::CreateFuncGetterGlobalArray(::absl::string_view encoding_type) {
   const std::string class_name = pascal_name() + "Slot";
-  std::string output = absl::StrFormat(
+  std::string output = ::absl::StrFormat(
       "const std::array<std::pair<OpcodeEnum, InstructionInfo>, %d>\n"
       "%s {\n",
       instruction_map_.size() + 1, GetInstructionArrayName());
 
-  absl::StrAppend(&setter_functions_,
+  ::absl::StrAppend(&setter_functions_,
                   GenerateOperandSetterFcn(
-                      absl::StrCat(pascal_name(), "SlotSetOperandsNull"),
+                      ::absl::StrCat(pascal_name(), "SlotSetOperandsNull"),
                       encoding_type, default_instruction_->opcode()));
 
-  absl::StrAppend(
+  ::absl::StrAppend(
       &output,
       "    std::make_pair(OpcodeEnum::kNone, "
       "InstructionInfo{OperandSetter{",
@@ -1323,8 +1323,8 @@ std::string Slot::CreateFuncGetterGlobalArray(absl::string_view encoding_type) {
   for (auto const& [unused, inst_ptr] : instruction_map_) {
     auto* instruction = inst_ptr;
     std::string opcode_name = instruction->opcode()->pascal_name();
-    std::string opcode_enum = absl::StrCat("OpcodeEnum::k", opcode_name);
-    absl::StrAppend(&output, "\n  // ***   k", opcode_name, "   ***\n");
+    std::string opcode_enum = ::absl::StrCat("OpcodeEnum::k", opcode_name);
+    ::absl::StrAppend(&output, "\n  // ***   k", opcode_name, "   ***\n");
     // For the opcode and any child opcodes, add the semantic function and
     // operand_setter_ lambda.
     std::string code_str;
@@ -1340,25 +1340,25 @@ std::string Slot::CreateFuncGetterGlobalArray(absl::string_view encoding_type) {
       if (iter == operand_setter_name_map_->end()) {
         auto index = operand_setter_name_map_->size();
         std::string setter_name =
-            absl::StrCat(class_name, "SetOperands", index);
-        absl::StrAppend(&setter_functions_,
+            ::absl::StrCat(class_name, "SetOperands", index);
+        ::absl::StrAppend(&setter_functions_,
                         GenerateOperandSetterFcn(setter_name, encoding_type,
                                                  inst->opcode()));
         iter =
             operand_setter_name_map_->insert(std::make_pair(key, setter_name))
                 .first;
       }
-      absl::StrAppend(&operands_str, sep, iter->second);
+      ::absl::StrAppend(&operands_str, sep, iter->second);
       if (inst->semfunc_code_string().empty()) {
         // If there is no code string, use the default one.
-        absl::StrAppend(&code_str, sep,
+        ::absl::StrAppend(&code_str, sep,
                         default_instruction_->semfunc_code_string());
       } else {
-        absl::StrAppend(&code_str, sep, inst->semfunc_code_string());
+        ::absl::StrAppend(&code_str, sep, inst->semfunc_code_string());
       }
       sep = ", ";
     }
-    absl::StrAppend(&output, "    std::make_pair(OpcodeEnum::k", opcode_name,
+    ::absl::StrAppend(&output, "    std::make_pair(OpcodeEnum::k", opcode_name,
                     ", InstructionInfo{OperandSetter{", operands_str, "},\n",
                     "    ", GenerateDisassemblySetter(instruction), ",\n",
                     "    ", GenerateResourceSetter(instruction, encoding_type),
@@ -1366,7 +1366,7 @@ std::string Slot::CreateFuncGetterGlobalArray(absl::string_view encoding_type) {
                     "    SemFuncSetter{", code_str, "}, ",
                     instruction->opcode()->instruction_size(), "}),\n");
   }
-  absl::StrAppend(&output, "};\n\n");
+  ::absl::StrAppend(&output, "};\n\n");
 
   return output;
 }
@@ -1374,24 +1374,24 @@ std::string Slot::CreateFuncGetterGlobalArray(absl::string_view encoding_type) {
 // Generate the class declaration, including all getter functions for semantic
 // functions and operand initializers.
 std::string Slot::GenerateClassDeclaration(
-    absl::string_view encoding_type) const {
+    ::absl::string_view encoding_type) const {
   std::string output;
   if (!is_referenced()) return output;
   std::string class_name = pascal_name() + "Slot";
-  absl::StrAppend(&output, "class ", class_name,
+  ::absl::StrAppend(&output, "class ", class_name,
                   " {\n"
                   " public:\n"
                   "  explicit ",
                   class_name, "(ArchState *arch_state);\n");
   // Emit Decode function generated that decodes the slot and creates and
   // initializes an instruction object, as well as private data members.
-  absl::StrAppend(
+  ::absl::StrAppend(
       &output, "  Instruction *Decode(uint64_t address, ", encoding_type,
       "* isa_encoding, SlotEnum, int entry);\n",
       "\n"
       " private:\n"
       "  ArchState *arch_state_;\n",
-      "  absl::flat_hash_map<int, InstructionInfo> instruction_info_;\n",
+      "  ::absl::flat_hash_map<int, InstructionInfo> instruction_info_;\n",
       "  static constexpr SlotEnum slot_ = SlotEnum::k", pascal_name(),
       ";\n"
       "};\n"
@@ -1401,12 +1401,12 @@ std::string Slot::GenerateClassDeclaration(
 
 // Write out the class definition for the Slot class including all initializer
 // bodies.
-std::string Slot::GenerateClassDefinition(absl::string_view encoding_type) {
+std::string Slot::GenerateClassDefinition(::absl::string_view encoding_type) {
   if (!is_referenced()) return "";
   std::string class_name = pascal_name() + "Slot";
   std::string output;
   // Constructor.
-  absl::StrAppend(
+  ::absl::StrAppend(
       &output, class_name, "::", class_name,
       "(ArchState *arch_state) :\n"
       "  arch_state_(arch_state) {\n"
@@ -1453,15 +1453,15 @@ std::string Slot::GenerateClassDefinition(absl::string_view encoding_type) {
   const std::string instruction_map_string =
       CreateFuncGetterGlobalArray(encoding_type);
   std::string combined_output =
-      absl::StrCat("namespace {\n\n", setter_functions_, instruction_map_string,
+      ::absl::StrCat("namespace {\n\n", setter_functions_, instruction_map_string,
                    "}  // namespace\n\n", output);
   return combined_output;
 }
 
-absl::Status Slot::CheckPredecessors(const Slot* base) const {
+::absl::Status Slot::CheckPredecessors(const Slot* base) const {
   if (predecessor_set_.contains(base))
-    return absl::AlreadyExistsError(
-        absl::StrCat("'", base->name(),
+    return ::absl::AlreadyExistsError(
+        ::absl::StrCat("'", base->name(),
                      "' is already in the predecessor set of '", name(), "'"));
   for (auto const* pred : predecessor_set_) {
     auto status = pred->CheckPredecessors(base);
@@ -1471,45 +1471,45 @@ absl::Status Slot::CheckPredecessors(const Slot* base) const {
     auto status = CheckPredecessors(base_pred);
     if (!status.ok()) return status;
   }
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
-absl::Status Slot::AddBase(const Slot* base) {
+::absl::Status Slot::AddBase(const Slot* base) {
   // First need to check if the current slot already inherits from base, or
   // any of base's predecessors. Only tree-like inheritance is supported.
   auto status = CheckPredecessors(base);
   if (!status.ok()) return status;
   predecessor_set_.insert(base);
   base_slots_.emplace_back(base);
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
-absl::Status Slot::AddBase(const Slot* base,
+::absl::Status Slot::AddBase(const Slot* base,
                            TemplateInstantiationArgs* arguments) {
   auto status = CheckPredecessors(base);
   if (!status.ok()) return status;
   predecessor_set_.insert(base);
   base_slots_.emplace_back(base, arguments);
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
-absl::Status Slot::AddConstant(const std::string& ident,
+::absl::Status Slot::AddConstant(const std::string& ident,
                                const std::string& type,
                                TemplateExpression* expression) {
   // Ignore the type for now - there is only int.
   (void)type;
   // Check if the name already exists or matches a template formal parameter.
   if (template_parameter_map_.contains(ident)) {
-    return absl::AlreadyExistsError(
-        absl::StrCat("Slot constant '", ident,
+    return ::absl::AlreadyExistsError(
+        ::absl::StrCat("Slot constant '", ident,
                      "' conflicts with template formal with same name"));
   }
   if (constant_map_.contains(ident)) {
-    return absl::AlreadyExistsError(
-        absl::StrCat("Redefinition of slot constant '", ident, "'"));
+    return ::absl::AlreadyExistsError(
+        ::absl::StrCat("Redefinition of slot constant '", ident, "'"));
   }
   constant_map_.insert(std::make_pair(ident, expression));
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
 TemplateExpression* Slot::GetConstExpression(const std::string& ident) const {
@@ -1518,7 +1518,7 @@ TemplateExpression* Slot::GetConstExpression(const std::string& ident) const {
   return iter->second;
 }
 
-absl::Status Slot::AddTemplateFormal(const std::string& par_name) {
+::absl::Status Slot::AddTemplateFormal(const std::string& par_name) {
   if (template_parameter_map_.contains(par_name)) {
     // Push it into the vector, but not the map. Have the formal name refer to
     // the previous index. Signal error. This allows us to properly match the
@@ -1526,13 +1526,13 @@ absl::Status Slot::AddTemplateFormal(const std::string& par_name) {
     // there is an error in the parameter names.
     int indx = template_parameter_map_.at(par_name);
     template_parameters_.push_back(new TemplateFormal(par_name, indx));
-    return absl::InternalError(
-        absl::StrCat("Duplicate parameter name '", par_name, "'"));
+    return ::absl::InternalError(
+        ::absl::StrCat("Duplicate parameter name '", par_name, "'"));
   }
   int indx = template_parameters_.size();
   template_parameters_.push_back(new TemplateFormal(par_name, indx));
   template_parameter_map_.insert(std::make_pair(par_name, indx));
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
 TemplateFormal* Slot::GetTemplateFormal(const std::string& name) const {

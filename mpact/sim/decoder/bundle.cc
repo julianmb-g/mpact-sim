@@ -29,28 +29,28 @@ namespace sim {
 namespace machine_description {
 namespace instruction_set {
 
-Bundle::Bundle(absl::string_view name, InstructionSet* instruction_set,
+Bundle::Bundle(::absl::string_view name, InstructionSet* instruction_set,
                BundleDeclCtx* ctx)
     : ctx_(ctx),
       instruction_set_(instruction_set),
       name_(name),
       pascal_name_(ToPascalCase(name)) {}
 
-void Bundle::AppendBundleName(absl::string_view name) {
+void Bundle::AppendBundleName(::absl::string_view name) {
   // emplace_back accepts a string_view, push_back does not.
   bundle_names_.emplace_back(name);
 }
 
-void Bundle::AppendSlot(absl::string_view name,
+void Bundle::AppendSlot(::absl::string_view name,
                         const std::vector<int>& instance_vec) {
   slot_uses_.push_back({std::string(name), instance_vec});
 }
 
 // Returns a string containing the bundle class declaration (.h file).
 std::string Bundle::GenerateClassDeclaration(
-    absl::string_view encoding_type) const {
+    ::absl::string_view encoding_type) const {
   std::string output;
-  absl::StrAppend(&output, "class ", pascal_name(),
+  ::absl::StrAppend(&output, "class ", pascal_name(),
                   "Decoder {\n"
                   " public:\n"
                   "  explicit ",
@@ -65,24 +65,24 @@ std::string Bundle::GenerateClassDeclaration(
                   "  virtual SemFunc GetSemanticFunction() = 0;\n"
                   "\n");
   for (const auto& bundle_name : bundle_names()) {
-    absl::StrAppend(&output, "  ", ToPascalCase(bundle_name), "Decoder *",
+    ::absl::StrAppend(&output, "  ", ToPascalCase(bundle_name), "Decoder *",
                     bundle_name, "_decoder() { return ", bundle_name,
                     "_decoder_.get(); }\n");
   }
   for (const auto& [slot_name, unused] : slot_uses()) {
-    absl::StrAppend(&output, "  ", ToPascalCase(slot_name), "Slot *", slot_name,
+    ::absl::StrAppend(&output, "  ", ToPascalCase(slot_name), "Slot *", slot_name,
                     "_decoder() { return ", slot_name, "_decoder_.get(); }\n");
   }
-  absl::StrAppend(&output, " private:\n");
+  ::absl::StrAppend(&output, " private:\n");
   for (const auto& bundle_name : bundle_names()) {
-    absl::StrAppend(&output, "  std::unique_ptr<", ToPascalCase(bundle_name),
+    ::absl::StrAppend(&output, "  std::unique_ptr<", ToPascalCase(bundle_name),
                     "Decoder> ", bundle_name, "_decoder_;\n");
   }
   for (const auto& [slot_name, unused] : slot_uses()) {
-    absl::StrAppend(&output, "  std::unique_ptr<", ToPascalCase(slot_name),
+    ::absl::StrAppend(&output, "  std::unique_ptr<", ToPascalCase(slot_name),
                     "Slot> ", slot_name, "_decoder_;\n");
   }
-  absl::StrAppend(&output,
+  ::absl::StrAppend(&output,
                   "  ArchState *arch_state_;\n"
                   "};\n"
                   "\n");
@@ -91,26 +91,26 @@ std::string Bundle::GenerateClassDeclaration(
 
 // Returns a string containing the bundle class definition (.cc file).
 std::string Bundle::GenerateClassDefinition(
-    absl::string_view encoding_type) const {
+    ::absl::string_view encoding_type) const {
   std::string output;
   std::string class_name = pascal_name() + "Bundle";
   // Constructor.
-  absl::StrAppend(&output, class_name, "::", class_name,
+  ::absl::StrAppend(&output, class_name, "::", class_name,
                   "(ArchState *arch_state) :\n"
                   "  arch_state_(arch_state)\n"
                   "{\n");
 
   for (const auto& bundle_name : bundle_names()) {
-    absl::StrAppend(&output, "  ", bundle_name, "_decoder = std::make_unique<",
+    ::absl::StrAppend(&output, "  ", bundle_name, "_decoder = std::make_unique<",
                     ToPascalCase(bundle_name), "Decoder>(arch_state_);\n");
   }
   for (const auto& [slot_name, unused] : slot_uses()) {
-    absl::StrAppend(&output, "  ", slot_name, "_decoder = std::make_unique<",
+    ::absl::StrAppend(&output, "  ", slot_name, "_decoder = std::make_unique<",
                     ToPascalCase(slot_name), "Slot>(arch_state_);\n");
   }
-  absl::StrAppend(&output, "}\n");
+  ::absl::StrAppend(&output, "}\n");
   // Decode.
-  absl::StrAppend(
+  ::absl::StrAppend(
       &output, "Instruction *", class_name, "::Decode(uint64_t address, ",
       encoding_type,
       " *encoding) {\n"
@@ -118,19 +118,19 @@ std::string Bundle::GenerateClassDefinition(
       "  Instruction *tmp_inst;\n");
   // Decoded bundles are added to the child list.
   for (const auto& bundle_name : bundle_names()) {
-    absl::StrAppend(&output, "  tmp_inst = ", bundle_name,
+    ::absl::StrAppend(&output, "  tmp_inst = ", bundle_name,
                     "_decoder_->Decode(address, encoding);\n"
                     "  inst->AppendChild(tmp_inst);\n");
   }
   // Instructions for decoded slots are added to the "next" list.
   for (const auto& [slot_name, instance_vec] : slot_uses()) {
     if (instance_vec.empty()) {
-      absl::StrAppend(&output, "  tmp_inst = ", slot_name,
+      ::absl::StrAppend(&output, "  tmp_inst = ", slot_name,
                       "_decoder_->Decode(address, encoding, 0);\n"
                       "  inst->Append(tmp_inst);\n");
     } else {
       for (auto index : instance_vec) {
-        absl::StrAppend(&output, "  tmp_inst = ", slot_name,
+        ::absl::StrAppend(&output, "  tmp_inst = ", slot_name,
                         "_decoder_->Decode(address, encoding, ", index,
                         ");\n"
                         "  inst->Append(tmp_inst);\n");
@@ -138,7 +138,7 @@ std::string Bundle::GenerateClassDefinition(
     }
   }
   // Set semantic function for this bundle.
-  absl::StrAppend(
+  ::absl::StrAppend(
       &output,
       "  inst->set_semantic_function(this->GetSemanticFunction());\n"
       "}\n");

@@ -82,18 +82,18 @@ ProtoInstructionEncoding::~ProtoInstructionEncoding() {
   setter_map_.clear();
 }
 
-absl::Status ProtoInstructionEncoding::AddSetter(
+::absl::Status ProtoInstructionEncoding::AddSetter(
     SetterDefCtx* ctx, const std::string& name,
     const google::protobuf::FieldDescriptor* field_descriptor,
     const std::vector<const google::protobuf::FieldDescriptor*>& one_of_fields,
     IfNotCtx* if_not) {
-  if (ctx == nullptr) return absl::InvalidArgumentError("Context is null");
+  if (ctx == nullptr) return ::absl::InvalidArgumentError("Context is null");
 
   // If there is a setter already for that name, return an error.
   auto iter = setter_map_.find(name);
   if (iter != setter_map_.end()) {
-    return absl::AlreadyExistsError(
-        absl::StrCat("Setter '", name, "' already defined."));
+    return ::absl::AlreadyExistsError(
+        ::absl::StrCat("Setter '", name, "' already defined."));
   }
   // Setters are added after constraints. For each depends_on, see if the
   // constraint already exists for the encoding. If so, remove it from the
@@ -107,7 +107,7 @@ absl::Status ProtoInstructionEncoding::AddSetter(
       // Duplicate of an encoding constraint.
       if (iter->second == desc) continue;
       // Conflict.
-      return absl::InternalError(absl::StrCat(
+      return ::absl::InternalError(::absl::StrCat(
           "One_of constraint on '", desc->name(),
           "' contradicts encoding constraint on '", iter->second->name(), "'"));
     }
@@ -117,10 +117,10 @@ absl::Status ProtoInstructionEncoding::AddSetter(
   // Add the setter information.
   setter_map_.emplace(
       name, new ProtoSetter{ctx, name, field_descriptor, if_not, depends_on});
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
-absl::Status ProtoInstructionEncoding::AddConstraint(
+::absl::Status ProtoInstructionEncoding::AddConstraint(
     FieldConstraintCtx* ctx, ConstraintType op,
     const google::protobuf::FieldDescriptor* field_descriptor,
     const std::vector<const google::protobuf::FieldDescriptor*>& one_of_fields,
@@ -137,8 +137,8 @@ absl::Status ProtoInstructionEncoding::AddConstraint(
         continue;  // Ignore duplicate.
       } else {
         // This contradicts a previous one_of constraint. Flag an error.
-        return absl::InternalError(
-            absl::StrCat("One_of constraint on '", desc->name(),
+        return ::absl::InternalError(
+            ::absl::StrCat("One_of constraint on '", desc->name(),
                          "' contradicts previous constraint on '",
                          iter->second->name(), "'"));
       }
@@ -168,7 +168,7 @@ absl::Status ProtoInstructionEncoding::AddConstraint(
       other_constraints_.push_back(
           new ProtoConstraint{ctx, field_descriptor, op, expr, 0, depends_on});
     }
-    return absl::OkStatus();
+    return ::absl::OkStatus();
   }
 
   // A kHas constraint on a member of a one_of field is equivalent to an kEq
@@ -195,11 +195,11 @@ absl::Status ProtoInstructionEncoding::AddConstraint(
       // constraint does not get added.
       if (iter->second == field_descriptor) {
         // It is a duplicate constraint. just ignore.
-        return absl::OkStatus();
+        return ::absl::OkStatus();
       }
       // It is a different field of the one_of, so there is a contradiction.
       // Return an error.
-      return absl::InternalError(absl::StrCat(
+      return ::absl::InternalError(::absl::StrCat(
           "One_of constraint on '", field_descriptor->name(),
           "' contradicts previous constraint on '", iter->second->name(), "'"));
     }
@@ -211,7 +211,7 @@ absl::Status ProtoInstructionEncoding::AddConstraint(
     other_constraints_.push_back(
         new ProtoConstraint{ctx, field_descriptor, op, expr, 0, nullptr});
   }
-  return absl::OkStatus();
+  return ::absl::OkStatus();
 }
 
 ProtoConstraint* ProtoInstructionEncoding::AddHasConstraint(
@@ -236,24 +236,24 @@ ProtoConstraint* ProtoInstructionEncoding::AddHasConstraint(
 void ProtoInstructionEncoding::GenerateSetterCode() {
   const int kIndent = 0;
   if (setter_map_.empty()) return;
-  absl::StrAppend(&setter_code_, "/* setters for ", name(), " */\n");
+  ::absl::StrAppend(&setter_code_, "/* setters for ", name(), " */\n");
   // First need to group setters by dependencies on fields, split into setters
   // with if_not and those without (except for those with no depends_on.).
   // Also need to group constraints by their dependencies. Use multimap that
   // maps from a constraint to those that depend on it.
-  absl::btree_multimap<const ProtoConstraint*, const ProtoConstraint*>
+  ::absl::btree_multimap<const ProtoConstraint*, const ProtoConstraint*>
       grouped_constraints;
   // Maintain a set of inserted constraints, so that the multimap has no
   // duplicate key-value pairs.
-  absl::flat_hash_set<const ProtoConstraint*> inserted_constraints;
+  ::absl::flat_hash_set<const ProtoConstraint*> inserted_constraints;
   // This set contains the top level constraints that do not depend on any
   // other constraints, and thus are the beginning of the 'dependence chains'.
-  absl::flat_hash_set<const ProtoConstraint*> constraint_tops;
+  ::absl::flat_hash_set<const ProtoConstraint*> constraint_tops;
   // These multimaps map from a constraint to the set of setters dependent on
   // that constraint.
-  absl::btree_multimap<const ProtoConstraint*, const ProtoSetter*>
+  ::absl::btree_multimap<const ProtoConstraint*, const ProtoSetter*>
       grouped_setters;
-  absl::btree_multimap<const ProtoConstraint*, const ProtoSetter*>
+  ::absl::btree_multimap<const ProtoConstraint*, const ProtoSetter*>
       grouped_if_not_setters;
 
   // Lambda used to determine if a constraint is already satisfied by
@@ -314,14 +314,14 @@ void ProtoInstructionEncoding::GenerateSetterCode() {
   // Helper lambda functions used in the loop nest below.
   // This generates the assignment.
   auto assign = [&](int indent, const ProtoSetter* setter) {
-    absl::StrAppend(&setter_code_, std::string(indent, ' '), "decoder->Set",
+    ::absl::StrAppend(&setter_code_, std::string(indent, ' '), "decoder->Set",
                     ToPascalCase(setter->name), "($.");
     auto field_name = setter->ctx->qualified_ident()->getText();
     // Need to convert from a.b.c to a().b().c().
     auto call =
-        absl::StrCat(absl::StrReplaceAll(field_name, {{".", "()."}}), "()");
+        ::absl::StrCat(::absl::StrReplaceAll(field_name, {{".", "()."}}), "()");
     if (setter->if_not == nullptr) {
-      absl::StrAppend(&setter_code_, call, "); // ",
+      ::absl::StrAppend(&setter_code_, call, "); // ",
                       setter->field_descriptor->full_name(), "\n");
     } else {
       auto pos = call.find_last_of('.');
@@ -335,7 +335,7 @@ void ProtoInstructionEncoding::GenerateSetterCode() {
       std::string txt = setter->if_not->value() != nullptr
                             ? setter->if_not->value()->getText()
                             : setter->if_not->qualified_ident()->getText();
-      absl::StrAppend(&setter_code_, name, " ? $.", call, " : ", txt, ");\n");
+      ::absl::StrAppend(&setter_code_, name, " ? $.", call, " : ", txt, ");\n");
     }
   };
 
@@ -349,13 +349,13 @@ void ProtoInstructionEncoding::GenerateSetterCode() {
                                    const ProtoConstraint* constraint) {
     auto* desc = constraint->field_descriptor;
     auto* oneof = desc->containing_oneof();
-    absl::StrAppend(&setter_code_, std::string(indent, ' '), "if ($.");
+    ::absl::StrAppend(&setter_code_, std::string(indent, ' '), "if ($.");
     if (oneof != nullptr) {
-      absl::StrAppend(&setter_code_, oneof->name(),
+      ::absl::StrAppend(&setter_code_, oneof->name(),
                       "_case() == ", ToPascalCase(oneof->name()), "Case::k",
                       ToPascalCase(desc->name()), ") {\n");
     } else {
-      absl::StrAppend(&setter_code_, "has_", desc->name(), ") {\n");
+      ::absl::StrAppend(&setter_code_, "has_", desc->name(), ") {\n");
     }
   };
 
@@ -380,7 +380,7 @@ void ProtoInstructionEncoding::GenerateSetterCode() {
           }
         }
         indent -= 2;
-        absl::StrAppend(&setter_code_, std::string(indent, ' '), "}\n");
+        ::absl::StrAppend(&setter_code_, std::string(indent, ' '), "}\n");
       };
 
   // Process the setters with no if_not's.
@@ -410,13 +410,13 @@ void ProtoInstructionEncoding::GenerateSetterCode() {
             }
             if (!prefix.empty()) {
               // Convert a.b.c to a().b().c().
-              prefix = absl::StrReplaceAll(prefix, {{".", "()."}});
+              prefix = ::absl::StrReplaceAll(prefix, {{".", "()."}});
             }
             if (oneof != nullptr) {
-              absl::StrAppend(&if_conditions, sep, "($.", prefix, oneof->name(),
+              ::absl::StrAppend(&if_conditions, sep, "($.", prefix, oneof->name(),
                               "_case() == k", ToPascalCase(desc->name()), ")");
             } else {
-              absl::StrAppend(&if_conditions, sep, "($.", prefix, "has_",
+              ::absl::StrAppend(&if_conditions, sep, "($.", prefix, "has_",
                               desc->name(), ")");
             }
           };
@@ -427,20 +427,20 @@ void ProtoInstructionEncoding::GenerateSetterCode() {
        /*empty increment expression - it's done inside nested loop below*/) {
     std::string if_conditions;
     recursive_if_conditions(iter->first, if_conditions);
-    absl::StrAppend(&setter_code_, std::string(kIndent, ' '), "if (",
+    ::absl::StrAppend(&setter_code_, std::string(kIndent, ' '), "if (",
                     if_conditions, ") {\n");
     auto count = grouped_if_not_setters.count(iter->first);
     for (auto i = 0; i < count; ++i) {
       assign(kIndent + 2, iter->second);
       ++iter;
     }
-    absl::StrAppend(&setter_code_, std::string(kIndent, ' '), "}\n");
+    ::absl::StrAppend(&setter_code_, std::string(kIndent, ' '), "}\n");
   }
 }
 
 std::string ProtoInstructionEncoding::GetSetterCode(
-    absl::string_view message_name, int indent) const {
-  return absl::StrReplaceAll(
+    ::absl::string_view message_name, int indent) const {
+  return ::absl::StrReplaceAll(
       setter_code_,
       {{"$", message_name}, {"\n", "\n" + std::string(indent, ' ')}});
 }

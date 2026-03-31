@@ -81,7 +81,7 @@ TEST_F(BinEncodingInfoTest, AddFormat) {
   EXPECT_EQ(get_format, format);
   // Adding the same format again should fail.
   res0 = bin_encoding_info_->AddFormat(kFormat0, kFormatWidth32);
-  EXPECT_EQ(absl::StatusCode::kAlreadyExists, res0.status().code());
+  EXPECT_EQ(::absl::StatusCode::kAlreadyExists, res0.status().code());
 
   // Add a different format should work.
   auto res1 = bin_encoding_info_->AddFormat(kFormat1, kFormatWidth16);
@@ -99,7 +99,7 @@ TEST_F(BinEncodingInfoTest, AddFormat) {
 
   // Can't add the same format twice.
   res2 = bin_encoding_info_->AddFormat(kFormat2, kFormatWidth32, kFormat0);
-  EXPECT_EQ(absl::StatusCode::kAlreadyExists, res2.status().code());
+  EXPECT_EQ(::absl::StatusCode::kAlreadyExists, res2.status().code());
 
   // Format map. Verify that the formats are in the map.
   auto& format_map = bin_encoding_info_->format_map();
@@ -114,7 +114,7 @@ TEST_F(BinEncodingInfoTest, AddInstructionGroup) {
   EXPECT_TRUE(bin_encoding_info_->instruction_group_map().empty());
 
   // Add an instruction group.
-  absl::StatusOr<::mpact::sim::decoder::bin_format::InstructionGroup*> result = bin_encoding_info_->AddInstructionGroup(kGroup0, kFormatWidth32,
+  ::absl::StatusOr<::mpact::sim::decoder::bin_format::InstructionGroup*> result = bin_encoding_info_->AddInstructionGroup(kGroup0, kFormatWidth32,
                                                      kFormat0);
   EXPECT_TRUE(result.status().ok());
   auto* instruction_group = result.value();
@@ -126,7 +126,7 @@ TEST_F(BinEncodingInfoTest, AddInstructionGroup) {
   // Adding it a second time doesn't work.
   result = bin_encoding_info_->AddInstructionGroup(kGroup0, kFormatWidth32,
                                                 kFormat0);
-  EXPECT_EQ(absl::StatusCode::kAlreadyExists, result.status().code());
+  EXPECT_EQ(::absl::StatusCode::kAlreadyExists, result.status().code());
 }
 
 // Bin decoder.

@@ -101,7 +101,7 @@ class InstructionSetParserTest : public testing::Test {
 TEST_F(InstructionSetParserTest, EmptyIsaName) {
   // Set up input and output file paths.
   std::vector<std::string> input_files = {
-      absl::StrCat(kDepotPath, "/testfiles/", kEmptyBaseName, ".isa")};
+      ::absl::StrCat(kDepotPath, "/testfiles/", kEmptyBaseName, ".isa")};
   ASSERT_TRUE(FileExists(input_files[0]));
   std::string output_dir = OutputDir();
   InstructionSetVisitor visitor;
@@ -113,7 +113,7 @@ TEST_F(InstructionSetParserTest, EmptyIsaName) {
 TEST_F(InstructionSetParserTest, NullFileParsing) {
   // Set up input and output file paths.
   std::vector<std::string> input_files = {
-      absl::StrCat(kDepotPath, "/testfiles/", kEmptyBaseName, ".isa")};
+      ::absl::StrCat(kDepotPath, "/testfiles/", kEmptyBaseName, ".isa")};
   ASSERT_TRUE(FileExists(input_files[0]));
   std::string output_dir = OutputDir();
 
@@ -128,7 +128,7 @@ TEST_F(InstructionSetParserTest, NullFileParsing) {
 // Make sure recursive includes cause a failure.
 TEST_F(InstructionSetParserTest, RecursiveInclude) {
   // Set up input and output file paths.
-  std::vector<std::string> input_files = {absl::StrCat(
+  std::vector<std::string> input_files = {::absl::StrCat(
       kDepotPath, "/testfiles/", kRecursiveExampleBaseName, ".isa")};
   ASSERT_TRUE(FileExists(input_files[0]));
   std::string output_dir = OutputDir();
@@ -144,7 +144,7 @@ TEST_F(InstructionSetParserTest, RecursiveInclude) {
 TEST_F(InstructionSetParserTest, BasicParsing) {
   // Set up input and output file paths.
   std::vector<std::string> input_files = {
-      absl::StrCat(kDepotPath, "/testfiles/", kExampleBaseName, ".isa"),
+      ::absl::StrCat(kDepotPath, "/testfiles/", kExampleBaseName, ".isa"),
       kBundleBFile};
   ASSERT_TRUE(FileExists(input_files[0]));
   std::string output_dir = getenv(kTestUndeclaredOutputsDir);
@@ -157,28 +157,28 @@ TEST_F(InstructionSetParserTest, BasicParsing) {
                   .ok());
   // Verify that the decoder files _decoder.{.h,.cc} files were generated.
   EXPECT_TRUE(FileExists(
-      absl::StrCat(output_dir, "/", kExampleBaseName, "_decoder.h")));
+      ::absl::StrCat(output_dir, "/", kExampleBaseName, "_decoder.h")));
 
   EXPECT_TRUE(FileExists(
-      absl::StrCat(output_dir, "/", kExampleBaseName, "_decoder.cc")));
+      ::absl::StrCat(output_dir, "/", kExampleBaseName, "_decoder.cc")));
 }
 
 TEST_F(InstructionSetParserTest, Generator) {
   // Set up input and output file paths.
   std::vector<std::string> input_files = {
-      absl::StrCat(kDepotPath, "/testfiles/", kGeneratorBaseName, ".isa")};
+      ::absl::StrCat(kDepotPath, "/testfiles/", kGeneratorBaseName, ".isa")};
   ASSERT_TRUE(FileExists(input_files[0]));
   std::string output_dir = getenv(kTestUndeclaredOutputsDir);
 
   InstructionSetVisitor visitor;
   // Parse and process the input file, capturing the log.
   LogSink log_sink;
-  absl::AddLogSink(&log_sink);
+  ::absl::AddLogSink(&log_sink);
   auto success = visitor
                      .Process(input_files, kGeneratorBaseName,
                               kGeneratorIsaName, paths_, output_dir)
                      .ok();
-  absl::RemoveLogSink(&log_sink);
+  ::absl::RemoveLogSink(&log_sink);
   EXPECT_TRUE(success);
   // Make sure the warning about unreferenced binding variable is found.
   auto ptr =
@@ -186,20 +186,20 @@ TEST_F(InstructionSetParserTest, Generator) {
   EXPECT_TRUE(ptr != std::string::npos);
   // Verify that the decoder files _decoder.{.h,.cc} files were generated.
   EXPECT_TRUE(FileExists(
-      absl::StrCat(output_dir, "/", kGeneratorBaseName, "_decoder.h")));
+      ::absl::StrCat(output_dir, "/", kGeneratorBaseName, "_decoder.h")));
 
   EXPECT_TRUE(FileExists(
-      absl::StrCat(output_dir, "/", kGeneratorBaseName, "_decoder.cc")));
+      ::absl::StrCat(output_dir, "/", kGeneratorBaseName, "_decoder.cc")));
 
   // Verify that the instruction enums and decoder entries include the
   // instructions inside the GENERATE() construct.
   std::ifstream enum_file(
-      absl::StrCat(output_dir, "/", kGeneratorBaseName, "_enums.h"));
+      ::absl::StrCat(output_dir, "/", kGeneratorBaseName, "_enums.h"));
   CHECK(enum_file.good());
   std::string enum_str((std::istreambuf_iterator<char>(enum_file)),
                        (std::istreambuf_iterator<char>()));
   std::ifstream decoder_file(
-      absl::StrCat(output_dir, "/", kGeneratorBaseName, "_decoder.cc"));
+      ::absl::StrCat(output_dir, "/", kGeneratorBaseName, "_decoder.cc"));
   CHECK(decoder_file.good());
   std::string decoder_str((std::istreambuf_iterator<char>(decoder_file)),
                           (std::istreambuf_iterator<char>()));
@@ -236,12 +236,12 @@ TEST_F(InstructionSetParserTest, GeneratorErrorDuplicateVariable) {
   InstructionSetVisitor visitor;
   // Parse and process the input file, capturing the log.
   LogSink log_sink;
-  absl::AddLogSink(&log_sink);
+  ::absl::AddLogSink(&log_sink);
   auto success = visitor
                      .Process(input_files, kGeneratorBaseName,
                               kGeneratorIsaName, paths_, output_dir)
                      .ok();
-  absl::RemoveLogSink(&log_sink);
+  ::absl::RemoveLogSink(&log_sink);
   EXPECT_FALSE(success);
 
   // Make sure the error about duplicate binding variable 'btype' is found.
@@ -275,12 +275,12 @@ TEST_F(InstructionSetParserTest, GeneratorErrorTuplesError) {
   InstructionSetVisitor visitor;
   // Parse and process the input file, capturing the log.
   LogSink log_sink;
-  absl::AddLogSink(&log_sink);
+  ::absl::AddLogSink(&log_sink);
   auto success = visitor
                      .Process(input_files, kGeneratorBaseName,
                               kGeneratorIsaName, paths_, output_dir)
                      .ok();
-  absl::RemoveLogSink(&log_sink);
+  ::absl::RemoveLogSink(&log_sink);
   EXPECT_FALSE(success);
 
   // Make sure the error about duplicate binding variable 'btype' is found.
@@ -314,12 +314,12 @@ TEST_F(InstructionSetParserTest, GeneratorErrorUndefinedBindingVariable) {
   InstructionSetVisitor visitor;
   // Parse and process the input file, capturing the log.
   LogSink log_sink;
-  absl::AddLogSink(&log_sink);
+  ::absl::AddLogSink(&log_sink);
   auto success = visitor
                      .Process(input_files, kGeneratorBaseName,
                               kGeneratorIsaName, paths_, output_dir)
                      .ok();
-  absl::RemoveLogSink(&log_sink);
+  ::absl::RemoveLogSink(&log_sink);
   EXPECT_FALSE(success);
 
   // Make sure the error about duplicate binding variable 'btype' is found.
@@ -329,19 +329,19 @@ TEST_F(InstructionSetParserTest, GeneratorErrorUndefinedBindingVariable) {
 
 TEST_F(InstructionSetParserTest, Undefined) {
   std::string file_name =
-      absl::StrCat(kDepotPath, "/testfiles/", kUndefinedErrorsBaseName, ".isa");
+      ::absl::StrCat(kDepotPath, "/testfiles/", kUndefinedErrorsBaseName, ".isa");
   std::vector<std::string> input_files = {file_name};
   ASSERT_TRUE(FileExists(input_files[0]));
   std::string output_dir = getenv(kTestUndeclaredOutputsDir);
   InstructionSetVisitor visitor;
   // Parse and process the input file, capturing the log.
   LogSink log_sink;
-  absl::AddLogSink(&log_sink);
+  ::absl::AddLogSink(&log_sink);
   auto success = visitor
                      .Process(input_files, kUndefinedErrorsBaseName,
                               kUndefinedErrorsIsaName, paths_, output_dir)
                      .ok();
-  absl::RemoveLogSink(&log_sink);
+  ::absl::RemoveLogSink(&log_sink);
   EXPECT_FALSE(success);
 
   // Make sure the requisite error messages are present.
@@ -463,19 +463,19 @@ TEST_F(InstructionSetParserTest, Undefined) {
 // Test disassembly format expressions.
 TEST_F(InstructionSetParserTest, DisasmFormats) {
   std::string file_name =
-      absl::StrCat(kDepotPath, "/testfiles/", kDisasmFormatsBaseName, ".isa");
+      ::absl::StrCat(kDepotPath, "/testfiles/", kDisasmFormatsBaseName, ".isa");
   std::vector<std::string> input_files = {file_name};
   ASSERT_TRUE(FileExists(input_files[0]));
   std::string output_dir = getenv(kTestUndeclaredOutputsDir);
   InstructionSetVisitor visitor;
   // Parse and process the input file, capturing the log.
   LogSink log_sink;
-  absl::AddLogSink(&log_sink);
+  ::absl::AddLogSink(&log_sink);
   auto success = visitor
                      .Process(input_files, kDisasmFormatsBaseName,
                               kDisasmFormatsIsaName, paths_, output_dir)
                      .ok();
-  absl::RemoveLogSink(&log_sink);
+  ::absl::RemoveLogSink(&log_sink);
   EXPECT_FALSE(success);
 
   // Make sure the requisite error messages are present.
@@ -539,36 +539,36 @@ TEST_F(InstructionSetParserTest, DisasmFormats) {
 TEST_F(InstructionSetParserTest, Resource) {
   // Set up input and output file paths.
   std::vector<std::string> input_files = {
-      absl::StrCat(kDepotPath, "/testfiles/", kResourceBaseName, ".isa")};
+      ::absl::StrCat(kDepotPath, "/testfiles/", kResourceBaseName, ".isa")};
   ASSERT_TRUE(FileExists(input_files[0]));
   std::string output_dir = getenv(kTestUndeclaredOutputsDir);
 
   InstructionSetVisitor visitor;
   // Parse and process the input file, capturing the log.
   LogSink log_sink;
-  absl::AddLogSink(&log_sink);
+  ::absl::AddLogSink(&log_sink);
   auto success = visitor
                      .Process(input_files, kResourceBaseName, kResourceIsaName,
                               paths_, output_dir)
                      .ok();
-  absl::RemoveLogSink(&log_sink);
+  ::absl::RemoveLogSink(&log_sink);
   EXPECT_TRUE(success);
   // Verify that the decoder files _decoder.{.h,.cc} files were generated.
   EXPECT_TRUE(FileExists(
-      absl::StrCat(output_dir, "/", kResourceBaseName, "_decoder.h")));
+      ::absl::StrCat(output_dir, "/", kResourceBaseName, "_decoder.h")));
 
   EXPECT_TRUE(FileExists(
-      absl::StrCat(output_dir, "/", kResourceBaseName, "_decoder.cc")));
+      ::absl::StrCat(output_dir, "/", kResourceBaseName, "_decoder.cc")));
 
   // Verify that the instruction enums and decoder entries include  the two
   // instructions.
   std::ifstream enum_file(
-      absl::StrCat(output_dir, "/", kResourceBaseName, "_enums.h"));
+      ::absl::StrCat(output_dir, "/", kResourceBaseName, "_enums.h"));
   CHECK(enum_file.good());
   std::string enum_str((std::istreambuf_iterator<char>(enum_file)),
                        (std::istreambuf_iterator<char>()));
   std::ifstream decoder_file(
-      absl::StrCat(output_dir, "/", kResourceBaseName, "_decoder.cc"));
+      ::absl::StrCat(output_dir, "/", kResourceBaseName, "_decoder.cc"));
   CHECK(decoder_file.good());
   std::string decoder_str((std::istreambuf_iterator<char>(decoder_file)),
                           (std::istreambuf_iterator<char>()));

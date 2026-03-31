@@ -37,7 +37,7 @@ ABSL_FLAG(std::string, decoder_name, "", "decoder name to generate");
 ABSL_FLAG(std::string, include, "", "include file root(s)");
 
 int main(int argc, char** argv) {
-  auto arg_vec = absl::ParseCommandLine(argc, argv);
+  auto arg_vec = ::absl::ParseCommandLine(argc, argv);
 
   std::vector<std::string> file_names;
 
@@ -47,13 +47,13 @@ int main(int argc, char** argv) {
 
   ::mpact::sim::decoder::bin_format::BinFormatVisitor visitor;
 
-  std::string output_dir = absl::GetFlag(FLAGS_output_dir);
-  std::string prefix = absl::GetFlag(FLAGS_prefix);
-  std::string decoder_name = absl::GetFlag(FLAGS_decoder_name);
+  std::string output_dir = ::absl::GetFlag(FLAGS_output_dir);
+  std::string prefix = ::absl::GetFlag(FLAGS_prefix);
+  std::string decoder_name = ::absl::GetFlag(FLAGS_decoder_name);
   std::vector<std::string> include_roots;
-  auto include_roots_string = absl::GetFlag(FLAGS_include);
+  auto include_roots_string = ::absl::GetFlag(FLAGS_include);
   include_roots =
-      absl::StrSplit(include_roots_string, ',', absl::SkipWhitespace());
+      ::absl::StrSplit(include_roots_string, ',', ::absl::SkipWhitespace());
 
   if (prefix.empty()) {
     std::cerr << "Error: prefix must be specified and non-empty" << std::endl;
