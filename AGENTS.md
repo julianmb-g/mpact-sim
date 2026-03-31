@@ -10,3 +10,6 @@
 ### Orchestration Insights
 * **Upstream Synchronization**: Continuous rebase syncs against `origin/main` are required to maintain a consistent orchestration ledger (`AGENTS.md`).
 
+
+### Lessons Learned
+* **Missing Test Integration File**: Do not delete test files like decoder_trap_integration_test.cc from the filesystem without also removing them from the BUILD dependencies to prevent Bazel crashes.
