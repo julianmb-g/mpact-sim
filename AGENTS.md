@@ -10,7 +10,7 @@
 
 ### Orchestration Insights
 * **Upstream Synchronization**: Continuous rebase syncs against `origin/main` are required to maintain a consistent orchestration ledger (`AGENTS.md`).
-* **Namespace Shadowing & Emission Strictness**: Code generators must emit fully qualified global namespaces (e.g., `::absl::`, `::std::`) within their output strings. This prevents compilation failures caused by local namespace shadowing when generated headers are included inside specific internal namespaces like `mpact::sim`.
+[FLAG: stale] * **Namespace Shadowing & Emission Strictness**: Code generators must emit fully qualified global namespaces (e.g., `::absl::`, `::std::`) within their output strings. This prevents compilation failures caused by local namespace shadowing when generated headers are included inside specific internal namespaces like `mpact::sim`.
 
 ### Recent Cycle Lessons
-* **Namespace Emission Shadowing**: Instruction generator tooling must strictly prefix all external types (e.g., `::absl::`, `::std::`) to prevent downstream shadowing collisions during generation.
+[FLAG: stale] * **Namespace Emission Shadowing**: Instruction generator tooling must strictly prefix all external types (e.g., `::absl::`, `::std::`) to prevent downstream shadowing collisions during generation.
