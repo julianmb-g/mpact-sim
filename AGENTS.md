@@ -3,11 +3,9 @@
 ## System Rules & Architectural Guidelines
 
 ### Architectural Validation
-* **Exception Substitution Hazard**: Developers MUST explicitly evaluate `absl::StatusOr::ok()` before accessing `.value()`. Unconditional unwraps are strictly forbidden to prevent silent fuzzer terminations.
 * **Simulation Fidelity**: Systemic testing illusions mask architecture routing. Native execution MUST route authentic AST payloads and assert true decoding. Mocking `TargetEncoder`, `AxiSlave`, or asserting decoding with mocked `RealEncoding` instead of authentic illegal instruction trapping via ELF payloads completely evades actual integration boundaries and is strictly forbidden.
 
 ### Build Graph & Code Generation
-* **Circular Dependencies**: Do not instruct generic toolkit submodules to implement integration tests that depend on downstream concrete implementations. Keep tests strictly independent.
 * **Native Generator Fixes**: Fix the generator natively utilizing strict bitwise masking (`constexpr uint64_t kRiscv32InstLengthMask = 0x3`). Do not rely on `SafeEncodeWrapper` or `try...catch` abstractions.
 
 ### Orchestration Insights
