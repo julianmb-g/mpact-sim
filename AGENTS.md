@@ -13,3 +13,4 @@
 ### Orchestration Insights
 * **Upstream Synchronization**: Continuous rebase syncs against `origin/main` are required to maintain a consistent orchestration ledger (`AGENTS.md`).
 - **TargetEncoder Mocks**: MUST introduce rigorous Integration/E2E execution tests natively. Mocking TargetEncoder classes is strictly forbidden.
+* **Masked Architectural Decode Errors**: Asserting `decoder.Decode() == nullptr` with a mocked `RealEncoding` instead of authentic illegal instruction trapping via ELF payload completely evades actual integration boundaries and is invalid testing.
