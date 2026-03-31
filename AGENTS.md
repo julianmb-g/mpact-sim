@@ -12,3 +12,4 @@
 
 ### Orchestration Insights
 * **Upstream Synchronization**: Continuous rebase syncs against `origin/main` are required to maintain a consistent orchestration ledger (`AGENTS.md`).
+- **TargetEncoder Mocks**: MUST introduce rigorous Integration/E2E execution tests natively. Mocking TargetEncoder classes is strictly forbidden.
