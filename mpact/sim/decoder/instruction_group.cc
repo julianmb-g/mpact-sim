@@ -197,18 +197,18 @@ std::tuple<std::string, std::string> InstructionGroup::EmitDecoderCode() {
       ::absl::StrCat(opcode_enum_, " Decode", this->name(), "(",
                    format_->uint_type_name(), " inst_word)");
   std::string w_format_signature = ::absl::StrCat(
-      "std::pair<", opcode_enum_, ", FormatEnum> Decode", this->name(),
+      "::std::pair<", opcode_enum_, ", FormatEnum> Decode", this->name(),
       "WithFormat(", format_->uint_type_name(), " inst_word)");
   // First part of the definition of the top level decoder function.
   std::string top_level_decoder = ::absl::StrCat(signature, " {\n");
   std::string w_format_top_level_decoder =
       ::absl::StrCat(w_format_signature, " {\n");
   std::string declarations =
-      ::absl::StrCat("std::pair<", opcode_enum_, ", FormatEnum> Decode",
+      ::absl::StrCat("::std::pair<", opcode_enum_, ", FormatEnum> Decode",
                    this->name(), "None(", format_->uint_type_name(), ");\n");
   std::string definitions = ::absl::StrCat(
-      "std::pair<", opcode_enum_, ", FormatEnum> Decode", this->name(), "None(",
-      format_->uint_type_name(), ") {\n  return std::make_pair(", opcode_enum_,
+      "::std::pair<", opcode_enum_, ", FormatEnum> Decode", this->name(), "None(",
+      format_->uint_type_name(), ") {\n  return ::std::make_pair(", opcode_enum_,
       "::kNone, FormatEnum::kNone);\n}\n\n");
   for (size_t i = 0; i < encoding_group_vec_.size(); i++) {
     auto* grp = encoding_group_vec_[i];

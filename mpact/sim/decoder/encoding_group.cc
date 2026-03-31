@@ -248,7 +248,7 @@ void EncodingGroup::EmitInitializers(::absl::string_view name,
   if (discriminator_size_ == 0) return;
   ::absl::StrAppend(initializers_ptr, "constexpr int kParseGroup", name,
                   "_Size = ", discriminator_size_, ";\n\n");
-  ::absl::StrAppend(initializers_ptr, "::absl::AnyInvocable<std::pair<",
+  ::absl::StrAppend(initializers_ptr, "::absl::AnyInvocable<::std::pair<",
                   opcode_enum, ", FormatEnum>(", inst_word_type_,
                   ")>"
                   " parse_group_",
@@ -302,7 +302,7 @@ void EncodingGroup::EmitDecoders(::absl::string_view name,
                                  const std::string& opcode_enum) const {
   // Generate the decode function signature.
   std::string signature =
-      ::absl::StrCat("std::pair<", opcode_enum, ", FormatEnum> Decode", name, "(",
+      ::absl::StrCat("::std::pair<", opcode_enum, ", FormatEnum> Decode", name, "(",
                    inst_word_type_, " inst_word)");
   ::absl::StrAppend(declarations_ptr, signature, ";\n");
   ::absl::StrAppend(definitions_ptr, signature, " {\n");
@@ -320,7 +320,7 @@ void EncodingGroup::EmitDecoders(::absl::string_view name,
     uint64_t const_value = encoding_vec_[0]->GetValue() & constant_;
     ::absl::StrAppend(&constant_test, "  if ((inst_word & 0x",
                     ::absl::Hex(constant_), ") != 0x", ::absl::Hex(const_value),
-                    ") return std::make_pair(", opcode_enum,
+                    ") return ::std::make_pair(", opcode_enum,
                     "::kNone, FormatEnum::kNone);\n");
   }
   if (!encoding_group_vec_.empty()) {
@@ -339,7 +339,7 @@ void EncodingGroup::EmitDecoders(::absl::string_view name,
         // If the table size is 1, no need to generate the table, just return
         // the opcode.
         ::absl::StrAppend(definitions_ptr, constant_test,
-                        "  return std::make_pair(", opcode_enum, "::k",
+                        "  return ::std::make_pair(", opcode_enum, "::k",
                         ToPascalCase(encoding_vec_[0]->name()),
                         ", FormatEnum::k",
                         ToPascalCase(encoding_vec_[0]->format_name()), ");\n");
@@ -348,7 +348,7 @@ void EncodingGroup::EmitDecoders(::absl::string_view name,
         // extracted discriminator value. If there are gaps, fill them in with
         // kNone values.
         int count = 1 << ::absl::popcount(discriminator_);
-        ::absl::StrAppend(definitions_ptr, "  static constexpr std::pair<",
+        ::absl::StrAppend(definitions_ptr, "  static constexpr ::std::pair<",
                         opcode_enum, ", FormatEnum> opcodes[", count,
                         "] = {\n");
         int entry = 0;
@@ -430,7 +430,7 @@ void EncodingGroup::EmitComplexDecoderBody(
     ::absl::StrAppend(definitions_ptr, "    }\n");
   }
   ::absl::StrAppend(definitions_ptr, "    default: break;\n", "  }\n",
-                  "  return std::make_pair(", opcode_enum,
+                  "  return ::std::make_pair(", opcode_enum,
                   "::kNone, FormatEnum::kNone);\n");
 }
 
@@ -450,7 +450,7 @@ void EncodingGroup::EmitComplexDecoderBodyIfSequence(
                                      extracted, definitions_ptr);
   }
   if (count > 0) {
-    ::absl::StrAppend(definitions_ptr, "  return std::make_pair(", opcode_enum,
+    ::absl::StrAppend(definitions_ptr, "  return ::std::make_pair(", opcode_enum,
                     "::kNone, FormatEnum::kNone);\n");
   }
 }
@@ -566,7 +566,7 @@ int EncodingGroup::EmitEncodingIfStatement(
         ::absl::StrAppend(definitions_ptr, indent_str, if_str, spec_condition,
                         " {\n");
       }
-      ::absl::StrAppend(definitions_ptr, indent_str, "  return std::make_pair(",
+      ::absl::StrAppend(definitions_ptr, indent_str, "  return ::std::make_pair(",
                       opcode_enum, "::k", ToPascalCase(encoding->name()),
                       ", FormatEnum::k", ToPascalCase(encoding->format_name()),
                       ");\n");
@@ -575,7 +575,7 @@ int EncodingGroup::EmitEncodingIfStatement(
     ::absl::StrAppend(definitions_ptr, indent_str, "} else {\n");
     indent_str.append("  ");
   }
-  ::absl::StrAppend(definitions_ptr, indent_str, "return std::make_pair(",
+  ::absl::StrAppend(definitions_ptr, indent_str, "return ::std::make_pair(",
                   opcode_enum, "::k", ToPascalCase(encoding->name()),
                   ", FormatEnum::k", ToPascalCase(encoding->format_name()),
                   ");\n");

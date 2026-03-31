@@ -524,7 +524,7 @@ std::string ProtoEncodingGroup::EmitComplexDecoder(
     std::string map_name = ::absl::StrCat(ToSnakeCase(fcn_name), "_map");
     ::absl::StrAppend(
         &output,
-        "::absl::NoDestructor<::absl::flat_hash_map<int32_t, std::function<",
+        "::absl::NoDestructor<::absl::flat_hash_map<int32_t, ::std::function<",
         opcode_enum, "(", message_type_name, ", ", decoder_class, "*)>>> ",
         map_name, "({\n");
     for (auto* enc_group : encoding_group_vec_) {
@@ -548,7 +548,7 @@ std::string ProtoEncodingGroup::EmitComplexDecoder(
     auto max = differentiator_->max_value;
     auto num_values = max - min + 1;
     auto iter = encoding_group_vec_.begin();
-    ::absl::StrAppend(&output, "std::function<", opcode_enum, "(",
+    ::absl::StrAppend(&output, "::std::function<", opcode_enum, "(",
                     message_type_name, ", ", decoder_class, "*)> ",
                     ToSnakeCase(fcn_name), "_table[", num_values, "] = {\n");
     // Fill in the entries in the function table.

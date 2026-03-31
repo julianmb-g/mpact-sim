@@ -2324,7 +2324,7 @@ std::string InstructionSetVisitor::GenerateHdrFileProlog(
       "using ::mpact::sim::generic::SourceOperandInterface;\n"
       "using ::mpact::sim::generic::DestinationOperandInterface;\n"
       "using ::mpact::sim::generic::ResourceOperandInterface;\n"
-      "using SimpleResourceVector = std::vector<SimpleResourceEnum>;\n"
+      "using SimpleResourceVector = ::std::vector<SimpleResourceEnum>;\n"
       "\n");
   // Emit encoding base class.
   ::absl::StrAppend(&output, "class ", encoding_base_name, " {\n public:\n");
@@ -2353,7 +2353,7 @@ std::string InstructionSetVisitor::GenerateHdrFileProlog(
       "resource_op, int begin, int end) { return nullptr; }\n");
   ::absl::StrAppend(
       &output,
-      "  virtual std::vector<ResourceOperandInterface *> "
+      "  virtual ::std::vector<ResourceOperandInterface *> "
       "GetComplexResourceOperands",
       "(", optional_instruction,
       "SlotEnum slot, int entry, OpcodeEnum opcode, ComplexResourceEnum "
@@ -2374,7 +2374,7 @@ std::string InstructionSetVisitor::GenerateHdrFileProlog(
                   "source_op, int source_no) { return nullptr;}\n");
   ::absl::StrAppend(
       &output,
-      "  virtual std::vector<SourceOperandInterface *> GetSources"
+      "  virtual ::std::vector<SourceOperandInterface *> GetSources"
       "(",
       optional_instruction,
       "SlotEnum slot, int entry, OpcodeEnum opcode, ListSourceOpEnum "
@@ -2388,11 +2388,11 @@ std::string InstructionSetVisitor::GenerateHdrFileProlog(
                   " { return nullptr; }\n");
   ::absl::StrAppend(
       &output,
-      "  virtual std::vector<DestinationOperandInterface *> GetDestinations"
+      "  virtual ::std::vector<DestinationOperandInterface *> GetDestinations"
       "(",
       optional_instruction,
       "SlotEnum slot, int entry, OpcodeEnum opcode, "
-      "ListDestOpEnum dest_op, int dest_no, const std::vector<int> &latency)"
+      "ListDestOpEnum dest_op, int dest_no, const ::std::vector<int> &latency)"
       " { return {}; };\n");
   // Destination operand latency getter for destination operands with '*'
   // as latency.
@@ -2400,21 +2400,21 @@ std::string InstructionSetVisitor::GenerateHdrFileProlog(
       &output, "  virtual int GetLatency(", optional_instruction,
       "SlotEnum slot, int entry, OpcodeEnum "
       "opcode, DestOpEnum dest_op, int dest_no) { return 0; };\n",
-      "  virtual std::vector<int> GetLatency(SlotEnum slot, int entry, "
+      "  virtual ::std::vector<int> GetLatency(SlotEnum slot, int entry, "
       "OpcodeEnum "
       "opcode, ListDestOpEnum dest_op, int dest_no) { return {0}; }\n");
 
   ::absl::StrAppend(&output, "};\n\n");
   ::absl::StrAppend(&output,
                   "using OperandSetter = "
-                  "std::vector<void (*)(Instruction *, ",
+                  "::std::vector<void (*)(Instruction *, ",
                   encoding_base_name,
                   "*, OpcodeEnum, SlotEnum, int)>;\n"
                   "using DisassemblySetter = void(*)(Instruction *);\n"
                   "using ResourceSetter = void(*)(Instruction *, ",
                   encoding_base_name,
                   "*, SlotEnum, int);\n"
-                  "using SemFuncSetter = std::vector<SemFunc>;\n"
+                  "using SemFuncSetter = ::std::vector<SemFunc>;\n"
                   "using AttributeSetter = void(*)(Instruction *);\n"
                   "struct InstructionInfo {\n"
                   "  OperandSetter operand_setter;\n"
@@ -2487,9 +2487,9 @@ InstructionSetVisitor::GenerateEncFilePrologs(
       "namespace coralnpu::sim {\n"
       "struct InstructionAST {\n"
       "  int opcode_index = -1;\n"
-      "  std::string opcode_name = \"\";\n"
-      "  std::vector<std::string> operands;\n"
-      "  std::string assembly = \"\";\n"
+      "  ::std::string opcode_name = \"\";\n"
+      "  ::std::vector<::std::string> operands;\n"
+      "  ::std::string assembly = \"\";\n"
       "  bool operator==(const InstructionAST& other) const {\n"
       "    return opcode_index == other.opcode_index && opcode_name == other.opcode_name && operands == other.operands && assembly == other.assembly;\n"
       "  }\n"

@@ -76,7 +76,7 @@ static inline T ExtractBits(const uint8_t *data, int data_size, int msb,
   int bits_left = width;
   int bits_extracted = 0;
   while (bits_left > 0) {
-    int bwidth = std::min(8 - blsb, bits_left);
+    int bwidth = ::std::min(8 - blsb, bits_left);
     uint8_t bmask = ((1 << bwidth) - 1) << blsb;
     val |= ((data[byte_low] & bmask) >> blsb) << bits_extracted;
     blsb = 0;
@@ -107,7 +107,7 @@ static inline void InsertBits(uint8_t *data, int data_size, int msb, int width,
   int byte_low = data_size - (lsb >> 3) - 1;
   int blsb = lsb & 0x7;
   while (width > 0) {
-    int bwidth = std::min(8 - blsb, width);
+    int bwidth = ::std::min(8 - blsb, width);
     T bmask = (1 << bwidth) - 1;
     uint8_t bval = (val & bmask);
     bmask <<= blsb;
@@ -458,10 +458,10 @@ std::tuple<std::string, std::string> BinFormatVisitor::EmitEncoderCode(
   std::string opcode_enum = encoding->opcode_enum();
   ::absl::StrAppend(&h_string, "extern ::absl::NoDestructor<::absl::flat_hash_map<",
                   opcode_enum,
-                  ", std::tuple<uint64_t, int>>> kOpcodeEncodings;\n");
+                  ", ::std::tuple<uint64_t, int>>> kOpcodeEncodings;\n");
   ::absl::StrAppend(&cc_string, "::absl::NoDestructor<::absl::flat_hash_map<",
                   opcode_enum,
-                  ", std::tuple<uint64_t, int>>> kOpcodeEncodings({\n");
+                  ", ::std::tuple<uint64_t, int>>> kOpcodeEncodings({\n");
   ::absl::StrAppend(&cc_string, "  {", opcode_enum, "::kNone, {0x0ULL, 0}},\n");
   for (auto& [name, pair] : encodings) {
     auto [value, width] = pair;

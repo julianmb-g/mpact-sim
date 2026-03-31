@@ -459,9 +459,9 @@ std::string GenerateEncodingFunctions(const std::string& encoder,
   std::string output;
   ::absl::StrAppend(&output, "namespace {\n\n");
   ::absl::StrAppend(
-      &output, "::absl::StatusOr<std::tuple<uint64_t, int>> EncodeNone(", encoder,
+      &output, "::absl::StatusOr<::std::tuple<uint64_t, int>> EncodeNone(", encoder,
       "*, SlotEnum, int, OpcodeEnum, uint64_t, const "
-      "std::vector<std::string> &) {\n"
+      "::std::vector<::std::string> &) {\n"
       "  return ::absl::NotFoundError(\"No such opcode\");\n"
       "}\n\n");
   return output;
@@ -492,25 +492,25 @@ std::tuple<std::string, std::string> Slot::GenerateAsmRegexMatcher() const {
       class_name,
       "();\n"
       "  ::absl::Status Initialize();\n"
-      "::absl::StatusOr<std::tuple<uint64_t, int>> "
+      "::absl::StatusOr<::std::tuple<uint64_t, int>> "
       "  Encode(uint64_t address, ::absl::string_view text, int entry, "
-      "ResolverInterface *resolver, std::vector<RelocationInfo> "
+      "ResolverInterface *resolver, ::std::vector<RelocationInfo> "
       "&relocations) override;\n"
-      "  ::absl::StatusOr<std::tuple<uint64_t, int>> "
+      "  ::absl::StatusOr<::std::tuple<uint64_t, int>> "
       "  Encode(uint64_t address, int opcode_index, "
-      "const std::vector<std::string> &operands, int entry, "
-      "ResolverInterface *resolver, std::vector<RelocationInfo> "
+      "const ::std::vector<::std::string> &operands, int entry, "
+      "ResolverInterface *resolver, ::std::vector<RelocationInfo> "
       "&relocations) override;\n"
       "  ::absl::StatusOr<uint32_t> "
       "  Encode(const ::coralnpu::sim::InstructionAST& node) const override;\n\n"
       " private:\n"
-      "  bool Match(::absl::string_view text, std::vector<int> &matches);\n"
+      "  bool Match(::absl::string_view text, ::std::vector<int> &matches);\n"
       "  bool Extract(::absl::string_view text, int index, "
-      "std::vector<std::string> &values);\n"
+      "::std::vector<::std::string> &values);\n"
       "  ",
       encoder,
       " *encoder_;\n"
-      "  std::vector<RE2 *> regex_vec_;\n"
+      "  ::std::vector<RE2 *> regex_vec_;\n"
       "  RE2::Set regex_set_;\n"
       "  ::absl::flat_hash_map<int, int> index_to_opcode_map_;\n");
   ::absl::StrAppend(&cc_output, class_name, "::", class_name, "(",
@@ -530,7 +530,7 @@ std::tuple<std::string, std::string> Slot::GenerateAsmRegexMatcher() const {
                   "::absl::Status ",
                   class_name,
                   "::Initialize() {\n"
-                  "  std::string error;\n"
+                  "  ::std::string error;\n"
                   "  int index = regex_set_.Add(\"^$\", &error);\n"
                   "  if (index == -1) return ::absl::InternalError(error);\n"
                   "  regex_vec_.push_back(new RE2(\"^$\"));\n");
@@ -549,9 +549,9 @@ std::tuple<std::string, std::string> Slot::GenerateAsmRegexMatcher() const {
                     "  index_to_opcode_map_.insert({index, static_cast<int>(",
                     opcode_name, ")", "});\n");
   }
-  ::absl::StrAppend(&h_output, "  std::string args[", max_args,
+  ::absl::StrAppend(&h_output, "  ::std::string args[", max_args,
                   "];\n"
-                  "  std::array<RE2::Arg*, ",
+                  "  ::std::array<RE2::Arg*, ",
                   max_args, "> re2_args = {");
   for (int i = 0; i < max_args; ++i) ::absl::StrAppend(&h_output, "nullptr, ");
   ::absl::StrAppend(&h_output, "  };\n");
@@ -571,13 +571,13 @@ std::tuple<std::string, std::string> Slot::GenerateAsmRegexMatcher() const {
       "}\n\n"
       "bool ",
       class_name,
-      "::Match(::absl::string_view text, std::vector<int> &matches) {\n"
+      "::Match(::absl::string_view text, ::std::vector<int> &matches) {\n"
       "  return regex_set_.Match(text, &matches);\n"
       "}\n\n"
       "bool ",
       class_name,
       "::Extract(::absl::string_view text, int index, "
-      "std::vector<std::string> &values) {\n"
+      "::std::vector<::std::string> &values) {\n"
       "  auto &regex = regex_vec_.at(index);\n"
       "  int arg_count = regex->NumberOfCapturingGroups();\n"
       "  if (!regex_vec_.at(index)->FullMatchN(text, *regex, "
@@ -589,20 +589,20 @@ std::tuple<std::string, std::string> Slot::GenerateAsmRegexMatcher() const {
       "  }\n"
       "  return true;\n"
       "}\n\n"
-      "::absl::StatusOr<std::tuple<uint64_t, int>> ",
+      "::absl::StatusOr<::std::tuple<uint64_t, int>> ",
       pascal_name(),
       "SlotMatcher::Encode(\n"
       R"(
     uint64_t address, ::absl::string_view text, int entry, ResolverInterface *resolver,
-    std::vector<RelocationInfo> &relocations) {
-  std::vector<int> matches;
-  std::string error_message = ::absl::StrCat("Failed to encode '", text, "':");
+    ::std::vector<RelocationInfo> &relocations) {
+  ::std::vector<int> matches;
+  ::std::string error_message = ::absl::StrCat("Failed to encode '", text, "':");
   if (!Match(text, matches) || (matches.size() == 0)) {
     return ::absl::NotFoundError(error_message);
   }
-  std::vector<std::tuple<uint64_t, int>> encodings;
+  ::std::vector<::std::tuple<uint64_t, int>> encodings;
   for (auto index : matches) {
-    std::vector<std::string> values;
+    ::std::vector<::std::string> values;
     if (!Extract(text, index, values)) continue;
     auto it = index_to_opcode_map_.find(index);
     if (it == index_to_opcode_map_.end()) continue;
@@ -638,21 +638,21 @@ std::tuple<std::string, std::string> Slot::GenerateAsmRegexMatcher() const {
       "    return ::absl::NotFoundError(\"Invalid opcode index\");\n"
       "  }\n"
       "  int mapped_opcode_index = it->second;\n"
-      "  std::vector<RelocationInfo> relocations;\n"
+      "  ::std::vector<RelocationInfo> relocations;\n"
       "  auto result = encode_fcns[mapped_opcode_index](encoder_, SlotEnum::k",
       pascal_name(),
       ", 0, static_cast<OpcodeEnum>(mapped_opcode_index), 0, node.operands, nullptr, relocations);\n"
       "  if (!result.ok()) {\n"
       "    return result.status();\n"
       "  }\n"
-      "  return static_cast<uint32_t>(std::get<0>(result.value()));\n"
+      "  return static_cast<uint32_t>(::std::get<0>(result.value()));\n"
       "}\n\n"
-      "::absl::StatusOr<std::tuple<uint64_t, int>> ",
+      "::absl::StatusOr<::std::tuple<uint64_t, int>> ",
       pascal_name(),
       "SlotMatcher::Encode(\n"
       "    uint64_t address, int opcode_index, "
-      "const std::vector<std::string> &operands, int entry, "
-      "ResolverInterface *resolver, std::vector<RelocationInfo> "
+      "const ::std::vector<::std::string> &operands, int entry, "
+      "ResolverInterface *resolver, ::std::vector<RelocationInfo> "
       "&relocations) {\n"
       "  if (opcode_index < 0 || opcode_index >= static_cast<int>(OpcodeEnum::kPastMaxValue)) {\n"
       "    return ::absl::NotFoundError(\"Invalid opcode index\");\n"
@@ -808,9 +808,9 @@ std::string Slot::GenerateAssemblerFcn(const Instruction* inst,
   int num_values = inst->opcode()->source_op_vec().size() +
                    inst->opcode()->dest_op_vec().size();
   ::absl::StrAppend(
-      &output, "::absl::StatusOr<std::tuple<int, uint64_t>> ", pascal_name(),
+      &output, "::absl::StatusOr<::std::tuple<int, uint64_t>> ", pascal_name(),
       "Slot", "Assemble", inst->opcode()->pascal_name(), "(", encoder_type,
-      " *enc, const std::vector<std::string> &values, SlotEnum "
+      " *enc, const ::std::vector<::std::string> &values, SlotEnum "
       "slot, int entry) {\n",
       "  if (values.size() != ", num_values,
       ")\n"
@@ -846,7 +846,7 @@ std::string Slot::GenerateAssemblerFcn(const Instruction* inst,
       "  if (!ok) return ::absl::InvalidArgumentError(\"Invalid "
       "encoding\");\n");
   ::absl::StrAppend(&output,
-                  "return std::tie(num_bits, inst_word);\n"
+                  "return ::std::tie(num_bits, inst_word);\n"
                   "}\n\n");
   return output;
 }
@@ -968,7 +968,7 @@ std::string Slot::GenerateResourceSetterFcn(
   if (!simple_refs.empty()) {
     // First gather the resource references into a single vector, then request
     // the resource operands for all the resource references in that vector.
-    ::absl::StrAppend(&output, "  std::vector<SimpleResourceEnum> hold_vec = {");
+    ::absl::StrAppend(&output, "  ::std::vector<SimpleResourceEnum> hold_vec = {");
     for (auto const* simple : simple_refs) {
       std::string resource_name;
       if (simple->is_array) {
@@ -1070,7 +1070,7 @@ std::string Slot::GenerateResourceSetterFcn(
     // Process the resources by latencies.
     for (auto latency : latencies) {
       std::string sep = "";
-      ::absl::StrAppend(&output, "  std::vector<SimpleResourceEnum> acquire_vec",
+      ::absl::StrAppend(&output, "  ::std::vector<SimpleResourceEnum> acquire_vec",
                       latency, " = {");
       for (auto iter = latency_map.lower_bound(latency);
            iter != latency_map.upper_bound(latency); ++iter) {
@@ -1299,7 +1299,7 @@ std::string Slot::GenerateOperandSetterFcn(::absl::string_view getter_name,
 std::string Slot::CreateFuncGetterGlobalArray(::absl::string_view encoding_type) {
   const std::string class_name = pascal_name() + "Slot";
   std::string output = ::absl::StrFormat(
-      "const std::array<std::pair<OpcodeEnum, InstructionInfo>, %d>\n"
+      "const ::std::array<::std::pair<OpcodeEnum, InstructionInfo>, %d>\n"
       "%s {\n",
       instruction_map_.size() + 1, GetInstructionArrayName());
 
@@ -1310,7 +1310,7 @@ std::string Slot::CreateFuncGetterGlobalArray(::absl::string_view encoding_type)
 
   ::absl::StrAppend(
       &output,
-      "    std::make_pair(OpcodeEnum::kNone, "
+      "    ::std::make_pair(OpcodeEnum::kNone, "
       "InstructionInfo{OperandSetter{",
       pascal_name(),
       "SlotSetOperandsNull},\n"
@@ -1358,7 +1358,7 @@ std::string Slot::CreateFuncGetterGlobalArray(::absl::string_view encoding_type)
       }
       sep = ", ";
     }
-    ::absl::StrAppend(&output, "    std::make_pair(OpcodeEnum::k", opcode_name,
+    ::absl::StrAppend(&output, "    ::std::make_pair(OpcodeEnum::k", opcode_name,
                     ", InstructionInfo{OperandSetter{", operands_str, "},\n",
                     "    ", GenerateDisassemblySetter(instruction), ",\n",
                     "    ", GenerateResourceSetter(instruction, encoding_type),

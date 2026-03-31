@@ -75,11 +75,11 @@ std::string Bundle::GenerateClassDeclaration(
   }
   ::absl::StrAppend(&output, " private:\n");
   for (const auto& bundle_name : bundle_names()) {
-    ::absl::StrAppend(&output, "  std::unique_ptr<", ToPascalCase(bundle_name),
+    ::absl::StrAppend(&output, "  ::std::unique_ptr<", ToPascalCase(bundle_name),
                     "Decoder> ", bundle_name, "_decoder_;\n");
   }
   for (const auto& [slot_name, unused] : slot_uses()) {
-    ::absl::StrAppend(&output, "  std::unique_ptr<", ToPascalCase(slot_name),
+    ::absl::StrAppend(&output, "  ::std::unique_ptr<", ToPascalCase(slot_name),
                     "Slot> ", slot_name, "_decoder_;\n");
   }
   ::absl::StrAppend(&output,
@@ -101,11 +101,11 @@ std::string Bundle::GenerateClassDefinition(
                   "{\n");
 
   for (const auto& bundle_name : bundle_names()) {
-    ::absl::StrAppend(&output, "  ", bundle_name, "_decoder = std::make_unique<",
+    ::absl::StrAppend(&output, "  ", bundle_name, "_decoder = ::std::make_unique<",
                     ToPascalCase(bundle_name), "Decoder>(arch_state_);\n");
   }
   for (const auto& [slot_name, unused] : slot_uses()) {
-    ::absl::StrAppend(&output, "  ", slot_name, "_decoder = std::make_unique<",
+    ::absl::StrAppend(&output, "  ", slot_name, "_decoder = ::std::make_unique<",
                     ToPascalCase(slot_name), "Slot>(arch_state_);\n");
   }
   ::absl::StrAppend(&output, "}\n");

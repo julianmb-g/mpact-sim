@@ -49,7 +49,7 @@ std::string GetCppTypeName(
     case google::protobuf::FieldDescriptor::CPPTYPE_DOUBLE:
       return "double";
     case google::protobuf::FieldDescriptor::CPPTYPE_STRING:
-      return "std::string";
+      return "::std::string";
     default:
       return "void";
   }

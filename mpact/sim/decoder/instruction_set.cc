@@ -309,14 +309,14 @@ std::string InstructionSet::GenerateClassDeclarations(
   for (auto const bundle : bundle_order_) {
     if (bundle->is_marked()) {
       std::string bundle_class = bundle->pascal_name() + "Decoder";
-      ::absl::StrAppend(&output, "  virtual std::unique_ptr<", bundle_class,
+      ::absl::StrAppend(&output, "  virtual ::std::unique_ptr<", bundle_class,
                       "> Create", bundle_class, "(ArchState *) = 0;\n");
     }
   }
   for (auto const slot : slot_order_) {
     if (slot->is_referenced()) {
       std::string slot_class = slot->pascal_name() + "Slot";
-      ::absl::StrAppend(&output, "  virtual std::unique_ptr<", slot_class,
+      ::absl::StrAppend(&output, "  virtual ::std::unique_ptr<", slot_class,
                       "> Create", slot_class, "(ArchState *) = 0;\n");
     }
   }
@@ -341,11 +341,11 @@ std::string InstructionSet::GenerateClassDeclarations(
                   "\n"
                   " private:\n");
   for (auto const& bundle_name : bundle_->bundle_names()) {
-    ::absl::StrAppend(&output, "  std::unique_ptr<", ToPascalCase(bundle_name),
+    ::absl::StrAppend(&output, "  ::std::unique_ptr<", ToPascalCase(bundle_name),
                     "Decoder> ", bundle_name, "_decoder_;\n");
   }
   for (auto const& [slot_name, unused] : bundle_->slot_uses()) {
-    ::absl::StrAppend(&output, "  std::unique_ptr<", ToPascalCase(slot_name),
+    ::absl::StrAppend(&output, "  ::std::unique_ptr<", ToPascalCase(slot_name),
                     "Slot> ", slot_name, "_decoder_;\n");
   }
   ::absl::StrAppend(&output,
@@ -946,7 +946,7 @@ std::tuple<std::string, std::string> InstructionSet::GenerateEncClasses(
                   "() = default;\n"
                   R"(
   // Returns the opcode encoding and size (in bits) of the opcode.
-  virtual ::absl::StatusOr<std::tuple<uint64_t, int>> GetOpcodeEncoding(
+  virtual ::absl::StatusOr<::std::tuple<uint64_t, int>> GetOpcodeEncoding(
       SlotEnum slot, int entry, OpcodeEnum opcode, ResolverInterface *resolver) = 0;
   virtual ::absl::StatusOr<uint64_t> GetSrcOpEncoding(uint64_t address,
       ::absl::string_view text, SlotEnum slot, int entry, OpcodeEnum opcode,
@@ -954,14 +954,14 @@ std::tuple<std::string, std::string> InstructionSet::GenerateEncClasses(
   virtual ::absl::Status AppendSrcOpRelocation(uint64_t address,
       ::absl::string_view text, SlotEnum slot, int entry, OpcodeEnum opcode,
       SourceOpEnum source_op, int source_num, ResolverInterface *resolver,
-      std::vector<RelocationInfo> &relocations) = 0;
+      ::std::vector<RelocationInfo> &relocations) = 0;
   virtual ::absl::StatusOr<uint64_t> GetDestOpEncoding(uint64_t address,
       ::absl::string_view text, SlotEnum slot, int entry, OpcodeEnum opcode,
       DestOpEnum dest_op, int dest_num, ResolverInterface *resolver) = 0;
   virtual ::absl::Status AppendDestOpRelocation(uint64_t address,
       ::absl::string_view text, SlotEnum slot, int entry, OpcodeEnum opcode,
       DestOpEnum dest_op, int dest_num, ResolverInterface *resolver,
-      std::vector<RelocationInfo> &relocations) = 0;
+      ::std::vector<RelocationInfo> &relocations) = 0;
   virtual ::absl::StatusOr<uint64_t> GetListSrcOpEncoding( uint64_t address,
       ::absl::string_view text,SlotEnum slot, int entry, OpcodeEnum opcode,
       ListSourceOpEnum source_op, int source_num, ResolverInterface *resolver) = 0;
@@ -979,21 +979,21 @@ std::tuple<std::string, std::string> InstructionSet::GenerateEncClasses(
                   "using ::mpact::sim::util::assembler::ResolverInterface;\n"
                   "\n"
                   "namespace {\n\n"
-                  "::absl::StatusOr<std::tuple<uint64_t, int>> EncodeNone(",
+                  "::absl::StatusOr<::std::tuple<uint64_t, int>> EncodeNone(",
                   encoder,
                   "*, SlotEnum, int, OpcodeEnum, uint64_t, const "
-                  "std::vector<std::string> &, ResolverInterface *, "
-                  "std::vector<RelocationInfo> &) {\n"
+                  "::std::vector<::std::string> &, ResolverInterface *, "
+                  "::std::vector<RelocationInfo> &) {\n"
                   "  return ::absl::NotFoundError(\"No such opcode\");\n"
                   "}\n\n");
   std::string array;
   ::absl::StrAppend(
       &array,
-      "using EncodeFcn = ::absl::StatusOr<std::tuple<uint64_t, int>> (*)(",
+      "using EncodeFcn = ::absl::StatusOr<::std::tuple<uint64_t, int>> (*)(",
       encoder,
       "*, SlotEnum, int, OpcodeEnum, uint64_t, const "
-      "std::vector<std::string> "
-      "&, ResolverInterface *, std::vector<RelocationInfo> &);\n"
+      "::std::vector<::std::string> "
+      "&, ResolverInterface *, ::std::vector<RelocationInfo> &);\n"
       "EncodeFcn encode_fcns[] = {\n"
       "  EncodeNone,\n");
   for (auto& [name, inst_ptr] : instruction_map_) {
@@ -1001,13 +1001,13 @@ std::tuple<std::string, std::string> InstructionSet::GenerateEncClasses(
     std::string suffix;
     auto* opcode = inst_ptr->opcode();
     ::absl::StrAppend(&array, "  Encode", opcode->pascal_name(), ",\n");
-    ::absl::StrAppend(&prefix, "::absl::StatusOr<std::tuple<uint64_t, int>> Encode",
+    ::absl::StrAppend(&prefix, "::absl::StatusOr<::std::tuple<uint64_t, int>> Encode",
                     opcode->pascal_name(), "(\n     ", encoder,
                     " *encoder, SlotEnum slot, int entry, OpcodeEnum opcode,\n"
                     "     uint64_t address, const "
-                    "std::vector<std::string> &operands,\n"
+                    "::std::vector<::std::string> &operands,\n"
                     "     ResolverInterface *resolver, "
-                    "std::vector<RelocationInfo> &relocations) "
+                    "::std::vector<RelocationInfo> &relocations) "
                     "{\n");
     ::absl::StrAppend(&suffix,
                     "  auto res_opcode = encoder->GetOpcodeEncoding(slot, "
@@ -1032,8 +1032,8 @@ std::tuple<std::string, std::string> InstructionSet::GenerateEncClasses(
       }
     }
     ::absl::StrAppend(&suffix,
-                    "  return std::make_tuple(encoding, bit_size);\n"
-                    "  } catch (const std::out_of_range& e) {\n"
+                    "  return ::std::make_tuple(encoding, bit_size);\n"
+                    "  } catch (const ::std::out_of_range& e) {\n"
                     "    return ::absl::OutOfRangeError(e.what());\n"
                     "  }\n"
                     "}\n\n");
@@ -1064,24 +1064,24 @@ std::tuple<std::string, std::string> InstructionSet::GenerateEncClasses(
       " public:\n"
       "  virtual ~SlotMatcherInterface() = default;\n"
       "  virtual ::absl::StatusOr<uint32_t> Encode(const ::coralnpu::sim::InstructionAST& node) const = 0;\n"
-      "  virtual ::absl::StatusOr<std::tuple<uint64_t, int>> Encode(\n"
+      "  virtual ::absl::StatusOr<::std::tuple<uint64_t, int>> Encode(\n"
       "      uint64_t address, ::absl::string_view text, int entry,\n"
       "      ResolverInterface *resolver,\n"
-      "      std::vector<RelocationInfo> &relocations) = 0;\n"
-      "  virtual ::absl::StatusOr<std::tuple<uint64_t, int>> Encode(\n"
+      "      ::std::vector<RelocationInfo> &relocations) = 0;\n"
+      "  virtual ::absl::StatusOr<::std::tuple<uint64_t, int>> Encode(\n"
       "      uint64_t address, int opcode_index,\n"
-      "      const std::vector<std::string> &operands, int entry,\n"
+      "      const ::std::vector<::std::string> &operands, int entry,\n"
       "      ResolverInterface *resolver,\n"
-      "      std::vector<RelocationInfo> &relocations) = 0;\n"
+      "      ::std::vector<RelocationInfo> &relocations) = 0;\n"
       "\n"
       "  // Backward-compatible C++ wrapper for legacy consumers\n"
       "  bool EncodeSafe(uint64_t address, int opcode_index,\n"
-      "                  const std::vector<std::string> &operands, int entry,\n"
+      "                  const ::std::vector<::std::string> &operands, int entry,\n"
       "                  ResolverInterface *resolver,\n"
-      "                  std::vector<RelocationInfo> &relocations,\n"
-      "                  std::tuple<uint64_t, int>* out_payload,\n"
+      "                  ::std::vector<RelocationInfo> &relocations,\n"
+      "                  ::std::tuple<uint64_t, int>* out_payload,\n"
       "                  ::absl::Status* out_status = nullptr) {\n"
-      "      ::absl::StatusOr<std::tuple<uint64_t, int>> result = Encode(\n"
+      "      ::absl::StatusOr<::std::tuple<uint64_t, int>> result = Encode(\n"
       "          address, opcode_index, operands, entry, resolver, relocations);\n"
       "      if (result.ok()) {\n"
       "          if (out_payload) *out_payload = result.value();\n"
