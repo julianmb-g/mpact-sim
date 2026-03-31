@@ -2,57 +2,13 @@
 
 ## System Rules & Architectural Guidelines
 
-### Tier 1: Critical Blocker
+### Architectural Validation
+* **Exception Substitution Hazard**: Developers MUST explicitly evaluate `absl::StatusOr::ok()` before accessing `.value()`. Unconditional unwraps are strictly forbidden to prevent silent fuzzer terminations.
+* **Simulation Fidelity**: Systemic testing illusions mask architecture routing. Native execution MUST route authentic AST payloads and assert true decoding. Mocking `TargetEncoder` or `AxiSlave` to test generic toolkit logic is strictly forbidden.
 
-* **Anti-Mocking & Simulation Fidelity**
-  * **Quote:** "Validating bytes written to memory does not prove cross-component hardware integration. Do not leave trivial `EXPECT_TRUE(true)` placeholders."
-  * **Impact:** Systemic testing illusions and mathematical evasion mask cross-component architectural routing and traps.
-  * **Action:** E2E execution tests MUST natively route authentic AST payloads (compiled ELFs). Tests mimicking external memory MUST instantiate REAL synthesized DDR controllers and SRAM RTL block responders. Natively implement structural bounds parsing, use `EXPECT_THROW` to organically test crashes, and assert true decoding correctness. Mocking `TargetEncoder` or `AxiSlave` is strictly forbidden.
-* **Circular Dependency Prevention**
-  * **Quote:** "Do not instruct generic toolkit submodules to implement integration tests that depend on downstream concrete implementations."
-  * **Impact:** Introduces circular dependencies and breaks the Bazel build graph.
-  * **Action:** Maintain strict boundary isolation; keep generic toolkit tests independent of downstream implementations.
-* **Hermetic Build Preservation**
-  * **Quote:** "Replacing `http_archive` with `local_repository` or `native.local_repository` in Bazel repository definitions is strictly forbidden."
-  * **Impact:** Breaks hermeticity and cross-system reproducibility.
-  * **Action:** Exclusively use `http_archive` for all Bazel dependencies.
-* **Native Generator Fixes & Wrapper Bans**
-  * **Quote:** "Implementing a generic `SafeEncodeWrapper` using `try...catch` violates the explicit directive to fix the generator natively."
-  * **Impact:** Introduces unauthorized evasion abstractions instead of resolving root architectural flaws.
-  * **Action:** Fix the generator natively utilizing strict bitwise masking (`constexpr uint64_t kRiscv32InstLengthMask = 0x3`). Do not reintroduce `SafeEncodeWrapper` or evasion wrappers.
-
-### Tier 2: System Architecture
-
-* **Exception Substitution Hazard (`absl::StatusOr`)**
-  * **Quote:** "Unconditional `.value()` unwrapping throws `absl::BadStatusOrAccess`, instantly terminating the fuzzer natively in-process."
-  * **Impact:** Masks silent architectural panics or breaks downstream ABI integration points via undefined behaviors.
-  * **Action:** Developers MUST explicitly evaluate `.ok()` before accessing `.value()`. Unconditional unwraps are strictly forbidden.
-
-### Code Generation & Boundaries
-
-* [FLAG: stale] **Namespace Shadowing (`absl::string_view`)**
-  * **Quote:** "Namespace shadowing inside nested generator blocks."
-  * **Impact:** Compilation errors when generating C++ code that references external namespaces inside local scopes.
-  * **Action:** When generating C++ code referencing external namespaces (like `absl`), ALWAYS use fully qualified global prefixes (e.g., `::absl::string_view`, `::absl`) to prevent namespace shadowing.
-* [FLAG: stale] **Operand Encoding Bounds Check Exception**
-  * **Quote:** "The auto-generated bitwise packing logic may throw `std::out_of_range` if an operand immediate value exceeds its bit-width."
-  * **Impact:** Exceptions fatally crash the process.
-  * **Action:** Patch the generator to perform safe bounds-checking on operands and return an `absl::Status` (e.g., `absl::NotFoundError` or `absl::OutOfRangeError`) instead of throwing exceptions. Ensure comprehensive testing organically validates this without downstream circular dependencies.
+### Build Graph & Code Generation
+* **Circular Dependencies**: Do not instruct generic toolkit submodules to implement integration tests that depend on downstream concrete implementations. Keep tests strictly independent.
+* **Native Generator Fixes**: Fix the generator natively utilizing strict bitwise masking (`constexpr uint64_t kRiscv32InstLengthMask = 0x3`). Do not rely on `SafeEncodeWrapper` or `try...catch` abstractions.
 
 ### Orchestration Insights
-
-* **Upstream Synchronization**
-  * **Action:** Continuous rebase syncs against `origin/main` are required to maintain a consistent orchestration ledger (`AGENTS.md`).
-* **Submodule Ledger Consolidation**
-  * **Action:** Immediately integrate audit restorations into the primary strict execution mandates and remove restoration headers. Prune exact duplicates.
-* [FLAG: stale] **Code Generator `#include` Injections and Namespace Shadowing**
-  * **Impact:** Emitting `#include <stdexcept>` or `#include "absl/strings/match.h"` directives inside `mpact::sim::riscv::isa64` causes the included library's internal namespaces to be incorrectly nested, creating severe shadowing collisions.
-  * **Action:** `GenerateEncFilePrologs` MUST strictly emit all `#include` directives at the global file scope, entirely before opening any nested `namespace` blocks.
-* [FLAG: stale] **Negative Hex String Evasion (`-0x...`) in `SimpleTextToInt`**
-  * **Impact:** Standard regexes like `^0x[0-9a-f]+$` and decimal parsers like `absl::SimpleAtoi` silently fail to parse negative hex strings like `-0x800`. This bypasses generator bounds checks, throwing unhandled `std::out_of_range` exceptions in downstream bitpackers.
-  * **Action:** `SimpleTextToInt` must explicitly match the negative sign `(-?)` preceding `0x` prefixes, invert the integer via `absl::SimpleHexAtoi`, and evaluate bounds checks securely.
-
-### Code Generation & ISA Literal Namespaces
-* [FLAG: stale] **Namespace Shadowing in `.isa` and String Literals**
-  * **Impact:** The code generator blind-copies C++ string literals from `.isa`, `.bin_fmt`, and `.proto_fmt` files into local `namespace` scopes. Writing `absl::bind_front` in a `.isa` file injects an un-prefixed reference that triggers compilation failures during tests.
-  * **Action:** You must apply the global scope prefix `::absl::` explicitly inside the string literals and instruction semantics logic of all DSL configuration files (e.g., `::absl::bind_front`).
+* **Upstream Synchronization**: Continuous rebase syncs against `origin/main` are required to maintain a consistent orchestration ledger (`AGENTS.md`).
