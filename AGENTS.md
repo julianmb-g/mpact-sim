@@ -14,3 +14,4 @@
 
 ## Integration Execution Validation
 * **Fake Integration Boundaries**: Do not use mocked `RealEncoding` or `TargetEncoder` classes for E2E Trap validation. Integration suites MUST natively route authentic executing ELF payloads through `riscv_top.cc`.
+* **Unmasking into a Void**: Deleting fraudulent tests (e.g., decoder_trap_integration_test.cc) without instantiating an authentic cross-compiled ELF E2E execution test creates a total test void. Authentic E2E trap validation natively evaluating invalid AST routing is strictly required.
